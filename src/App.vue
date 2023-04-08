@@ -3,12 +3,10 @@ import { watchEffect } from 'vue'
 import { Repl, ReplStore } from '@vue/repl'
 import '@vue/repl/style.css'
 
-const query = new URLSearchParams(location.search)
 const store = new ReplStore({
   serializedState: location.hash.slice(1),
-
-  showOutput: query.has('showOutput'),
-  outputMode: (query.get('outputMode') || 'preview'),
+  showOutput: true,
+  outputMode: 'preview',
 })
 
 watchEffect(() => history.replaceState({}, '', store.serialize()))
@@ -23,7 +21,7 @@ store.setImportMap({
 
 <template>
   <div class="replContainer">
-    <Repl style="height: 100%" :store="store" :ssr="false" />
+    <Repl style="height: 100%" :store="store" :ssr="false" :showCompileOutput="false" />
   </div>
 </template>
 
