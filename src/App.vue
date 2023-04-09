@@ -14,7 +14,7 @@ watchEffect(() => history.replaceState({}, '', store.serialize()))
 store.setImportMap({
   imports: {
     "vue": "./vue.runtime.esm-browser.js",
-    "simple-mind-map": "./simpleMindMap.esm.js"
+    "simple-mind-map": "https://lxqnsys.oss-cn-beijing.aliyuncs.com/assets/simpleMindMap.esm.js"
   }
 })
 </script>
