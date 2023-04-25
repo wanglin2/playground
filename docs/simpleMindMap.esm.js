@@ -36656,7 +36656,10 @@ var CONSTANTS = {
     LOGICAL_STRUCTURE: "logicalStructure",
     MIND_MAP: "mindMap",
     ORGANIZATION_STRUCTURE: "organizationStructure",
-    CATALOG_ORGANIZATION: "catalogOrganization"
+    CATALOG_ORGANIZATION: "catalogOrganization",
+    TIMELINE: "timeline",
+    TIMELINE2: "timeline2",
+    FISHBONE: "fishbone"
   },
   DIR: {
     UP: "up",
@@ -36691,6 +36694,10 @@ var CONSTANTS = {
     RIGHT: "right",
     BOTTOM: "bottom",
     CENTER: "center"
+  },
+  TIMELINE_DIR: {
+    TOP: "top",
+    BOTTOM: "bottom"
   }
 };
 var initRootNodePositionMap = {
@@ -36716,13 +36723,28 @@ var layoutList = [
   {
     name: "\u76EE\u5F55\u7EC4\u7EC7\u56FE",
     value: CONSTANTS.LAYOUT.CATALOG_ORGANIZATION
+  },
+  {
+    name: "\u65F6\u95F4\u8F74",
+    value: CONSTANTS.LAYOUT.TIMELINE
+  },
+  {
+    name: "\u65F6\u95F4\u8F742",
+    value: CONSTANTS.LAYOUT.TIMELINE2
+  },
+  {
+    name: "\u9C7C\u9AA8\u56FE",
+    value: CONSTANTS.LAYOUT.FISHBONE
   }
 ];
 var layoutValueList = [
   CONSTANTS.LAYOUT.LOGICAL_STRUCTURE,
   CONSTANTS.LAYOUT.MIND_MAP,
   CONSTANTS.LAYOUT.CATALOG_ORGANIZATION,
-  CONSTANTS.LAYOUT.ORGANIZATION_STRUCTURE
+  CONSTANTS.LAYOUT.ORGANIZATION_STRUCTURE,
+  CONSTANTS.LAYOUT.TIMELINE,
+  CONSTANTS.LAYOUT.TIMELINE2,
+  CONSTANTS.LAYOUT.FISHBONE
 ];
 
 // ../simple-mind-map/src/View.js
@@ -36834,6 +36856,12 @@ var View = class {
       this.mindMap.emit("scale", this.scale);
     }
   }
+  //  平移x,y方向
+  translateXY(x3, y4) {
+    this.x += x3;
+    this.y += y4;
+    this.transform();
+  }
   //  平移x方向
   translateX(step) {
     this.x += step;
@@ -36865,10 +36893,14 @@ var View = class {
   }
   //  恢复
   reset() {
+    let scaleChange = this.scale !== 1;
     this.scale = 1;
     this.x = 0;
     this.y = 0;
     this.transform();
+    if (scaleChange) {
+      this.mindMap.emit("scale", this.scale);
+    }
   }
   //  缩小
   narrow() {
@@ -36921,6 +36953,7 @@ var Event2 = class extends import_eventemitter3.default {
   }
   //  绑定函数上下文
   bindFn() {
+    this.onBodyClick = this.onBodyClick.bind(this);
     this.onDrawClick = this.onDrawClick.bind(this);
     this.onMousedown = this.onMousedown.bind(this);
     this.onMousemove = this.onMousemove.bind(this);
@@ -36934,6 +36967,7 @@ var Event2 = class extends import_eventemitter3.default {
   }
   //  绑定事件
   bind() {
+    document.body.addEventListener("click", this.onBodyClick);
     this.mindMap.svg.on("click", this.onDrawClick);
     this.mindMap.el.addEventListener("mousedown", this.onMousedown);
     this.mindMap.svg.on("mousedown", this.onSvgMousedown);
@@ -36947,6 +36981,7 @@ var Event2 = class extends import_eventemitter3.default {
   }
   //  解绑事件
   unbind() {
+    document.body.removeEventListener("click", this.onBodyClick);
     this.mindMap.svg.off("click", this.onDrawClick);
     this.mindMap.el.removeEventListener("mousedown", this.onMousedown);
     window.removeEventListener("mousemove", this.onMousemove);
@@ -36960,6 +36995,10 @@ var Event2 = class extends import_eventemitter3.default {
   //   画布的单击事件
   onDrawClick(e2) {
     this.emit("draw_click", e2);
+  }
+  // 页面的单击事件
+  onBodyClick(e2) {
+    this.emit("body_click", e2);
   }
   //   svg画布的鼠标按下事件
   onSvgMousedown(e2) {
@@ -37118,6 +37157,17 @@ var Style = class {
       "text-decoration": this.merge("textDecoration")
     });
   }
+  // 生成内联样式
+  createStyleText() {
+    return `
+      color: ${this.merge("color")};
+      font-family: ${this.merge("fontFamily")};
+      font-size: ${this.merge("fontSize") + "px"};
+      font-weight: ${this.merge("fontWeight")};
+      font-style: ${this.merge("fontStyle")};
+      text-decoration: ${this.merge("textDecoration")}
+    `;
+  }
   // 获取文本样式
   getTextFontStyle() {
     return {
@@ -37128,11 +37178,11 @@ var Style = class {
     };
   }
   //  html文字节点
-  domText(node3, fontSizeScale = 1, textLines) {
+  domText(node3, fontSizeScale = 1, isMultiLine) {
     node3.style.fontFamily = this.merge("fontFamily");
     node3.style.fontSize = this.merge("fontSize") * fontSizeScale + "px";
     node3.style.fontWeight = this.merge("fontWeight") || "normal";
-    node3.style.lineHeight = textLines === 1 ? "normal" : this.merge("lineHeight");
+    node3.style.lineHeight = !isMultiLine ? "normal" : this.merge("lineHeight");
     node3.style.fontStyle = this.merge("fontStyle");
   }
   //  标签文字
@@ -43208,6 +43258,42 @@ var nextTick = function(fn, ctx) {
     timerFunc(handle, 0);
   };
 };
+var checkNodeOuter = (mindMap, node3) => {
+  let elRect = mindMap.elRect;
+  let { scaleX, scaleY, translateX, translateY } = mindMap.draw.transform();
+  let { left, top, width: width2, height: height2 } = node3;
+  let right = (left + width2) * scaleX + translateX;
+  let bottom = (top + height2) * scaleY + translateY;
+  left = left * scaleX + translateX;
+  top = top * scaleY + translateY;
+  let offsetLeft = 0;
+  let offsetTop = 0;
+  if (left < 0) {
+    offsetLeft = -left;
+  }
+  if (right > elRect.width) {
+    offsetLeft = -(right - elRect.width);
+  }
+  if (top < 0) {
+    offsetTop = -top;
+  }
+  if (bottom > elRect.height) {
+    offsetTop = -(bottom - elRect.height);
+  }
+  return {
+    isOuter: offsetLeft !== 0 || offsetTop !== 0,
+    offsetLeft,
+    offsetTop
+  };
+};
+var getTextFromHtmlEl = null;
+var getTextFromHtml = (html2) => {
+  if (!getTextFromHtmlEl) {
+    getTextFromHtmlEl = document.createElement("div");
+  }
+  getTextFromHtmlEl.innerHTML = html2;
+  return getTextFromHtmlEl.textContent;
+};
 
 // ../simple-mind-map/src/utils/nodeGeneralization.js
 function checkHasGeneralization() {
@@ -43339,15 +43425,20 @@ function createExpandNodeContent() {
   );
 }
 function updateExpandBtnNode() {
+  let { expand } = this.nodeData.data;
+  if (expand === this._lastExpandBtnType)
+    return;
   if (this._expandBtn) {
     this._expandBtn.clear();
   }
   this.createExpandNodeContent();
   let node3;
-  if (this.nodeData.data.expand === false) {
+  if (expand === false) {
     node3 = this._openExpandNode;
+    this._lastExpandBtnType = false;
   } else {
     node3 = this._closeExpandNode;
+    this._lastExpandBtnType = true;
   }
   if (this._expandBtn)
     this._expandBtn.add(this._fillExpandNode).add(node3);
@@ -43392,12 +43483,31 @@ function renderExpandBtn() {
     });
     this.group.add(this._expandBtn);
   }
+  this._showExpandBtn = true;
   this.updateExpandBtnNode();
   this.updateExpandBtnPos();
 }
 function removeExpandBtn() {
-  if (this._expandBtn) {
+  if (this._expandBtn && this._showExpandBtn) {
     this._expandBtn.remove();
+    this._showExpandBtn = false;
+  }
+}
+function showExpandBtn() {
+  if (this.mindMap.opt.alwaysShowExpandBtn)
+    return;
+  setTimeout(() => {
+    this.renderExpandBtn();
+  }, 0);
+}
+function hideExpandBtn() {
+  if (this.mindMap.opt.alwaysShowExpandBtn || this._isMouseenter)
+    return;
+  let { isActive, expand } = this.nodeData.data;
+  if (!isActive && expand) {
+    setTimeout(() => {
+      this.removeExpandBtn();
+    }, 0);
   }
 }
 var nodeExpandBtn_default = {
@@ -43405,7 +43515,9 @@ var nodeExpandBtn_default = {
   updateExpandBtnNode,
   updateExpandBtnPos,
   renderExpandBtn,
-  removeExpandBtn
+  removeExpandBtn,
+  showExpandBtn,
+  hideExpandBtn
 };
 
 // ../simple-mind-map/src/utils/nodeCommandWraps.js
@@ -43721,9 +43833,9 @@ var nodeIconList = [
     ]
   }
 ];
-var getNodeIconListIcon = (name) => {
+var getNodeIconListIcon = (name, extendIconList = []) => {
   let arr = name.split("_");
-  let typeData = nodeIconList.find((item) => {
+  let typeData = [...nodeIconList, ...extendIconList].find((item) => {
     return item.type === arr[0];
   });
   return typeData.list.find((item) => {
@@ -43772,8 +43884,16 @@ function createIconNode() {
   }
   let iconSize = this.mindMap.themeConfig.iconSize;
   return _data.icon.map((item) => {
+    let src = icons_default.getNodeIconListIcon(item, this.mindMap.opt.iconList || []);
+    let node3 = null;
+    if (/^<svg/.test(src)) {
+      node3 = SVG(src);
+    } else {
+      node3 = new Image2().load(src);
+    }
+    node3.size(iconSize, iconSize);
     return {
-      node: SVG(icons_default.getNodeIconListIcon(item)).size(iconSize, iconSize),
+      node: node3,
       width: iconSize,
       height: iconSize
     };
@@ -43781,11 +43901,17 @@ function createIconNode() {
 }
 function createRichTextNode() {
   let g2 = new G();
+  if (this.nodeData.data.resetRichText || [CONSTANTS.CHANGE_THEME].includes(this.mindMap.renderer.renderSource)) {
+    delete this.nodeData.data.resetRichText;
+    let text3 = getTextFromHtml(this.nodeData.data.text);
+    this.nodeData.data.text = `<p><span style="${this.style.createStyleText()}">${text3}</span></p>`;
+  }
   let html2 = `<div>${this.nodeData.data.text}</div>`;
   let div = document.createElement("div");
   div.innerHTML = html2;
   div.style.cssText = `position: fixed; left: -999999px;`;
   let el2 = div.children[0];
+  el2.classList.add("smm-richtext-node-wrap");
   el2.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
   el2.style.maxWidth = this.mindMap.opt.textAutoWrapWidth + "px";
   this.mindMap.el.appendChild(div);
@@ -43821,20 +43947,26 @@ function createTextNode() {
   let textStyle = this.style.getTextFontStyle();
   let textArr = this.nodeData.data.text.split(/\n/gim);
   let maxWidth = this.mindMap.opt.textAutoWrapWidth;
+  let isMultiLine = false;
   textArr.forEach((item, index3) => {
     let arr = item.split("");
     let lines = [];
     let line = [];
     while (arr.length) {
-      line.push(arr.shift());
-      let text3 = line.join("");
-      if (measureText(text3, textStyle).width >= maxWidth) {
-        lines.push(text3);
-        line = [];
+      let str = arr.shift();
+      let text3 = [...line, str].join("");
+      if (measureText(text3, textStyle).width <= maxWidth) {
+        line.push(str);
+      } else {
+        lines.push(line.join(""));
+        line = [str];
       }
     }
     if (line.length > 0) {
       lines.push(line.join(""));
+    }
+    if (lines.length > 1) {
+      isMultiLine = true;
     }
     textArr[index3] = lines.join("\n");
   });
@@ -43850,6 +43982,7 @@ function createTextNode() {
   height2 = Math.ceil(height2);
   g2.attr("data-width", width2);
   g2.attr("data-height", height2);
+  g2.attr("data-ismultiLine", isMultiLine || textArr.length > 1);
   return {
     node: g2,
     width: width2,
@@ -43917,13 +44050,14 @@ function createNoteNode() {
     if (!this.noteEl) {
       this.noteEl = document.createElement("div");
       this.noteEl.style.cssText = `
-                    position: absolute;
-                    padding: 10px;
-                    border-radius: 5px;
-                    box-shadow: 0 2px 5px rgb(0 0 0 / 10%);
-                    display: none;
-                    background-color: #fff;
-                `;
+          position: absolute;
+          padding: 10px;
+          border-radius: 5px;
+          box-shadow: 0 2px 5px rgb(0 0 0 / 10%);
+          display: none;
+          background-color: #fff;
+          z-index: ${this.mindMap.opt.nodeNoteTooltipZIndex}
+      `;
       document.body.appendChild(this.noteEl);
     }
     this.noteEl.innerText = this.nodeData.data.note;
@@ -44004,12 +44138,16 @@ var Node2 = class {
     this._noteData = null;
     this.noteEl = null;
     this._expandBtn = null;
+    this._lastExpandBtnType = null;
+    this._showExpandBtn = false;
     this._openExpandNode = null;
     this._closeExpandNode = null;
     this._fillExpandNode = null;
     this._lines = [];
     this._generalizationLine = null;
     this._generalizationNode = null;
+    this._unVisibleRectRegionNode = null;
+    this._isMouseenter = false;
     this._rectInfo = {
       imgContentWidth: 0,
       imgContentHeight: 0,
@@ -44139,12 +44277,21 @@ var Node2 = class {
   //  定位节点内容
   layout() {
     this.group.clear();
-    let { width: width2, textContentItemMargin } = this;
+    let { width: width2, height: height2, textContentItemMargin } = this;
     let { paddingY } = this.getPaddingVale();
     paddingY += this.shapePadding.paddingY;
     this.shapeNode = this.shapeInstance.createShape();
     this.group.add(this.shapeNode);
     this.updateNodeShape();
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      if (!this._unVisibleRectRegionNode) {
+        this._unVisibleRectRegionNode = new Rect();
+      }
+      this._unVisibleRectRegionNode.fill({
+        color: "transparent"
+      }).size(this.expandBtnSize, height2).x(width2).y(0);
+      this.group.add(this._unVisibleRectRegionNode);
+    }
     if (this.isGeneralization && this.generalizationBelongNode) {
       this.group.addClass("generalization_" + this.generalizationBelongNode.uid);
     }
@@ -44212,6 +44359,9 @@ var Node2 = class {
       this.active(e2);
     });
     this.group.on("mousedown", (e2) => {
+      if (this.isRoot && e2.which === 3) {
+        e2.stopPropagation();
+      }
       if (!this.isRoot) {
         e2.stopPropagation();
       }
@@ -44219,9 +44369,15 @@ var Node2 = class {
         this.isMultipleChoice = true;
         let isActive = this.nodeData.data.isActive;
         if (!isActive)
-          this.mindMap.emit("before_node_active", this, this.renderer.activeNodeList);
+          this.mindMap.emit(
+            "before_node_active",
+            this,
+            this.renderer.activeNodeList
+          );
         this.mindMap.execCommand("SET_NODE_ACTIVE", this, !isActive);
-        this.mindMap.renderer[isActive ? "removeActiveNode" : "addActiveNode"](this);
+        this.mindMap.renderer[isActive ? "removeActiveNode" : "addActiveNode"](
+          this
+        );
         this.mindMap.emit(
           "node_active",
           isActive ? null : this,
@@ -44237,9 +44393,13 @@ var Node2 = class {
       this.mindMap.emit("node_mouseup", this, e2);
     });
     this.group.on("mouseenter", (e2) => {
+      this._isMouseenter = true;
+      this.showExpandBtn();
       this.mindMap.emit("node_mouseenter", this, e2);
     });
     this.group.on("mouseleave", (e2) => {
+      this._isMouseenter = false;
+      this.hideExpandBtn();
       this.mindMap.emit("node_mouseleave", this, e2);
     });
     this.group.on("dblclick", (e2) => {
@@ -44250,7 +44410,7 @@ var Node2 = class {
       this.mindMap.emit("node_dblclick", this, e2);
     });
     this.group.on("contextmenu", (e2) => {
-      if (this.mindMap.opt.readonly || this.isGeneralization || e2.ctrlKey) {
+      if (this.mindMap.opt.readonly || e2.ctrlKey) {
         return;
       }
       e2.stopPropagation();
@@ -44282,24 +44442,29 @@ var Node2 = class {
     if (!this.group) {
       return;
     }
-    let { enableNodeTransitionMove, nodeTransitionMoveDuration } = this.mindMap.opt;
-    if (this._expandBtn && this.nodeData.children.length <= 0) {
-      this.removeExpandBtn();
+    let { enableNodeTransitionMove, nodeTransitionMoveDuration, alwaysShowExpandBtn } = this.mindMap.opt;
+    if (alwaysShowExpandBtn) {
+      if (this._expandBtn && this.nodeData.children.length <= 0) {
+        this.removeExpandBtn();
+      } else {
+        this.renderExpandBtn();
+      }
     } else {
-      this.renderExpandBtn();
+      let { isActive, expand } = this.nodeData.data;
+      if (expand && !isActive && !this._isMouseenter) {
+        this.hideExpandBtn();
+      } else {
+        this.showExpandBtn();
+      }
     }
     this.renderGeneralization();
     let t3 = this.group.transform();
+    if (this.left === t3.translateX && this.top === t3.translateY)
+      return;
     if (!isLayout && enableNodeTransitionMove) {
-      this.group.animate(nodeTransitionMoveDuration).translate(
-        this.left - t3.translateX,
-        this.top - t3.translateY
-      );
+      this.group.animate(nodeTransitionMoveDuration).translate(this.left - t3.translateX, this.top - t3.translateY);
     } else {
-      this.group.translate(
-        this.left - t3.translateX,
-        this.top - t3.translateY
-      );
+      this.group.translate(this.left - t3.translateX, this.top - t3.translateY);
     }
   }
   // 重新渲染节点，即重新创建节点内容、计算节点大小、计算节点内容布局、更新展开收起按钮，概要及位置
@@ -44314,7 +44479,9 @@ var Node2 = class {
     if (!this.shapeNode)
       return;
     const shape = this.getShape();
-    this.style[shape === CONSTANTS.SHAPE.RECTANGLE ? "rect" : "shape"](this.shapeNode);
+    this.style[shape === CONSTANTS.SHAPE.RECTANGLE ? "rect" : "shape"](
+      this.shapeNode
+    );
   }
   //  递归渲染
   render(callback = () => {
@@ -44403,7 +44570,10 @@ var Node2 = class {
     this.hideGeneralization();
     if (this.parent) {
       let index3 = this.parent.children.indexOf(this);
-      this.parent._lines[index3].hide();
+      this.parent._lines[index3] && this.parent._lines[index3].hide();
+      this._lines.forEach((item) => {
+        item.hide();
+      });
     }
     if (this.children && this.children.length) {
       asyncRun(
@@ -44425,6 +44595,9 @@ var Node2 = class {
     if (this.parent) {
       let index3 = this.parent.children.indexOf(this);
       this.parent._lines[index3] && this.parent._lines[index3].show();
+      this._lines.forEach((item) => {
+        item.show();
+      });
     }
     if (this.children && this.children.length) {
       asyncRun(
@@ -44442,6 +44615,9 @@ var Node2 = class {
       return;
     }
     let childrenLen = this.nodeData.children.length;
+    if (this.mindMap.opt.layout === CONSTANTS.LAYOUT.FISHBONE && (this.isRoot || this.layerIndex === 1)) {
+      childrenLen = 0;
+    }
     if (childrenLen > this._lines.length) {
       new Array(childrenLen - this._lines.length).fill(0).forEach(() => {
         this._lines.push(this.draw.path());
@@ -44532,9 +44708,10 @@ var Node2 = class {
   }
   //  获取padding值
   getPaddingVale() {
+    let { isActive } = this.nodeData.data;
     return {
-      paddingX: this.getStyle("paddingX", true, this.nodeData.data.isActive),
-      paddingY: this.getStyle("paddingY", true, this.nodeData.data.isActive)
+      paddingX: this.getStyle("paddingX", true, isActive),
+      paddingY: this.getStyle("paddingY", true, isActive)
     };
   }
   //  获取某个样式
@@ -44689,6 +44866,34 @@ var Base2 = class {
       }
     });
   }
+  //  更新子节点多个属性
+  updateChildrenPro(children, props) {
+    children.forEach((item) => {
+      Object.keys(props).forEach((prop) => {
+        item[prop] += props[prop];
+      });
+      if (item.children && item.children.length && !item.hasCustomPosition()) {
+        this.updateChildrenPro(item.children, props);
+      }
+    });
+  }
+  //  递归计算节点的宽度
+  getNodeAreaWidth(node3) {
+    let widthArr = [];
+    let loop = (node4, width2) => {
+      if (node4.children.length) {
+        width2 += node4.width / 2;
+        node4.children.forEach((item) => {
+          loop(item, width2);
+        });
+      } else {
+        width2 += node4.width;
+        widthArr.push(width2);
+      }
+    };
+    loop(node3, 0);
+    return Math.max(...widthArr);
+  }
   //  二次贝塞尔曲线
   quadraticCurvePath(x1, y1, x22, y22) {
     let cx2 = x1 + (x22 - x1) * 0.2;
@@ -44778,6 +44983,10 @@ var Base2 = class {
       generalizationLineMargin,
       generalizationNodeMargin
     };
+  }
+  // 获取节点实际存在几个子节点
+  getNodeActChildrenLength(node3) {
+    return node3.nodeData.children && node3.nodeData.children.length;
   }
 };
 var Base_default = Base2;
@@ -44911,6 +45120,9 @@ var LogicalStructure = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let marginX = this.getMarginX(node3.layerIndex + 1);
     let s1 = (marginX - expandBtnSize) * 0.6;
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
@@ -44933,6 +45145,9 @@ var LogicalStructure = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
     node3.children.forEach((item, index3) => {
       let x1 = node3.layerIndex === 0 ? left + width2 / 2 : left + width2 + expandBtnSize;
@@ -44953,6 +45168,9 @@ var LogicalStructure = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
     node3.children.forEach((item, index3) => {
       let x1 = node3.layerIndex === 0 ? left + width2 / 2 : left + width2 + expandBtnSize;
@@ -44977,9 +45195,14 @@ var LogicalStructure = class extends Base_default {
     let { width: width2, height: height2 } = node3;
     let { translateX, translateY } = btn.transform();
     let nodeUseLineStyleOffset = this.mindMap.themeConfig.nodeUseLineStyle ? height2 / 2 : 0;
+    let _x = width2;
+    let _y = height2 / 2 + nodeUseLineStyleOffset;
+    if (_x === translateX && _y === translateY) {
+      return;
+    }
     btn.translate(
-      width2 - translateX,
-      height2 / 2 - translateY + nodeUseLineStyleOffset
+      _x - translateX,
+      _y - translateY
     );
   }
   //  创建概要节点
@@ -45167,6 +45390,9 @@ var MindMap = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let marginX = this.getMarginX(node3.layerIndex + 1);
     let s1 = (marginX - expandBtnSize) * 0.6;
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
@@ -45198,6 +45424,9 @@ var MindMap = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
     node3.children.forEach((item, index3) => {
       let x1 = node3.layerIndex === 0 ? left + width2 / 2 : item.dir === "left" ? left - expandBtnSize : left + width2 + expandBtnSize;
@@ -45225,9 +45454,12 @@ var MindMap = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
     node3.children.forEach((item, index3) => {
-      let x1 = node3.layerIndex === 0 ? left + width2 / 2 : item.dir === "left" ? left - expandBtnSize : left + width2 + 20;
+      let x1 = node3.layerIndex === 0 ? left + width2 / 2 : item.dir === "left" ? left - expandBtnSize : left + width2 + expandBtnSize;
       let y1 = top + height2 / 2;
       let x22 = item.dir === "left" ? item.left + item.width : item.left;
       let y22 = item.top + item.height / 2;
@@ -45256,8 +45488,13 @@ var MindMap = class extends Base_default {
     let { width: width2, height: height2, expandBtnSize } = node3;
     let { translateX, translateY } = btn.transform();
     let nodeUseLineStyleOffset = this.mindMap.themeConfig.nodeUseLineStyle ? height2 / 2 : 0;
-    let x3 = (node3.dir === "left" ? 0 - expandBtnSize : width2) - translateX;
-    let y4 = height2 / 2 - translateY + nodeUseLineStyleOffset;
+    let _x = node3.dir === "left" ? 0 - expandBtnSize : width2;
+    let _y = height2 / 2 + nodeUseLineStyleOffset;
+    if (_x === translateX && _y === translateY) {
+      return;
+    }
+    let x3 = _x - translateX;
+    let y4 = _y - translateY;
     btn.translate(x3, y4);
   }
   //  创建概要节点
@@ -45357,11 +45594,11 @@ var CatalogOrganization = class extends Base_default {
               totalLeft += cur.width + marginX;
             });
           } else {
-            let totalTop = node3.top + node3.height + marginY + node3.expandBtnSize;
+            let totalTop = node3.top + node3.height + marginY + (this.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
             node3.children.forEach((cur) => {
               cur.left = node3.left + node3.width * 0.5;
               cur.top = totalTop;
-              totalTop += cur.height + marginY + node3.expandBtnSize;
+              totalTop += cur.height + marginY + (this.getNodeActChildrenLength(cur) > 0 ? cur.expandBtnSize : 0);
             });
           }
         }
@@ -45383,38 +45620,28 @@ var CatalogOrganization = class extends Base_default {
           let areaWidth = this.getNodeAreaWidth(node3);
           let difference2 = areaWidth - node3.width;
           if (difference2 > 0) {
-            this.updateBrothersLeft(node3, difference2 / 2);
+            this.updateBrothersLeft(node3, difference2);
           }
         }
         let len = node3.children.length;
         if (parent && !parent.isRoot && len > 0) {
           let marginY = this.getMarginY(layerIndex + 1);
           let totalHeight = node3.children.reduce((h3, item) => {
-            return h3 + item.height;
-          }, 0) + (len + 1) * marginY + len * node3.expandBtnSize;
+            return h3 + item.height + (this.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          }, 0) + len * marginY;
           this.updateBrothersTop(node3, totalHeight);
         }
       },
-      null,
+      (node3, parent, isRoot) => {
+        if (isRoot) {
+          let { right, left } = this.getNodeBoundaries(node3, "h");
+          let childrenWidth = right - left;
+          let offset = node3.left - left - (childrenWidth - node3.width) / 2;
+          this.updateChildren(node3.children, "left", offset);
+        }
+      },
       true
     );
-  }
-  //  递归计算节点的宽度
-  getNodeAreaWidth(node3) {
-    let widthArr = [];
-    let loop = (node4, width2) => {
-      if (node4.children.length) {
-        width2 += node4.width / 2;
-        node4.children.forEach((item) => {
-          loop(item, width2);
-        });
-      } else {
-        width2 += node4.width;
-        widthArr.push(width2);
-      }
-    };
-    loop(node3, 0);
-    return Math.max(...widthArr);
   }
   //  调整兄弟节点的left
   updateBrothersLeft(node3, addWidth) {
@@ -45423,26 +45650,13 @@ var CatalogOrganization = class extends Base_default {
       let index3 = childrenList.findIndex((item) => {
         return item === node3;
       });
-      if ((index3 === 0 || index3 === childrenList.length - 1) && childrenList.length > 1) {
-        let _offset = index3 === 0 ? -addWidth : addWidth;
-        node3.left += _offset;
-        if (node3.children && node3.children.length && !node3.hasCustomPosition()) {
-          this.updateChildren(node3.children, "left", _offset);
-        }
-      }
       childrenList.forEach((item, _index) => {
-        if (item.hasCustomPosition()) {
+        if (item.hasCustomPosition() || _index <= index3) {
           return;
         }
-        let _offset = 0;
-        if (_index < index3) {
-          _offset = -addWidth;
-        } else if (_index > index3) {
-          _offset = addWidth;
-        }
-        item.left += _offset;
+        item.left += addWidth;
         if (item.children && item.children.length) {
-          this.updateChildren(item.children, "left", _offset);
+          this.updateChildren(item.children, "left", addWidth);
         }
       });
       this.updateBrothersLeft(node3.parent, addWidth);
@@ -45477,6 +45691,9 @@ var CatalogOrganization = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let len = node3.children.length;
     let marginX = this.getMarginX(node3.layerIndex + 1);
     if (node3.isRoot) {
@@ -45745,6 +45962,9 @@ var OrganizationStructure = class extends Base_default {
       return [];
     }
     let { left, top, width: width2, height: height2, expandBtnSize, isRoot } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
     let x1 = left + width2 / 2;
     let y1 = top + height2;
     let marginX = this.getMarginX(node3.layerIndex + 1);
@@ -45814,22 +46034,795 @@ var OrganizationStructure = class extends Base_default {
 };
 var OrganizationStructure_default = OrganizationStructure;
 
+// ../simple-mind-map/src/layouts/Timeline.js
+var Timeline2 = class extends Base_default {
+  //  构造函数
+  constructor(opt = {}, layout) {
+    super(opt);
+    this.layout = layout;
+  }
+  //  布局
+  doLayout(callback) {
+    let task = [
+      () => {
+        this.computedBaseValue();
+      },
+      () => {
+        this.computedLeftTopValue();
+      },
+      () => {
+        this.adjustLeftTopValue();
+      },
+      () => {
+        callback(this.root);
+      }
+    ];
+    asyncRun(task);
+  }
+  //  遍历数据创建节点、计算根节点的位置，计算根节点的子节点的top值
+  computedBaseValue() {
+    walk(
+      this.renderer.renderTree,
+      null,
+      (cur, parent, isRoot, layerIndex, index3) => {
+        let newNode = this.createNode(cur, parent, isRoot, layerIndex);
+        if (isRoot) {
+          this.setNodeCenter(newNode);
+        } else {
+          if (this.layout === CONSTANTS.LAYOUT.TIMELINE2) {
+            if (parent._node.dir) {
+              newNode.dir = parent._node.dir;
+            } else {
+              newNode.dir = index3 % 2 === 0 ? CONSTANTS.TIMELINE_DIR.BOTTOM : CONSTANTS.TIMELINE_DIR.TOP;
+            }
+          } else {
+            newNode.dir = "";
+          }
+          if (parent._node.isRoot) {
+            newNode.top = parent._node.top + (cur._node.height > parent._node.height ? -(cur._node.height - parent._node.height) / 2 : (parent._node.height - cur._node.height) / 2);
+          }
+        }
+        if (!cur.data.expand) {
+          return true;
+        }
+      },
+      null,
+      true,
+      0
+    );
+  }
+  //  遍历节点树计算节点的left、top
+  computedLeftTopValue() {
+    walk(
+      this.root,
+      null,
+      (node3, parent, isRoot, layerIndex, index3) => {
+        if (node3.nodeData.data.expand && node3.children && node3.children.length) {
+          let marginX = this.getMarginX(layerIndex + 1);
+          let marginY = this.getMarginY(layerIndex + 1);
+          if (isRoot) {
+            let left = node3.left + node3.width;
+            let totalLeft = left + marginX;
+            node3.children.forEach((cur) => {
+              cur.left = totalLeft;
+              totalLeft += cur.width + marginX;
+            });
+          } else {
+            let totalTop = node3.top + node3.height + marginY + (this.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+            node3.children.forEach((cur) => {
+              cur.left = node3.left + node3.width * 0.5;
+              cur.top = totalTop;
+              totalTop += cur.height + marginY + (this.getNodeActChildrenLength(cur) > 0 ? cur.expandBtnSize : 0);
+            });
+          }
+        }
+      },
+      null,
+      true
+    );
+  }
+  //  调整节点left、top
+  adjustLeftTopValue() {
+    walk(
+      this.root,
+      null,
+      (node3, parent, isRoot, layerIndex) => {
+        if (!node3.nodeData.data.expand) {
+          return;
+        }
+        if (node3.isRoot) {
+          this.updateBrothersLeft(node3);
+        }
+        let len = node3.children.length;
+        if (parent && !parent.isRoot && len > 0) {
+          let marginY = this.getMarginY(layerIndex + 1);
+          let totalHeight = node3.children.reduce((h3, item) => {
+            return h3 + item.height + (this.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          }, 0) + len * marginY;
+          this.updateBrothersTop(node3, totalHeight);
+        }
+      },
+      (node3, parent, isRoot, layerIndex) => {
+        if (parent && parent.isRoot && node3.dir === CONSTANTS.TIMELINE_DIR.TOP) {
+          node3.children.forEach((item) => {
+            let totalHeight = this.getNodeAreaHeight(item);
+            let _top = item.top;
+            item.top = node3.top - (item.top - node3.top) - totalHeight + node3.height;
+            this.updateChildren(item.children, "top", item.top - _top);
+          });
+        }
+      },
+      true
+    );
+  }
+  //  递归计算节点的宽度
+  getNodeAreaHeight(node3) {
+    let totalHeight = 0;
+    let loop = (node4) => {
+      totalHeight += node4.height + (this.getNodeActChildrenLength(node4) > 0 ? node4.expandBtnSize : 0) + this.getMarginY(node4.layerIndex);
+      if (node4.children.length) {
+        node4.children.forEach((item) => {
+          loop(item);
+        });
+      }
+    };
+    loop(node3);
+    return totalHeight;
+  }
+  //  调整兄弟节点的left
+  updateBrothersLeft(node3) {
+    let childrenList = node3.children;
+    let totalAddWidth = 0;
+    childrenList.forEach((item) => {
+      item.left += totalAddWidth;
+      if (item.children && item.children.length) {
+        this.updateChildren(item.children, "left", totalAddWidth);
+      }
+      let { left, right } = this.getNodeBoundaries(item, "h");
+      let areaWidth = right - left;
+      let difference2 = areaWidth - item.width;
+      if (difference2 > 0) {
+        totalAddWidth += difference2;
+      }
+    });
+  }
+  //  调整兄弟节点的top
+  updateBrothersTop(node3, addHeight) {
+    if (node3.parent && !node3.parent.isRoot) {
+      let childrenList = node3.parent.children;
+      let index3 = childrenList.findIndex((item) => {
+        return item === node3;
+      });
+      childrenList.forEach((item, _index) => {
+        if (item.hasCustomPosition()) {
+          return;
+        }
+        let _offset = 0;
+        if (_index > index3) {
+          _offset = addHeight;
+        }
+        item.top += _offset;
+        if (item.children && item.children.length) {
+          this.updateChildren(item.children, "top", _offset);
+        }
+      });
+      this.updateBrothersTop(node3.parent, addHeight);
+    }
+  }
+  //  绘制连线，连接该节点到其子节点
+  renderLine(node3, lines, style) {
+    if (node3.children.length <= 0) {
+      return [];
+    }
+    let { left, top, width: width2, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
+    let len = node3.children.length;
+    if (node3.isRoot) {
+      let prevBother = node3;
+      node3.children.forEach((item, index3) => {
+        let x1 = prevBother.left + prevBother.width;
+        let x22 = item.left;
+        let y4 = node3.top + node3.height / 2;
+        let path = `M ${x1},${y4} L ${x22},${y4}`;
+        lines[index3].plot(path);
+        style && style(lines[index3], item);
+        prevBother = item;
+      });
+    } else {
+      let maxy = -Infinity;
+      let miny = Infinity;
+      let x3 = node3.left + node3.width * 0.3;
+      node3.children.forEach((item, index3) => {
+        let y4 = item.top + item.height / 2;
+        if (y4 > maxy) {
+          maxy = y4;
+        }
+        if (y4 < miny) {
+          miny = y4;
+        }
+        let path = `M ${x3},${y4} L ${item.left},${y4}`;
+        lines[index3].plot(path);
+        style && style(lines[index3], item);
+      });
+      if (len > 0) {
+        let line = this.draw.path();
+        expandBtnSize = len > 0 ? expandBtnSize : 0;
+        if (node3.parent && node3.parent.isRoot && node3.dir === CONSTANTS.TIMELINE_DIR.TOP) {
+          line.plot(`M ${x3},${top} L ${x3},${miny}`);
+        } else {
+          line.plot(`M ${x3},${top + height2 + expandBtnSize} L ${x3},${maxy}`);
+        }
+        node3.style.line(line);
+        node3._lines.push(line);
+        style && style(line, node3);
+      }
+    }
+  }
+  //  渲染按钮
+  renderExpandBtn(node3, btn) {
+    let { width: width2, height: height2, expandBtnSize, isRoot } = node3;
+    if (!isRoot) {
+      let { translateX, translateY } = btn.transform();
+      if (node3.parent && node3.parent.isRoot && node3.dir === CONSTANTS.TIMELINE_DIR.TOP) {
+        btn.translate(
+          width2 * 0.3 - expandBtnSize / 2 - translateX,
+          -expandBtnSize / 2 - translateY
+        );
+      } else {
+        btn.translate(
+          width2 * 0.3 - expandBtnSize / 2 - translateX,
+          height2 + expandBtnSize / 2 - translateY
+        );
+      }
+    }
+  }
+  //  创建概要节点
+  renderGeneralization(node3, gLine, gNode) {
+    let {
+      top,
+      bottom,
+      right,
+      generalizationLineMargin,
+      generalizationNodeMargin
+    } = this.getNodeBoundaries(node3, "h");
+    let x1 = right + generalizationLineMargin;
+    let y1 = top;
+    let x22 = right + generalizationLineMargin;
+    let y22 = bottom;
+    let cx2 = x1 + 20;
+    let cy2 = y1 + (y22 - y1) / 2;
+    let path = `M ${x1},${y1} Q ${cx2},${cy2} ${x22},${y22}`;
+    gLine.plot(path);
+    gNode.left = right + generalizationNodeMargin;
+    gNode.top = top + (bottom - top - gNode.height) / 2;
+  }
+};
+var Timeline_default = Timeline2;
+
+// ../simple-mind-map/src/layouts/fishboneUtils.js
+var fishboneUtils_default = {
+  top: {
+    renderExpandBtn({
+      node: node3,
+      btn,
+      expandBtnSize,
+      translateX,
+      translateY,
+      width: width2,
+      height: height2
+    }) {
+      if (node3.parent && node3.parent.isRoot) {
+        btn.translate(
+          width2 * 0.3 - expandBtnSize / 2 - translateX,
+          -expandBtnSize / 2 - translateY
+        );
+      } else {
+        btn.translate(
+          width2 * 0.3 - expandBtnSize / 2 - translateX,
+          height2 + expandBtnSize / 2 - translateY
+        );
+      }
+    },
+    renderLine({
+      node: node3,
+      line,
+      top,
+      x: x3,
+      lineLength,
+      height: height2,
+      expandBtnSize,
+      maxy,
+      ctx
+    }) {
+      if (node3.parent && node3.parent.isRoot) {
+        line.plot(
+          `M ${x3},${top} L ${x3 + lineLength},${top - Math.tan(degToRad(ctx.mindMap.opt.fishboneDeg)) * lineLength}`
+        );
+      } else {
+        line.plot(`M ${x3},${top + height2 + expandBtnSize} L ${x3},${maxy}`);
+      }
+    },
+    computedLeftTopValue({ layerIndex, node: node3, ctx }) {
+      if (layerIndex >= 1 && node3.children) {
+        let startLeft = node3.left + node3.width * ctx.childIndent;
+        let totalTop = node3.top + node3.height + (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+        node3.children.forEach((item) => {
+          item.left = startLeft;
+          item.top += totalTop;
+          totalTop += item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+        });
+      }
+    },
+    adjustLeftTopValueBefore({ node: node3, parent, ctx }) {
+      let len = node3.children.length;
+      if (parent && !parent.isRoot && len > 0) {
+        let totalHeight = node3.children.reduce((h3, item) => {
+          return h3 + item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+        }, 0);
+        ctx.updateBrothersTop(node3, totalHeight);
+      }
+    },
+    adjustLeftTopValueAfter({ parent, node: node3, ctx }) {
+      if (parent && parent.isRoot) {
+        let totalHeight = node3.expandBtnSize;
+        node3.children.forEach((item) => {
+          let nodeTotalHeight = ctx.getNodeAreaHeight(item);
+          let _top = item.top;
+          let _left = item.left;
+          item.top = node3.top - (item.top - node3.top) - nodeTotalHeight + node3.height;
+          item.left = node3.left + node3.width * ctx.indent + (nodeTotalHeight + totalHeight) / Math.tan(degToRad(ctx.mindMap.opt.fishboneDeg));
+          totalHeight += nodeTotalHeight;
+          ctx.updateChildrenPro(item.children, {
+            top: item.top - _top,
+            left: item.left - _left
+          });
+        });
+      }
+    }
+  },
+  bottom: {
+    renderExpandBtn({
+      node: node3,
+      btn,
+      expandBtnSize,
+      translateX,
+      translateY,
+      width: width2,
+      height: height2
+    }) {
+      if (node3.parent && node3.parent.isRoot) {
+        btn.translate(
+          width2 * 0.3 - expandBtnSize / 2 - translateX,
+          height2 + expandBtnSize / 2 - translateY
+        );
+      } else {
+        btn.translate(
+          width2 * 0.3 - expandBtnSize / 2 - translateX,
+          -expandBtnSize / 2 - translateY
+        );
+      }
+    },
+    renderLine({ node: node3, line, top, x: x3, lineLength, height: height2, miny, ctx }) {
+      if (node3.parent && node3.parent.isRoot) {
+        line.plot(
+          `M ${x3},${top + height2} L ${x3 + lineLength},${top + height2 + Math.tan(degToRad(ctx.mindMap.opt.fishboneDeg)) * lineLength}`
+        );
+      } else {
+        line.plot(`M ${x3},${top} L ${x3},${miny}`);
+      }
+    },
+    computedLeftTopValue({ layerIndex, node: node3, ctx }) {
+      if (layerIndex === 1 && node3.children) {
+        let startLeft = node3.left + node3.width * ctx.childIndent;
+        let totalTop = node3.top + node3.height + (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+        node3.children.forEach((item) => {
+          item.left = startLeft;
+          item.top = totalTop + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          totalTop += item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+        });
+      }
+      if (layerIndex > 1 && node3.children) {
+        let startLeft = node3.left + node3.width * ctx.childIndent;
+        let totalTop = node3.top - (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+        node3.children.forEach((item) => {
+          item.left = startLeft;
+          item.top = totalTop - item.height;
+          totalTop -= item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+        });
+      }
+    },
+    adjustLeftTopValueBefore({ node: node3, ctx, layerIndex }) {
+      let len = node3.children.length;
+      if (layerIndex > 2 && len > 0) {
+        let totalHeight = node3.children.reduce((h3, item) => {
+          return h3 + item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+        }, 0);
+        ctx.updateBrothersTop(node3, -totalHeight);
+      }
+    },
+    adjustLeftTopValueAfter({ parent, node: node3, ctx }) {
+      if (parent && parent.isRoot) {
+        let totalHeight = 0;
+        let totalHeight2 = node3.expandBtnSize;
+        node3.children.forEach((item) => {
+          let hasChildren = ctx.getNodeActChildrenLength(item) > 0;
+          let nodeTotalHeight = ctx.getNodeAreaHeight(item);
+          let offset = hasChildren > 0 ? nodeTotalHeight - item.height - (hasChildren ? item.expandBtnSize : 0) : 0;
+          let _top = totalHeight + offset;
+          let _left = item.left;
+          item.top += _top;
+          item.left = node3.left + node3.width * ctx.indent + (nodeTotalHeight + totalHeight2) / Math.tan(degToRad(ctx.mindMap.opt.fishboneDeg));
+          totalHeight += offset;
+          totalHeight2 += nodeTotalHeight;
+          ctx.updateChildrenPro(item.children, {
+            top: _top,
+            left: item.left - _left
+          });
+        });
+      }
+    }
+  }
+};
+
+// ../simple-mind-map/src/layouts/Fishbone.js
+var Fishbone = class extends Base_default {
+  //  构造函数
+  constructor(opt = {}) {
+    super(opt);
+    this.indent = 0.3;
+    this.childIndent = 0.5;
+  }
+  //  布局
+  doLayout(callback) {
+    let task = [
+      () => {
+        this.computedBaseValue();
+      },
+      () => {
+        this.computedLeftTopValue();
+      },
+      () => {
+        this.adjustLeftTopValue();
+      },
+      () => {
+        callback(this.root);
+      }
+    ];
+    asyncRun(task);
+  }
+  //  遍历数据创建节点、计算根节点的位置，计算根节点的子节点的top值
+  computedBaseValue() {
+    walk(
+      this.renderer.renderTree,
+      null,
+      (node3, parent, isRoot, layerIndex, index3) => {
+        let newNode = this.createNode(node3, parent, isRoot, layerIndex);
+        if (isRoot) {
+          this.setNodeCenter(newNode);
+        } else {
+          if (parent._node.dir) {
+            newNode.dir = parent._node.dir;
+          } else {
+            newNode.dir = index3 % 2 === 0 ? CONSTANTS.TIMELINE_DIR.TOP : CONSTANTS.TIMELINE_DIR.BOTTOM;
+          }
+          if (parent._node.isRoot) {
+            if (this.checkIsTop(newNode)) {
+              newNode.top = parent._node.top - newNode.height;
+            } else {
+              newNode.top = parent._node.top + parent._node.height;
+            }
+          }
+        }
+        if (!node3.data.expand) {
+          return true;
+        }
+      },
+      null,
+      true,
+      0
+    );
+  }
+  //  遍历节点树计算节点的left、top
+  computedLeftTopValue() {
+    walk(
+      this.root,
+      null,
+      (node3, parent, isRoot, layerIndex) => {
+        if (node3.isRoot) {
+          let topTotalLeft = node3.left + node3.width + node3.height;
+          let bottomTotalLeft = node3.left + node3.width + node3.height;
+          node3.children.forEach((item) => {
+            if (this.checkIsTop(item)) {
+              item.left = topTotalLeft;
+              topTotalLeft += item.width;
+            } else {
+              item.left = bottomTotalLeft + 20;
+              bottomTotalLeft += item.width;
+            }
+          });
+        }
+        let params = { layerIndex, node: node3, ctx: this };
+        if (this.checkIsTop(node3)) {
+          fishboneUtils_default.top.computedLeftTopValue(params);
+        } else {
+          fishboneUtils_default.bottom.computedLeftTopValue(params);
+        }
+      },
+      null,
+      true
+    );
+  }
+  //  调整节点left、top
+  adjustLeftTopValue() {
+    walk(
+      this.root,
+      null,
+      (node3, parent, isRoot, layerIndex) => {
+        if (!node3.nodeData.data.expand) {
+          return;
+        }
+        let params = { node: node3, parent, layerIndex, ctx: this };
+        if (this.checkIsTop(node3)) {
+          fishboneUtils_default.top.adjustLeftTopValueBefore(params);
+        } else {
+          fishboneUtils_default.bottom.adjustLeftTopValueBefore(params);
+        }
+      },
+      (node3, parent) => {
+        let params = { parent, node: node3, ctx: this };
+        if (this.checkIsTop(node3)) {
+          fishboneUtils_default.top.adjustLeftTopValueAfter(params);
+        } else {
+          fishboneUtils_default.bottom.adjustLeftTopValueAfter(params);
+        }
+        if (node3.isRoot) {
+          let topTotalLeft = 0;
+          let bottomTotalLeft = 0;
+          node3.children.forEach((item) => {
+            if (this.checkIsTop(item)) {
+              item.left += topTotalLeft;
+              this.updateChildren(item.children, "left", topTotalLeft);
+              let { left, right } = this.getNodeBoundaries(item, "h");
+              topTotalLeft += right - left;
+            } else {
+              item.left += bottomTotalLeft;
+              this.updateChildren(item.children, "left", bottomTotalLeft);
+              let { left, right } = this.getNodeBoundaries(item, "h");
+              bottomTotalLeft += right - left;
+            }
+          });
+        }
+      },
+      true
+    );
+  }
+  //  递归计算节点的宽度
+  getNodeAreaHeight(node3) {
+    let totalHeight = 0;
+    let loop = (node4) => {
+      totalHeight += node4.height + (this.getNodeActChildrenLength(node4) > 0 ? node4.expandBtnSize : 0);
+      if (node4.children.length) {
+        node4.children.forEach((item) => {
+          loop(item);
+        });
+      }
+    };
+    loop(node3);
+    return totalHeight;
+  }
+  //  调整兄弟节点的left
+  updateBrothersLeft(node3) {
+    let childrenList = node3.children;
+    let totalAddWidth = 0;
+    childrenList.forEach((item) => {
+      item.left += totalAddWidth;
+      if (item.children && item.children.length) {
+        this.updateChildren(item.children, "left", totalAddWidth);
+      }
+      let { left, right } = this.getNodeBoundaries(item, "h");
+      let areaWidth = right - left;
+      let difference2 = areaWidth - item.width;
+      if (difference2 > 0) {
+        totalAddWidth += difference2;
+      }
+    });
+  }
+  //  调整兄弟节点的top
+  updateBrothersTop(node3, addHeight) {
+    if (node3.parent && !node3.parent.isRoot) {
+      let childrenList = node3.parent.children;
+      let index3 = childrenList.findIndex((item) => {
+        return item === node3;
+      });
+      childrenList.forEach((item, _index) => {
+        if (item.hasCustomPosition()) {
+          return;
+        }
+        let _offset = 0;
+        if (_index > index3) {
+          _offset = addHeight;
+        }
+        item.top += _offset;
+        if (item.children && item.children.length) {
+          this.updateChildren(item.children, "top", _offset);
+        }
+      });
+      if (this.checkIsTop(node3)) {
+        this.updateBrothersTop(node3.parent, addHeight);
+      } else {
+        this.updateBrothersTop(
+          node3.parent,
+          node3.layerIndex === 3 ? 0 : addHeight
+        );
+      }
+    }
+  }
+  // 检查节点是否是上方节点
+  checkIsTop(node3) {
+    return node3.dir === CONSTANTS.TIMELINE_DIR.TOP;
+  }
+  //  绘制连线，连接该节点到其子节点
+  renderLine(node3, lines, style) {
+    if (node3.layerIndex !== 1 && node3.children.length <= 0) {
+      return [];
+    }
+    let { top, height: height2, expandBtnSize } = node3;
+    if (!this.mindMap.opt.alwaysShowExpandBtn) {
+      expandBtnSize = 0;
+    }
+    let len = node3.children.length;
+    if (node3.isRoot) {
+      let maxx = -Infinity;
+      node3.children.forEach((item) => {
+        if (item.left > maxx) {
+          maxx = item.left;
+        }
+        let nodeLineX = item.left;
+        let offset2 = node3.height / 2;
+        let offsetX = offset2 / Math.tan(degToRad(this.mindMap.opt.fishboneDeg));
+        let line2 = this.draw.path();
+        if (this.checkIsTop(item)) {
+          line2.plot(
+            `M ${nodeLineX - offsetX},${item.top + item.height + offset2} L ${item.left},${item.top + item.height}`
+          );
+        } else {
+          line2.plot(
+            `M ${nodeLineX - offsetX},${item.top - offset2} L ${nodeLineX},${item.top}`
+          );
+        }
+        node3.style.line(line2);
+        node3._lines.push(line2);
+        style && style(line2, node3);
+      });
+      let nodeHalfTop = node3.top + node3.height / 2;
+      let offset = node3.height / 2;
+      let line = this.draw.path();
+      line.plot(
+        `M ${node3.left + node3.width},${nodeHalfTop} L ${maxx - offset / Math.tan(degToRad(this.mindMap.opt.fishboneDeg))},${nodeHalfTop}`
+      );
+      node3.style.line(line);
+      node3._lines.push(line);
+      style && style(line, node3);
+    } else {
+      let maxy = -Infinity;
+      let miny = Infinity;
+      let maxx = -Infinity;
+      let x3 = node3.left + node3.width * this.indent;
+      node3.children.forEach((item, index3) => {
+        if (item.left > maxx) {
+          maxx = item.left;
+        }
+        let y4 = item.top + item.height / 2;
+        if (y4 > maxy) {
+          maxy = y4;
+        }
+        if (y4 < miny) {
+          miny = y4;
+        }
+        if (node3.layerIndex > 1) {
+          let path = `M ${x3},${y4} L ${item.left},${y4}`;
+          lines[index3].plot(path);
+          style && style(lines[index3], item);
+        }
+      });
+      if (len >= 0) {
+        let line = this.draw.path();
+        expandBtnSize = len > 0 ? expandBtnSize : 0;
+        let lineLength = maxx - node3.left - node3.width * this.indent;
+        lineLength = Math.max(lineLength, 0);
+        let params = {
+          node: node3,
+          line,
+          top,
+          x: x3,
+          lineLength,
+          height: height2,
+          expandBtnSize,
+          maxy,
+          miny,
+          ctx: this
+        };
+        if (this.checkIsTop(node3)) {
+          fishboneUtils_default.top.renderLine(params);
+        } else {
+          fishboneUtils_default.bottom.renderLine(params);
+        }
+        node3.style.line(line);
+        node3._lines.push(line);
+        style && style(line, node3);
+      }
+    }
+  }
+  //  渲染按钮
+  renderExpandBtn(node3, btn) {
+    let { width: width2, height: height2, expandBtnSize, isRoot } = node3;
+    if (!isRoot) {
+      let { translateX, translateY } = btn.transform();
+      let params = {
+        node: node3,
+        btn,
+        expandBtnSize,
+        translateX,
+        translateY,
+        width: width2,
+        height: height2
+      };
+      if (this.checkIsTop(node3)) {
+        fishboneUtils_default.top.renderExpandBtn(params);
+      } else {
+        fishboneUtils_default.bottom.renderExpandBtn(params);
+      }
+    }
+  }
+  //  创建概要节点
+  renderGeneralization(node3, gLine, gNode) {
+    let {
+      top,
+      bottom,
+      right,
+      generalizationLineMargin,
+      generalizationNodeMargin
+    } = this.getNodeBoundaries(node3, "h");
+    let x1 = right + generalizationLineMargin;
+    let y1 = top;
+    let x22 = right + generalizationLineMargin;
+    let y22 = bottom;
+    let cx2 = x1 + 20;
+    let cy2 = y1 + (y22 - y1) / 2;
+    let path = `M ${x1},${y1} Q ${cx2},${cy2} ${x22},${y22}`;
+    gLine.plot(path);
+    gNode.left = right + generalizationNodeMargin;
+    gNode.top = top + (bottom - top - gNode.height) / 2;
+  }
+};
+var Fishbone_default = Fishbone;
+
 // ../simple-mind-map/src/TextEdit.js
 var TextEdit = class {
   //  构造函数
   constructor(renderer) {
     this.renderer = renderer;
     this.mindMap = renderer.mindMap;
+    this.currentNode = null;
     this.textEditNode = null;
     this.showTextEdit = false;
+    this.cacheEditingText = "";
     this.bindEvent();
   }
   //  事件
   bindEvent() {
     this.show = this.show.bind(this);
+    this.onScale = this.onScale.bind(this);
     this.mindMap.on("node_dblclick", this.show);
     this.mindMap.on("draw_click", () => {
       this.hideEditTextBox();
+    });
+    this.mindMap.on("body_click", () => {
+      if (this.mindMap.opt.isEndNodeTextEditOnClickOuter) {
+        this.hideEditTextBox();
+      }
     });
     this.mindMap.on("svg_mousedown", () => {
       this.hideEditTextBox();
@@ -45846,6 +46839,7 @@ var TextEdit = class {
       }
       this.show(this.renderer.activeNodeList[0]);
     });
+    this.mindMap.on("scale", this.onScale);
   }
   //  注册临时快捷键
   registerTmpShortcut() {
@@ -45855,12 +46849,28 @@ var TextEdit = class {
   }
   //  显示文本编辑框
   show(node3) {
+    this.currentNode = node3;
+    let { offsetLeft, offsetTop } = checkNodeOuter(this.mindMap, node3);
+    this.mindMap.view.translateXY(offsetLeft, offsetTop);
     let rect = node3._textData.node.node.getBoundingClientRect();
     if (this.mindMap.richText) {
       this.mindMap.richText.showEditText(node3, rect);
       return;
     }
     this.showEditTextBox(node3, rect);
+  }
+  // 处理画布缩放
+  onScale() {
+    if (!this.currentNode)
+      return;
+    if (this.mindMap.richText) {
+      this.mindMap.richText.cacheEditingText = this.mindMap.richText.getEditText();
+      this.mindMap.richText.showTextEdit = false;
+    } else {
+      this.cacheEditingText = this.getEditText();
+      this.showTextEdit = false;
+    }
+    this.show(this.currentNode);
   }
   //  显示文本编辑框
   showEditTextBox(node3, rect) {
@@ -45873,13 +46883,18 @@ var TextEdit = class {
       this.textEditNode.addEventListener("keyup", (e2) => {
         e2.stopPropagation();
       });
+      this.textEditNode.addEventListener("click", (e2) => {
+        e2.stopPropagation();
+      });
       document.body.appendChild(this.textEditNode);
     }
     let scale = this.mindMap.view.scale;
     let lineHeight = node3.style.merge("lineHeight");
     let fontSize = node3.style.merge("fontSize");
-    let textLines = node3.nodeData.data.text.split(/\n/gim);
-    node3.style.domText(this.textEditNode, scale, textLines.length);
+    let textLines = (this.cacheEditingText || node3.nodeData.data.text).split(/\n/gim);
+    let isMultiLine = node3._textData.node.attr("data-ismultiLine") === "true";
+    node3.style.domText(this.textEditNode, scale, isMultiLine);
+    this.textEditNode.style.zIndex = this.mindMap.opt.nodeTextEditZIndex;
     this.textEditNode.innerHTML = textLines.join("<br>");
     this.textEditNode.style.minWidth = rect.width + 10 + "px";
     this.textEditNode.style.minHeight = rect.height + 6 + "px";
@@ -45887,11 +46902,14 @@ var TextEdit = class {
     this.textEditNode.style.top = rect.top + "px";
     this.textEditNode.style.display = "block";
     this.textEditNode.style.maxWidth = this.mindMap.opt.textAutoWrapWidth * scale + "px";
-    if (textLines.length > 1 && lineHeight !== 1) {
-      this.textEditNode.style.transform = `translateY(${-((lineHeight * fontSize - fontSize) / 2 - 2) * scale}px)`;
+    if (isMultiLine && lineHeight !== 1) {
+      this.textEditNode.style.transform = `translateY(${-((lineHeight * fontSize - fontSize) / 2) * scale}px)`;
     }
     this.showTextEdit = true;
-    this.selectNodeText();
+    if (!this.cacheEditingText) {
+      this.selectNodeText();
+    }
+    this.cacheEditingText = "";
   }
   //  选中文本
   selectNodeText() {
@@ -45901,8 +46919,13 @@ var TextEdit = class {
     selection.removeAllRanges();
     selection.addRange(range);
   }
+  // 获取当前正在编辑的内容
+  getEditText() {
+    return getStrWithBrFromHtml(this.textEditNode.innerHTML);
+  }
   //  隐藏文本编辑框
   hideEditTextBox() {
+    this.currentNode = null;
     if (this.mindMap.richText) {
       return this.mindMap.richText.hideEditText();
     }
@@ -45910,7 +46933,7 @@ var TextEdit = class {
       return;
     }
     this.renderer.activeNodeList.forEach((node3) => {
-      let str = getStrWithBrFromHtml(this.textEditNode.innerHTML);
+      let str = this.getEditText();
       this.mindMap.execCommand("SET_NODE_TEXT", node3, str);
       if (node3.isGeneralization) {
         node3.generalizationBelongNode.updateGeneralization();
@@ -46082,7 +47105,13 @@ var layouts = {
   // 目录组织图
   [CONSTANTS.LAYOUT.CATALOG_ORGANIZATION]: CatalogOrganization_default,
   // 组织结构图
-  [CONSTANTS.LAYOUT.ORGANIZATION_STRUCTURE]: OrganizationStructure_default
+  [CONSTANTS.LAYOUT.ORGANIZATION_STRUCTURE]: OrganizationStructure_default,
+  // 时间轴
+  [CONSTANTS.LAYOUT.TIMELINE]: Timeline_default,
+  // 时间轴2
+  [CONSTANTS.LAYOUT.TIMELINE2]: Timeline_default,
+  // 鱼骨图
+  [CONSTANTS.LAYOUT.FISHBONE]: Fishbone_default
 };
 var Render = class {
   //  构造函数
@@ -46108,7 +47137,7 @@ var Render = class {
   }
   //  设置布局结构
   setLayout() {
-    this.layout = new (layouts[this.mindMap.opt.layout] ? layouts[this.mindMap.opt.layout] : layouts[CONSTANTS.LAYOUT.LOGICAL_STRUCTURE])(this);
+    this.layout = new (layouts[this.mindMap.opt.layout] ? layouts[this.mindMap.opt.layout] : layouts[CONSTANTS.LAYOUT.LOGICAL_STRUCTURE])(this, this.mindMap.opt.layout);
   }
   //   绑定事件
   bindEvent() {
@@ -46231,6 +47260,7 @@ var Render = class {
   //   渲染
   render(callback = () => {
   }, source) {
+    let t3 = Date.now();
     if (this.isRendering) {
       this.hasWaitRendering = true;
       return;
@@ -46253,13 +47283,24 @@ var Render = class {
         }
       });
       this.root = root2;
-      this.root.render(() => {
+      const onEnd = () => {
         this.isRendering = false;
         this.mindMap.emit("node_tree_render_end");
         callback && callback();
         if (this.hasWaitRendering) {
           this.hasWaitRendering = false;
           this.render(callback, source);
+        }
+      };
+      let { enableNodeTransitionMove, nodeTransitionMoveDuration } = this.mindMap.opt;
+      this.root.render(() => {
+        let dur = Date.now() - t3;
+        if (enableNodeTransitionMove && dur <= nodeTransitionMoveDuration) {
+          setTimeout(() => {
+            onEnd();
+          }, nodeTransitionMoveDuration - dur);
+        } else {
+          onEnd();
         }
       });
     });
@@ -46316,6 +47357,7 @@ var Render = class {
         if (!node3.nodeData.data.isActive) {
           node3.nodeData.data.isActive = true;
           this.addActiveNode(node3);
+          node3.showExpandBtn();
           setTimeout(() => {
             node3.updateNodeShape();
           }, 0);
@@ -46655,6 +47697,11 @@ var Render = class {
     this.setNodeData(node3, {
       isActive: active
     });
+    if (active) {
+      node3.showExpandBtn();
+    } else {
+      node3.hideExpandBtn();
+    }
     node3.updateNodeShape();
   }
   //  设置节点是否展开
@@ -46667,13 +47714,11 @@ var Render = class {
         item.render();
       });
       node3.renderLine();
-      node3.updateExpandBtnNode();
     } else {
       node3.children.forEach((item) => {
         item.remove();
       });
       node3.removeLine();
-      node3.updateExpandBtnNode();
     }
     this.mindMap.render();
   }
@@ -46901,7 +47946,7 @@ var Render = class {
 var Render_default = Render;
 
 // ../simple-mind-map/index.js
-var import_deepmerge23 = __toESM(require_cjs());
+var import_deepmerge30 = __toESM(require_cjs());
 
 // ../simple-mind-map/src/themes/freshGreen.js
 var import_deepmerge2 = __toESM(require_cjs());
@@ -47994,6 +49039,393 @@ var skyGreen_default = (0, import_deepmerge22.default)(default_default, {
   }
 });
 
+// ../simple-mind-map/src/themes/simpleBlack.js
+var import_deepmerge23 = __toESM(require_cjs());
+var simpleBlack_default = (0, import_deepmerge23.default)(default_default, {
+  // 连线的颜色
+  lineColor: "rgb(34, 34, 34)",
+  lineWidth: 4,
+  // 概要连线的粗细
+  generalizationLineWidth: 4,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(34, 34, 34)",
+  // 根节点样式
+  root: {
+    fillColor: "#fff",
+    color: "rgb(34, 34, 34)",
+    borderColor: "rgb(34, 34, 34)",
+    borderWidth: 3,
+    fontSize: 24,
+    active: {
+      borderColor: "#a13600"
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(241, 246, 248)",
+    color: "rgb(34, 34, 34)",
+    borderColor: "rgb(34, 34, 34)",
+    borderWidth: 3,
+    fontSize: 18,
+    active: {
+      borderColor: "#a13600"
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(34, 34, 34)",
+    active: {
+      borderColor: "#a13600"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "transparent",
+    borderColor: "rgb(34, 34, 34)",
+    borderWidth: 2,
+    color: "rgb(34, 34, 34)",
+    active: {
+      borderColor: "#a13600"
+    }
+  }
+});
+
+// ../simple-mind-map/src/themes/courseGreen.js
+var import_deepmerge24 = __toESM(require_cjs());
+var courseGreen_default = (0, import_deepmerge24.default)(default_default, {
+  // 连线的颜色
+  lineColor: "rgb(113, 195, 169)",
+  lineWidth: 3,
+  // 概要连线的粗细
+  generalizationLineWidth: 3,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(113, 195, 169)",
+  // 根节点样式
+  root: {
+    fillColor: "rgb(16, 160, 121)",
+    color: "#fff",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 24,
+    active: {
+      borderColor: "rgb(173, 91, 12)",
+      borderWidth: 3
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(240, 252, 249)",
+    color: "rgb(50, 113, 96)",
+    borderColor: "rgb(113, 195, 169)",
+    borderWidth: 2,
+    fontSize: 18,
+    active: {
+      borderColor: "rgb(173, 91, 12)"
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(10, 59, 43)",
+    active: {
+      borderColor: "rgb(173, 91, 12)"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "rgb(246, 238, 211)",
+    borderColor: "",
+    borderWidth: 0,
+    color: "rgb(173, 91, 12)",
+    active: {
+      borderColor: "rgb(113, 195, 169)"
+    }
+  }
+});
+
+// ../simple-mind-map/src/themes/coffee.js
+var import_deepmerge25 = __toESM(require_cjs());
+var coffee_default = (0, import_deepmerge25.default)(default_default, {
+  // 连线的颜色
+  lineColor: "rgb(173, 123, 91)",
+  lineWidth: 4,
+  // 概要连线的粗细
+  generalizationLineWidth: 4,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(173, 123, 91)",
+  // 根节点样式
+  root: {
+    fillColor: "rgb(202, 117, 79)",
+    color: "#fff",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 24,
+    active: {
+      borderColor: "rgb(173, 123, 91)",
+      borderWidth: 3
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(245, 231, 216)",
+    color: "rgb(125, 86, 42)",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 18,
+    active: {
+      borderColor: "rgb(173, 123, 91)"
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(96, 71, 47)",
+    active: {
+      borderColor: "rgb(173, 123, 91)"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "rgb(255, 249, 239)",
+    borderColor: "rgb(173, 123, 91)",
+    borderWidth: 2,
+    color: "rgb(122, 83, 44)",
+    active: {
+      borderColor: "rgb(202, 117, 79)"
+    }
+  }
+});
+
+// ../simple-mind-map/src/themes/redSpirit.js
+var import_deepmerge26 = __toESM(require_cjs());
+var redSpirit_default = (0, import_deepmerge26.default)(default_default, {
+  // 背景颜色
+  backgroundColor: "rgb(255, 238, 228)",
+  // 连线的颜色
+  lineColor: "rgb(230, 138, 131)",
+  lineWidth: 3,
+  // 概要连线的粗细
+  generalizationLineWidth: 3,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(222, 101, 85)",
+  // 根节点样式
+  root: {
+    fillColor: "rgb(207, 44, 44)",
+    color: "rgb(255, 233, 157)",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 24,
+    active: {
+      borderColor: "rgb(255, 233, 157)",
+      borderWidth: 3
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(255, 255, 255)",
+    color: "rgb(211, 58, 21)",
+    borderColor: "rgb(222, 101, 85)",
+    borderWidth: 2,
+    fontSize: 18,
+    active: {
+      borderColor: "rgb(255, 233, 157)"
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(144, 71, 43)",
+    active: {
+      borderColor: "rgb(255, 233, 157)"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "rgb(255, 247, 211)",
+    borderColor: "rgb(255, 202, 162)",
+    borderWidth: 2,
+    color: "rgb(187, 101, 69)",
+    active: {
+      borderColor: "rgb(222, 101, 85)"
+    }
+  }
+});
+
+// ../simple-mind-map/src/themes/blackHumour.js
+var import_deepmerge27 = __toESM(require_cjs());
+var blackHumour_default = (0, import_deepmerge27.default)(default_default, {
+  // 背景颜色
+  backgroundColor: "rgb(27, 31, 34)",
+  // 连线的颜色
+  lineColor: "rgb(75, 81, 78)",
+  lineWidth: 3,
+  // 概要连线的粗细
+  generalizationLineWidth: 3,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(255, 119, 34)",
+  // 根节点样式
+  root: {
+    fillColor: "rgb(36, 179, 96)",
+    color: "#fff",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 24,
+    active: {
+      borderColor: "rgb(254, 199, 13)",
+      borderWidth: 3
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(254, 199, 13)",
+    color: "rgb(0, 0, 0)",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 18,
+    active: {
+      borderColor: "rgb(36, 179, 96)",
+      borderWidth: 3
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(204, 204, 204)",
+    active: {
+      borderColor: "rgb(254, 199, 13)"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "rgb(27, 31, 34)",
+    borderColor: "rgb(255, 119, 34)",
+    borderWidth: 2,
+    color: "rgb(204, 204, 204)",
+    active: {
+      borderColor: "rgb(36, 179, 96)"
+    }
+  }
+});
+
+// ../simple-mind-map/src/themes/lateNightOffice.js
+var import_deepmerge28 = __toESM(require_cjs());
+var lateNightOffice_default = (0, import_deepmerge28.default)(default_default, {
+  // 背景颜色
+  backgroundColor: "rgb(32, 37, 49)",
+  // 连线的颜色
+  lineColor: "rgb(137, 167, 196)",
+  lineWidth: 3,
+  // 概要连线的粗细
+  generalizationLineWidth: 3,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(255, 119, 34)",
+  // 根节点样式
+  root: {
+    fillColor: "rgb(23, 153, 243)",
+    color: "rgb(255, 255, 255)",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 24,
+    active: {
+      borderColor: "rgb(255, 119, 34)",
+      borderWidth: 3
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(70, 78, 94)",
+    color: "rgb(209, 210, 210)",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 18,
+    active: {
+      borderColor: "rgb(255, 119, 34)",
+      borderWidth: 3
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(204, 204, 204)",
+    active: {
+      borderColor: "rgb(255, 119, 34)"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "rgb(255, 119, 34)",
+    borderColor: "",
+    borderWidth: 2,
+    color: "#fff",
+    active: {
+      borderColor: "rgb(23, 153, 243)"
+    }
+  }
+});
+
+// ../simple-mind-map/src/themes/blackGold.js
+var import_deepmerge29 = __toESM(require_cjs());
+var blackGold_default = (0, import_deepmerge29.default)(default_default, {
+  // 背景颜色
+  backgroundColor: "rgb(18, 20, 20)",
+  // 连线的颜色
+  lineColor: "rgb(205, 186, 156)",
+  lineWidth: 3,
+  // 概要连线的粗细
+  generalizationLineWidth: 3,
+  // 概要连线的颜色
+  generalizationLineColor: "rgb(245, 224, 191)",
+  // 根节点样式
+  root: {
+    fillColor: "rgb(255, 208, 124)",
+    color: "rgb(111, 61, 6)",
+    borderColor: "",
+    borderWidth: 0,
+    fontSize: 24,
+    active: {
+      borderColor: "#fff",
+      borderWidth: 3
+    }
+  },
+  // 二级节点样式
+  second: {
+    fillColor: "rgb(66, 57, 46)",
+    color: "rgb(225, 201, 158)",
+    borderColor: "rgb(245, 224, 191)",
+    borderWidth: 2,
+    fontSize: 18,
+    active: {
+      borderColor: "rgb(255, 208, 124)"
+    }
+  },
+  // 三级及以下节点样式
+  node: {
+    fontSize: 14,
+    color: "rgb(231, 203, 155)",
+    active: {
+      borderColor: "rgb(255, 208, 124)"
+    }
+  },
+  // 概要节点样式
+  generalization: {
+    fontSize: 14,
+    fillColor: "rgb(56, 45, 34)",
+    borderColor: "rgb(104, 84, 61)",
+    borderWidth: 2,
+    color: "rgb(242, 216, 176)",
+    active: {
+      borderColor: "rgb(255, 208, 124)"
+    }
+  }
+});
+
 // ../simple-mind-map/src/themes/index.js
 var themes_default = {
   default: default_default,
@@ -48017,7 +49449,14 @@ var themes_default = {
   vitalityOrange: vitalityOrange_default,
   greenLeaf: greenLeaf_default,
   dark2: dark2_default,
-  skyGreen: skyGreen_default
+  skyGreen: skyGreen_default,
+  simpleBlack: simpleBlack_default,
+  courseGreen: courseGreen_default,
+  coffee: coffee_default,
+  redSpirit: redSpirit_default,
+  blackHumour: blackHumour_default,
+  lateNightOffice: lateNightOffice_default,
+  blackGold: blackGold_default
 };
 
 // ../simple-mind-map/src/utils/keyMap.js
@@ -48294,6 +49733,9 @@ var Command = class {
     }
     this.history = this.history.slice(0, this.activeHistoryIndex + 1);
     this.history.push(simpleDeepClone(data2));
+    if (this.history.length > this.mindMap.opt.maxHistoryCount) {
+      this.history.shift();
+    }
     this.activeHistoryIndex = this.history.length - 1;
     this.mindMap.emit("data_change", this.removeDataUid(data2));
     this.mindMap.emit(
@@ -48392,6 +49834,8 @@ var defaultOpt = {
   readonly: false,
   // 布局
   layout: CONSTANTS.LAYOUT.LOGICAL_STRUCTURE,
+  // 如果结构为鱼骨图，那么可以通过该选项控制倾斜角度
+  fishboneDeg: 45,
   // 主题
   theme: "default",
   // 内置主题：default（默认主题）
@@ -48467,12 +49911,38 @@ var defaultOpt = {
   // 如果开启节点动画过渡，可以通过该属性设置过渡的时间，单位ms
   nodeTransitionMoveDuration: 300,
   // 初始根节点的位置
-  initRootNodePosition: null
+  initRootNodePosition: null,
+  // 导出png、svg、pdf时的图形内边距
+  exportPaddingX: 10,
+  exportPaddingY: 10,
+  // 节点文本编辑框的z-index
+  nodeTextEditZIndex: 3e3,
+  // 节点备注浮层的z-index
+  nodeNoteTooltipZIndex: 3e3,
+  // 是否在点击了画布外的区域时结束节点文本的编辑状态
+  isEndNodeTextEditOnClickOuter: true,
+  // 最大历史记录数
+  maxHistoryCount: 1e3,
+  // 是否一直显示节点的展开收起按钮，默认为鼠标移上去和激活时才显示
+  alwaysShowExpandBtn: false,
+  // 扩展节点可插入的图标
+  iconList: [
+    // {
+    //   name: '',// 分组名称
+    //   type: '',// 分组的值
+    //   list: [// 分组下的图标列表
+    //     {
+    //       name: '',// 图标名称
+    //       icon:''// 图标，可以传svg或图片
+    //     }
+    //   ]
+    // }
+  ]
 };
 var MindMap2 = class {
   //  构造函数
   constructor(opt = {}) {
-    this.opt = this.handleOpt((0, import_deepmerge23.default)(defaultOpt, opt));
+    this.opt = this.handleOpt((0, import_deepmerge30.default)(defaultOpt, opt));
     this.el = this.opt.el;
     this.elRect = this.el.getBoundingClientRect();
     this.width = this.elRect.width;
@@ -48552,7 +50022,7 @@ var MindMap2 = class {
   }
   //  设置主题
   initTheme() {
-    this.themeConfig = (0, import_deepmerge23.default)(themes_default[this.opt.theme], this.opt.themeConfig);
+    this.themeConfig = (0, import_deepmerge30.default)(themes_default[this.opt.theme], this.opt.themeConfig);
     Style_default.setBackgroundStyle(this.el, this.themeConfig);
   }
   //  设置主题
@@ -48584,7 +50054,7 @@ var MindMap2 = class {
   }
   // 更新配置
   updateConfig(opt = {}) {
-    this.opt = this.handleOpt(import_deepmerge23.default.all([defaultOpt, this.opt, opt]));
+    this.opt = this.handleOpt(import_deepmerge30.default.all([defaultOpt, this.opt, opt]));
   }
   //  获取当前布局结构
   getLayout() {
@@ -48596,6 +50066,7 @@ var MindMap2 = class {
       layout = CONSTANTS.LAYOUT.LOGICAL_STRUCTURE;
     }
     this.opt.layout = layout;
+    this.view.reset();
     this.renderer.setLayout();
     this.render();
   }
@@ -48608,7 +50079,11 @@ var MindMap2 = class {
     this.execCommand("CLEAR_ACTIVE_NODE");
     this.command.clearHistory();
     this.command.addHistory();
-    this.renderer.renderTree = data2;
+    if (this.richText) {
+      this.renderer.renderTree = this.richText.handleSetData(data2);
+    } else {
+      this.renderer.renderTree = data2;
+    }
     this.reRender();
   }
   //  动态设置思维导图数据，包括节点数据、布局、主题、视图
@@ -48674,7 +50149,7 @@ var MindMap2 = class {
     this.emit("mode_change", mode);
   }
   // 获取svg数据
-  getSvgData() {
+  getSvgData({ paddingX = 0, paddingY = 0 } = {}) {
     const svg2 = this.svg;
     const draw = this.draw;
     const origWidth = svg2.width();
@@ -48683,6 +50158,9 @@ var MindMap2 = class {
     const elRect = this.el.getBoundingClientRect();
     draw.scale(1 / origTransform.scaleX, 1 / origTransform.scaleY);
     const rect = draw.rbox();
+    rect.width += paddingX;
+    rect.height += paddingY;
+    draw.translate(paddingX / 2, paddingY / 2);
     svg2.size(rect.width, rect.height);
     draw.translate(-rect.x + elRect.left, -rect.y + elRect.top);
     let clone = svg2.clone();
@@ -48762,7 +50240,7 @@ MindMap2.defineTheme = (name, config = {}) => {
   if (themes_default[name]) {
     return new Error("\u8BE5\u4E3B\u9898\u540D\u79F0\u5DF2\u5B58\u5728");
   }
-  themes_default[name] = (0, import_deepmerge23.default)(default_default, config);
+  themes_default[name] = (0, import_deepmerge30.default)(default_default, config);
 };
 var simple_mind_map_default = MindMap2;
 
@@ -48862,7 +50340,7 @@ MiniMap.instanceName = "miniMap";
 var MiniMap_default = MiniMap;
 
 // ../simple-mind-map/src/Watermark.js
-var import_deepmerge24 = __toESM(require_cjs());
+var import_deepmerge31 = __toESM(require_cjs());
 var Watermark = class {
   constructor(opt = {}) {
     this.mindMap = opt.mindMap;
@@ -48956,7 +50434,7 @@ var Watermark = class {
   }
   // 更新水印
   updateWatermark(config) {
-    this.mindMap.opt.watermarkConfig = (0, import_deepmerge24.default)(this.mindMap.opt.watermarkConfig, config);
+    this.mindMap.opt.watermarkConfig = (0, import_deepmerge31.default)(this.mindMap.opt.watermarkConfig, config);
     this.handleConfig(config);
     this.draw();
   }
@@ -58408,8 +59886,12 @@ var Export = class {
     }
   }
   //  获取svg数据
-  async getSvgData(domToImage) {
-    let { svg: svg2, svgHTML } = this.mindMap.getSvgData();
+  async getSvgData() {
+    let { exportPaddingX, exportPaddingY } = this.mindMap.opt;
+    let { svg: svg2, svgHTML } = this.mindMap.getSvgData({
+      paddingX: exportPaddingX,
+      paddingY: exportPaddingY
+    });
     let imageList = svg2.find("image");
     let task = imageList.map(async (item) => {
       let imgUlr = item.attr("href") || item.attr("xlink:href");
@@ -58420,22 +59902,13 @@ var Export = class {
     if (imageList.length > 0) {
       svgHTML = svg2.svg();
     }
-    let nodeWithDomToImg = null;
-    if (domToImage && this.mindMap.richText) {
-      let res = await this.mindMap.richText.handleSvgDomElements(svg2);
-      if (res) {
-        nodeWithDomToImg = res.svg;
-        svgHTML = res.svgHTML;
-      }
-    }
     return {
       node: svg2,
-      str: svgHTML,
-      nodeWithDomToImg
+      str: svgHTML
     };
   }
   //   svg转png
-  svgToPng(svgSrc) {
+  svgToPng(svgSrc, transparent) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.setAttribute("crossOrigin", "anonymous");
@@ -58445,7 +59918,9 @@ var Export = class {
           canvas.width = img.width + this.exportPadding * 2;
           canvas.height = img.height + this.exportPadding * 2;
           let ctx = canvas.getContext("2d");
-          await this.drawBackgroundToCanvas(ctx, canvas.width, canvas.height);
+          if (!transparent) {
+            await this.drawBackgroundToCanvas(ctx, canvas.width, canvas.height);
+          }
           ctx.drawImage(
             img,
             0,
@@ -58507,13 +59982,18 @@ var Export = class {
    * 方法1.把svg的图片都转化成data:url格式，再转换
    * 方法2.把svg的图片提取出来再挨个绘制到canvas里，最后一起转换
    */
-  async png() {
-    let { str } = await this.getSvgData(true);
+  async png(name, transparent = false) {
+    let { node: node3, str } = await this.getSvgData();
+    if (this.mindMap.richText) {
+      let res = await this.mindMap.richText.handleExportPng(node3.node);
+      let imgDataUrl2 = await this.svgToPng(res, transparent);
+      return imgDataUrl2;
+    }
     let blob = new Blob([str], {
       type: "image/svg+xml"
     });
     let svgUrl = URL2.createObjectURL(blob);
-    let imgDataUrl = await this.svgToPng(svgUrl);
+    let imgDataUrl = await this.svgToPng(svgUrl, transparent);
     URL2.revokeObjectURL(svgUrl);
     return imgDataUrl;
   }
@@ -58565,14 +60045,11 @@ var Export = class {
     });
   }
   //  导出为svg
-  // domToImage：是否将svg中的dom节点转换成图片的形式
   // plusCssText：附加的css样式，如果svg中存在dom节点，想要设置一些针对节点的样式可以通过这个参数传入
-  async svg(name, domToImage = false, plusCssText) {
-    let { node: node3, nodeWithDomToImg } = await this.getSvgData(domToImage);
+  async svg(name, plusCssText) {
+    let { node: node3 } = await this.getSvgData();
     if (this.mindMap.richText) {
-      if (domToImage) {
-        node3 = nodeWithDomToImg;
-      } else if (plusCssText) {
+      if (plusCssText) {
         let foreignObjectList = node3.find("foreignObject");
         if (foreignObjectList.length > 0) {
           foreignObjectList[0].add(SVG(`<style>${plusCssText}</style>`));
@@ -58903,7 +60380,7 @@ var Select = class {
   }
   //  绑定事件
   bindEvent() {
-    this.checkInNodes = throttle(this.checkInNodes, 500, this);
+    this.checkInNodes = throttle(this.checkInNodes, 300, this);
     this.mindMap.on("mousedown", (e2) => {
       if (this.mindMap.opt.readonly) {
         return;
@@ -59015,22 +60492,18 @@ var Select = class {
       let bottom = (top + height2) * scaleY + translateY;
       left = left * scaleX + translateX;
       top = top * scaleY + translateY;
-      if (left >= minx && right <= maxx && top >= miny && bottom <= maxy) {
-        this.mindMap.batchExecution.push("activeNode" + node3.uid, () => {
-          if (node3.nodeData.data.isActive) {
-            return;
-          }
-          this.mindMap.renderer.setNodeActive(node3, true);
-          this.mindMap.renderer.addActiveNode(node3);
-        });
+      if ((left >= minx && left <= maxx || right >= minx && right <= maxx) && (top >= miny && top <= maxy || bottom >= miny && bottom <= maxy)) {
+        if (node3.nodeData.data.isActive) {
+          return;
+        }
+        this.mindMap.renderer.setNodeActive(node3, true);
+        this.mindMap.renderer.addActiveNode(node3);
       } else if (node3.nodeData.data.isActive) {
-        this.mindMap.batchExecution.push("activeNode" + node3.uid, () => {
-          if (!node3.nodeData.data.isActive) {
-            return;
-          }
-          this.mindMap.renderer.setNodeActive(node3, false);
-          this.mindMap.renderer.removeActiveNode(node3);
-        });
+        if (!node3.nodeData.data.isActive) {
+          return;
+        }
+        this.mindMap.renderer.setNodeActive(node3, false);
+        this.mindMap.renderer.removeActiveNode(node3);
       }
     });
   }
@@ -59797,8 +61270,46 @@ var RichText = class {
     this.range = null;
     this.lastRange = null;
     this.node = null;
+    this.styleEl = null;
+    this.cacheEditingText = "";
     this.initOpt();
     this.extendQuill();
+    this.appendCss();
+    if (this.mindMap.opt.data) {
+      this.mindMap.opt.data = this.handleSetData(this.mindMap.opt.data);
+    }
+  }
+  // 插入样式
+  appendCss() {
+    let cssText = `
+      .ql-editor {
+        overflow: hidden;
+        padding: 0;
+        height: auto;
+        line-height: normal;
+      }
+      
+      .ql-container {
+        height: auto;
+        font-size: inherit;
+      }
+
+      .ql-container.ql-snow {
+        border: none;
+      }
+
+      .smm-richtext-node-wrap p {
+        font-family: auto;
+      }
+
+      .smm-richtext-node-edit-wrap p {
+        font-family: auto;
+      }
+    `;
+    this.styleEl = document.createElement("style");
+    this.styleEl.type = "text/css";
+    this.styleEl.innerHTML = cssText;
+    document.head.appendChild(this.styleEl);
   }
   // 处理选项参数
   initOpt() {
@@ -59838,29 +61349,41 @@ var RichText = class {
       rect = node3._textData.node.node.getBoundingClientRect();
     this.mindMap.emit("before_show_text_edit");
     this.mindMap.renderer.textEdit.registerTmpShortcut();
-    if (!this.textEditNode) {
-      this.textEditNode = document.createElement("div");
-      this.textEditNode.style.cssText = `position:fixed;box-sizing: border-box;box-shadow: 0 0 20px rgba(0,0,0,.5);outline: none; word-break: break-all;padding: 3px 5px;margin-left: -5px;margin-top: -3px;`;
-      document.body.appendChild(this.textEditNode);
-    }
     let g2 = node3._textData.node;
     let originWidth = g2.attr("data-width");
     let originHeight = g2.attr("data-height");
+    let scaleX = rect.width / originWidth;
+    let scaleY = rect.height / originHeight;
+    const paddingX = 6;
+    const paddingY = 4;
+    if (!this.textEditNode) {
+      this.textEditNode = document.createElement("div");
+      this.textEditNode.classList.add("smm-richtext-node-edit-wrap");
+      this.textEditNode.style.cssText = `position:fixed;box-sizing: border-box;box-shadow: 0 0 20px rgba(0,0,0,.5);outline: none; word-break: break-all;padding: ${paddingY}px ${paddingX}px;`;
+      this.textEditNode.addEventListener("click", (e2) => {
+        e2.stopPropagation();
+      });
+      document.body.appendChild(this.textEditNode);
+    }
     let bgColor = node3.style.merge("fillColor");
+    this.textEditNode.style.marginLeft = `-${paddingX * scaleX}px`;
+    this.textEditNode.style.marginTop = `-${paddingY * scaleY}px`;
+    this.textEditNode.style.zIndex = this.mindMap.opt.nodeTextEditZIndex;
     this.textEditNode.style.backgroundColor = bgColor === "transparent" ? "#fff" : bgColor;
-    this.textEditNode.style.minWidth = originWidth + "px";
+    this.textEditNode.style.minWidth = originWidth + paddingX * 2 + "px";
     this.textEditNode.style.minHeight = originHeight + "px";
-    this.textEditNode.style.left = rect.left + (rect.width - originWidth) / 2 + "px";
-    this.textEditNode.style.top = rect.top + (rect.height - originHeight) / 2 + "px";
+    this.textEditNode.style.left = rect.left + "px";
+    this.textEditNode.style.top = rect.top + "px";
     this.textEditNode.style.display = "block";
-    this.textEditNode.style.maxWidth = this.mindMap.opt.textAutoWrapWidth + "px";
-    this.textEditNode.style.transform = `scale(${rect.width / originWidth}, ${rect.height / originHeight})`;
+    this.textEditNode.style.maxWidth = this.mindMap.opt.textAutoWrapWidth + paddingX * 2 + "px";
+    this.textEditNode.style.transform = `scale(${scaleX}, ${scaleY})`;
+    this.textEditNode.style.transformOrigin = "left top";
     if (!node3.nodeData.data.richText) {
       let text3 = node3.nodeData.data.text.split(/\n/gim).join("<br>");
       let html2 = `<p>${text3}</p>`;
-      this.textEditNode.innerHTML = html2;
+      this.textEditNode.innerHTML = this.cacheEditingText || html2;
     } else {
-      this.textEditNode.innerHTML = node3.nodeData.data.text;
+      this.textEditNode.innerHTML = this.cacheEditingText || node3.nodeData.data.text;
     }
     this.initQuillEditor();
     document.querySelector(".ql-editor").style.minHeight = originHeight + "px";
@@ -59869,6 +61392,7 @@ var RichText = class {
     if (!node3.nodeData.data.richText) {
       this.setTextStyleIfNotRichText(node3);
     }
+    this.cacheEditingText = "";
   }
   // 如果是非富文本的情况，需要手动应用文本样式
   setTextStyleIfNotRichText(node3) {
@@ -59883,13 +61407,17 @@ var RichText = class {
     };
     this.formatAllText(style);
   }
+  // 获取当前正在编辑的内容
+  getEditText() {
+    let html2 = this.quill.container.firstChild.innerHTML;
+    return html2.replace(/<p><br><\/p>$/, "");
+  }
   // 隐藏文本编辑控件，即完成编辑
   hideEditText(nodes) {
     if (!this.showTextEdit) {
       return;
     }
-    let html2 = this.quill.container.firstChild.innerHTML;
-    html2 = html2.replace(/<p><br><\/p>$/, "");
+    let html2 = this.getEditText();
     let list2 = nodes && nodes.length > 0 ? nodes : this.mindMap.renderer.activeNodeList;
     list2.forEach((node3) => {
       this.mindMap.execCommand("SET_NODE_TEXT", node3, html2, true);
@@ -60069,86 +61597,38 @@ var RichText = class {
     });
     return data2;
   }
-  // 将svg中嵌入的dom元素转换成图片
-  async _handleSvgDomElements(svg2) {
-    svg2 = svg2.clone();
-    let foreignObjectList = svg2.find("foreignObject");
-    let task = foreignObjectList.map(async (item) => {
-      let clone = item.first().node.cloneNode(true);
-      let div = document.createElement("div");
-      div.style.cssText = `position: fixed; left: -999999px;`;
-      div.appendChild(clone);
-      this.mindMap.el.appendChild(div);
-      let canvas = await (0, import_html2canvas.default)(clone, {
-        backgroundColor: null
-      });
-      this.mindMap.el.removeChild(div);
-      let imgNode = new Image2().load(canvas.toDataURL()).size(canvas.width, canvas.height);
-      item.replace(imgNode);
-    });
-    await Promise.all(task);
-    return {
-      svg: svg2,
-      svgHTML: svg2.svg()
-    };
-  }
-  // 将svg中嵌入的dom元素转换成图片
-  handleSvgDomElements(svg2) {
-    return new Promise((resolve, reject) => {
-      svg2 = svg2.clone();
-      let foreignObjectList = svg2.find("foreignObject");
-      let index3 = 0;
-      let len = foreignObjectList.length;
-      let transform2 = async () => {
-        this.mindMap.emit("transforming-dom-to-images", index3, len);
-        try {
-          let item = foreignObjectList[index3++];
-          let parent = item.parent();
-          let clone = item.first().node.cloneNode(true);
-          let div = document.createElement("div");
-          div.style.cssText = `position: fixed; left: -999999px;`;
-          div.appendChild(clone);
-          this.mindMap.el.appendChild(div);
-          let canvas = await (0, import_html2canvas.default)(clone, {
-            backgroundColor: null
-          });
-          let imgNodeWidth = parent.attr("data-width") || canvas.width;
-          let imgNodeHeight = parent.attr("data-height") || canvas.height;
-          this.mindMap.el.removeChild(div);
-          let imgNode = new Image2().load(canvas.toDataURL()).size(imgNodeWidth, imgNodeHeight).x((parent ? parent.attr("data-offsetx") : 0) || 0);
-          item.replace(imgNode);
-          if (index3 <= len - 1) {
-            setTimeout(() => {
-              transform2();
-            }, 0);
-          } else {
-            resolve({
-              svg: svg2,
-              svgHTML: svg2.svg()
-            });
-          }
-        } catch (error) {
-          reject(error);
-        }
-      };
-      if (len > 0) {
-        transform2();
-      } else {
-        resolve(null);
+  // 处理导出为图片
+  async handleExportPng(node3) {
+    let el2 = document.createElement("div");
+    el2.style.position = "absolute";
+    el2.style.left = "-9999999px";
+    el2.appendChild(node3);
+    this.mindMap.el.appendChild(el2);
+    let walk2 = (root2) => {
+      root2.style.margin = 0;
+      root2.style.padding = 0;
+      if (root2.hasChildNodes()) {
+        Array.from(root2.children).forEach((item) => {
+          walk2(item);
+        });
       }
+    };
+    walk2(node3);
+    let canvas = await (0, import_html2canvas.default)(el2, {
+      backgroundColor: null
     });
+    this.mindMap.el.removeChild(el2);
+    return canvas.toDataURL();
   }
   // 将所有节点转换成非富文本节点
   transformAllNodesToNormalNode() {
-    let div = document.createElement("div");
     walk(
       this.mindMap.renderer.renderTree,
       null,
       (node3) => {
         if (node3.data.richText) {
           node3.data.richText = false;
-          div.innerHTML = node3.data.text;
-          node3.data.text = div.textContent;
+          node3.data.text = getTextFromHtml(node3.data.text);
         }
       },
       null,
@@ -60160,9 +61640,26 @@ var RichText = class {
     this.mindMap.command.addHistory();
     this.mindMap.render(null, CONSTANTS.TRANSFORM_TO_NORMAL_NODE);
   }
+  // 处理导入数据
+  handleSetData(data2) {
+    let walk2 = (root2) => {
+      if (!root2.data.richText) {
+        root2.data.richText = true;
+        root2.data.resetRichText = true;
+      }
+      if (root2.children && root2.children.length > 0) {
+        Array.from(root2.children).forEach((item) => {
+          walk2(item);
+        });
+      }
+    };
+    walk2(data2);
+    return data2;
+  }
   // 插件被移除前做的事情
   beforePluginRemove() {
     this.transformAllNodesToNormalNode();
+    document.head.removeChild(this.styleEl);
   }
 };
 RichText.instanceName = "richText";
@@ -65077,6 +66574,7 @@ var markdown_default = {
 // ../simple-mind-map/full.js
 simple_mind_map_default.xmind = xmind_default;
 simple_mind_map_default.markdown = markdown_default;
+simple_mind_map_default.iconList = icons_default.nodeIconList;
 simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default);
 var full_default = simple_mind_map_default;
 export {
