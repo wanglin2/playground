@@ -302,6 +302,5255 @@ var require_cjs = __commonJS({
   }
 });
 
+// ../simple-mind-map/node_modules/jszip/dist/jszip.min.js
+var require_jszip_min = __commonJS({
+  "../simple-mind-map/node_modules/jszip/dist/jszip.min.js"(exports, module) {
+    !function(e2) {
+      if ("object" == typeof exports && "undefined" != typeof module)
+        module.exports = e2();
+      else if ("function" == typeof define && define.amd)
+        define([], e2);
+      else {
+        ("undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : this).JSZip = e2();
+      }
+    }(function() {
+      return function s3(a3, o3, h3) {
+        function u3(r2, e3) {
+          if (!o3[r2]) {
+            if (!a3[r2]) {
+              var t3 = "function" == typeof __require && __require;
+              if (!e3 && t3)
+                return t3(r2, true);
+              if (l3)
+                return l3(r2, true);
+              var n3 = new Error("Cannot find module '" + r2 + "'");
+              throw n3.code = "MODULE_NOT_FOUND", n3;
+            }
+            var i3 = o3[r2] = { exports: {} };
+            a3[r2][0].call(i3.exports, function(e4) {
+              var t4 = a3[r2][1][e4];
+              return u3(t4 || e4);
+            }, i3, i3.exports, s3, a3, o3, h3);
+          }
+          return o3[r2].exports;
+        }
+        for (var l3 = "function" == typeof __require && __require, e2 = 0; e2 < h3.length; e2++)
+          u3(h3[e2]);
+        return u3;
+      }({ 1: [function(e2, t3, r2) {
+        "use strict";
+        var d2 = e2("./utils"), c4 = e2("./support"), p3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+        r2.encode = function(e3) {
+          for (var t4, r3, n3, i3, s3, a3, o3, h3 = [], u3 = 0, l3 = e3.length, f3 = l3, c5 = "string" !== d2.getTypeOf(e3); u3 < e3.length; )
+            f3 = l3 - u3, n3 = c5 ? (t4 = e3[u3++], r3 = u3 < l3 ? e3[u3++] : 0, u3 < l3 ? e3[u3++] : 0) : (t4 = e3.charCodeAt(u3++), r3 = u3 < l3 ? e3.charCodeAt(u3++) : 0, u3 < l3 ? e3.charCodeAt(u3++) : 0), i3 = t4 >> 2, s3 = (3 & t4) << 4 | r3 >> 4, a3 = 1 < f3 ? (15 & r3) << 2 | n3 >> 6 : 64, o3 = 2 < f3 ? 63 & n3 : 64, h3.push(p3.charAt(i3) + p3.charAt(s3) + p3.charAt(a3) + p3.charAt(o3));
+          return h3.join("");
+        }, r2.decode = function(e3) {
+          var t4, r3, n3, i3, s3, a3, o3 = 0, h3 = 0, u3 = "data:";
+          if (e3.substr(0, u3.length) === u3)
+            throw new Error("Invalid base64 input, it looks like a data url.");
+          var l3, f3 = 3 * (e3 = e3.replace(/[^A-Za-z0-9+/=]/g, "")).length / 4;
+          if (e3.charAt(e3.length - 1) === p3.charAt(64) && f3--, e3.charAt(e3.length - 2) === p3.charAt(64) && f3--, f3 % 1 != 0)
+            throw new Error("Invalid base64 input, bad content length.");
+          for (l3 = c4.uint8array ? new Uint8Array(0 | f3) : new Array(0 | f3); o3 < e3.length; )
+            t4 = p3.indexOf(e3.charAt(o3++)) << 2 | (i3 = p3.indexOf(e3.charAt(o3++))) >> 4, r3 = (15 & i3) << 4 | (s3 = p3.indexOf(e3.charAt(o3++))) >> 2, n3 = (3 & s3) << 6 | (a3 = p3.indexOf(e3.charAt(o3++))), l3[h3++] = t4, 64 !== s3 && (l3[h3++] = r3), 64 !== a3 && (l3[h3++] = n3);
+          return l3;
+        };
+      }, { "./support": 30, "./utils": 32 }], 2: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./external"), i3 = e2("./stream/DataWorker"), s3 = e2("./stream/Crc32Probe"), a3 = e2("./stream/DataLengthProbe");
+        function o3(e3, t4, r3, n4, i4) {
+          this.compressedSize = e3, this.uncompressedSize = t4, this.crc32 = r3, this.compression = n4, this.compressedContent = i4;
+        }
+        o3.prototype = { getContentWorker: function() {
+          var e3 = new i3(n3.Promise.resolve(this.compressedContent)).pipe(this.compression.uncompressWorker()).pipe(new a3("data_length")), t4 = this;
+          return e3.on("end", function() {
+            if (this.streamInfo.data_length !== t4.uncompressedSize)
+              throw new Error("Bug : uncompressed data size mismatch");
+          }), e3;
+        }, getCompressedWorker: function() {
+          return new i3(n3.Promise.resolve(this.compressedContent)).withStreamInfo("compressedSize", this.compressedSize).withStreamInfo("uncompressedSize", this.uncompressedSize).withStreamInfo("crc32", this.crc32).withStreamInfo("compression", this.compression);
+        } }, o3.createWorkerFrom = function(e3, t4, r3) {
+          return e3.pipe(new s3()).pipe(new a3("uncompressedSize")).pipe(t4.compressWorker(r3)).pipe(new a3("compressedSize")).withStreamInfo("compression", t4);
+        }, t3.exports = o3;
+      }, { "./external": 6, "./stream/Crc32Probe": 25, "./stream/DataLengthProbe": 26, "./stream/DataWorker": 27 }], 3: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./stream/GenericWorker");
+        r2.STORE = { magic: "\0\0", compressWorker: function() {
+          return new n3("STORE compression");
+        }, uncompressWorker: function() {
+          return new n3("STORE decompression");
+        } }, r2.DEFLATE = e2("./flate");
+      }, { "./flate": 7, "./stream/GenericWorker": 28 }], 4: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./utils");
+        var o3 = function() {
+          for (var e3, t4 = [], r3 = 0; r3 < 256; r3++) {
+            e3 = r3;
+            for (var n4 = 0; n4 < 8; n4++)
+              e3 = 1 & e3 ? 3988292384 ^ e3 >>> 1 : e3 >>> 1;
+            t4[r3] = e3;
+          }
+          return t4;
+        }();
+        t3.exports = function(e3, t4) {
+          return void 0 !== e3 && e3.length ? "string" !== n3.getTypeOf(e3) ? function(e4, t5, r3, n4) {
+            var i3 = o3, s3 = n4 + r3;
+            e4 ^= -1;
+            for (var a3 = n4; a3 < s3; a3++)
+              e4 = e4 >>> 8 ^ i3[255 & (e4 ^ t5[a3])];
+            return -1 ^ e4;
+          }(0 | t4, e3, e3.length, 0) : function(e4, t5, r3, n4) {
+            var i3 = o3, s3 = n4 + r3;
+            e4 ^= -1;
+            for (var a3 = n4; a3 < s3; a3++)
+              e4 = e4 >>> 8 ^ i3[255 & (e4 ^ t5.charCodeAt(a3))];
+            return -1 ^ e4;
+          }(0 | t4, e3, e3.length, 0) : 0;
+        };
+      }, { "./utils": 32 }], 5: [function(e2, t3, r2) {
+        "use strict";
+        r2.base64 = false, r2.binary = false, r2.dir = false, r2.createFolders = true, r2.date = null, r2.compression = null, r2.compressionOptions = null, r2.comment = null, r2.unixPermissions = null, r2.dosPermissions = null;
+      }, {}], 6: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = null;
+        n3 = "undefined" != typeof Promise ? Promise : e2("lie"), t3.exports = { Promise: n3 };
+      }, { lie: 37 }], 7: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Uint32Array, i3 = e2("pako"), s3 = e2("./utils"), a3 = e2("./stream/GenericWorker"), o3 = n3 ? "uint8array" : "array";
+        function h3(e3, t4) {
+          a3.call(this, "FlateWorker/" + e3), this._pako = null, this._pakoAction = e3, this._pakoOptions = t4, this.meta = {};
+        }
+        r2.magic = "\b\0", s3.inherits(h3, a3), h3.prototype.processChunk = function(e3) {
+          this.meta = e3.meta, null === this._pako && this._createPako(), this._pako.push(s3.transformTo(o3, e3.data), false);
+        }, h3.prototype.flush = function() {
+          a3.prototype.flush.call(this), null === this._pako && this._createPako(), this._pako.push([], true);
+        }, h3.prototype.cleanUp = function() {
+          a3.prototype.cleanUp.call(this), this._pako = null;
+        }, h3.prototype._createPako = function() {
+          this._pako = new i3[this._pakoAction]({ raw: true, level: this._pakoOptions.level || -1 });
+          var t4 = this;
+          this._pako.onData = function(e3) {
+            t4.push({ data: e3, meta: t4.meta });
+          };
+        }, r2.compressWorker = function(e3) {
+          return new h3("Deflate", e3);
+        }, r2.uncompressWorker = function() {
+          return new h3("Inflate", {});
+        };
+      }, { "./stream/GenericWorker": 28, "./utils": 32, pako: 38 }], 8: [function(e2, t3, r2) {
+        "use strict";
+        function A3(e3, t4) {
+          var r3, n4 = "";
+          for (r3 = 0; r3 < t4; r3++)
+            n4 += String.fromCharCode(255 & e3), e3 >>>= 8;
+          return n4;
+        }
+        function n3(e3, t4, r3, n4, i4, s4) {
+          var a3, o3, h3 = e3.file, u3 = e3.compression, l3 = s4 !== O3.utf8encode, f3 = I2.transformTo("string", s4(h3.name)), c4 = I2.transformTo("string", O3.utf8encode(h3.name)), d2 = h3.comment, p3 = I2.transformTo("string", s4(d2)), m4 = I2.transformTo("string", O3.utf8encode(d2)), _3 = c4.length !== h3.name.length, g2 = m4.length !== d2.length, b2 = "", v3 = "", y4 = "", w2 = h3.dir, k2 = h3.date, x3 = { crc32: 0, compressedSize: 0, uncompressedSize: 0 };
+          t4 && !r3 || (x3.crc32 = e3.crc32, x3.compressedSize = e3.compressedSize, x3.uncompressedSize = e3.uncompressedSize);
+          var S2 = 0;
+          t4 && (S2 |= 8), l3 || !_3 && !g2 || (S2 |= 2048);
+          var z2 = 0, C2 = 0;
+          w2 && (z2 |= 16), "UNIX" === i4 ? (C2 = 798, z2 |= function(e4, t5) {
+            var r4 = e4;
+            return e4 || (r4 = t5 ? 16893 : 33204), (65535 & r4) << 16;
+          }(h3.unixPermissions, w2)) : (C2 = 20, z2 |= function(e4) {
+            return 63 & (e4 || 0);
+          }(h3.dosPermissions)), a3 = k2.getUTCHours(), a3 <<= 6, a3 |= k2.getUTCMinutes(), a3 <<= 5, a3 |= k2.getUTCSeconds() / 2, o3 = k2.getUTCFullYear() - 1980, o3 <<= 4, o3 |= k2.getUTCMonth() + 1, o3 <<= 5, o3 |= k2.getUTCDate(), _3 && (v3 = A3(1, 1) + A3(B2(f3), 4) + c4, b2 += "up" + A3(v3.length, 2) + v3), g2 && (y4 = A3(1, 1) + A3(B2(p3), 4) + m4, b2 += "uc" + A3(y4.length, 2) + y4);
+          var E2 = "";
+          return E2 += "\n\0", E2 += A3(S2, 2), E2 += u3.magic, E2 += A3(a3, 2), E2 += A3(o3, 2), E2 += A3(x3.crc32, 4), E2 += A3(x3.compressedSize, 4), E2 += A3(x3.uncompressedSize, 4), E2 += A3(f3.length, 2), E2 += A3(b2.length, 2), { fileRecord: R2.LOCAL_FILE_HEADER + E2 + f3 + b2, dirRecord: R2.CENTRAL_FILE_HEADER + A3(C2, 2) + E2 + A3(p3.length, 2) + "\0\0\0\0" + A3(z2, 4) + A3(n4, 4) + f3 + b2 + p3 };
+        }
+        var I2 = e2("../utils"), i3 = e2("../stream/GenericWorker"), O3 = e2("../utf8"), B2 = e2("../crc32"), R2 = e2("../signature");
+        function s3(e3, t4, r3, n4) {
+          i3.call(this, "ZipFileWorker"), this.bytesWritten = 0, this.zipComment = t4, this.zipPlatform = r3, this.encodeFileName = n4, this.streamFiles = e3, this.accumulate = false, this.contentBuffer = [], this.dirRecords = [], this.currentSourceOffset = 0, this.entriesCount = 0, this.currentFile = null, this._sources = [];
+        }
+        I2.inherits(s3, i3), s3.prototype.push = function(e3) {
+          var t4 = e3.meta.percent || 0, r3 = this.entriesCount, n4 = this._sources.length;
+          this.accumulate ? this.contentBuffer.push(e3) : (this.bytesWritten += e3.data.length, i3.prototype.push.call(this, { data: e3.data, meta: { currentFile: this.currentFile, percent: r3 ? (t4 + 100 * (r3 - n4 - 1)) / r3 : 100 } }));
+        }, s3.prototype.openedSource = function(e3) {
+          this.currentSourceOffset = this.bytesWritten, this.currentFile = e3.file.name;
+          var t4 = this.streamFiles && !e3.file.dir;
+          if (t4) {
+            var r3 = n3(e3, t4, false, this.currentSourceOffset, this.zipPlatform, this.encodeFileName);
+            this.push({ data: r3.fileRecord, meta: { percent: 0 } });
+          } else
+            this.accumulate = true;
+        }, s3.prototype.closedSource = function(e3) {
+          this.accumulate = false;
+          var t4 = this.streamFiles && !e3.file.dir, r3 = n3(e3, t4, true, this.currentSourceOffset, this.zipPlatform, this.encodeFileName);
+          if (this.dirRecords.push(r3.dirRecord), t4)
+            this.push({ data: function(e4) {
+              return R2.DATA_DESCRIPTOR + A3(e4.crc32, 4) + A3(e4.compressedSize, 4) + A3(e4.uncompressedSize, 4);
+            }(e3), meta: { percent: 100 } });
+          else
+            for (this.push({ data: r3.fileRecord, meta: { percent: 0 } }); this.contentBuffer.length; )
+              this.push(this.contentBuffer.shift());
+          this.currentFile = null;
+        }, s3.prototype.flush = function() {
+          for (var e3 = this.bytesWritten, t4 = 0; t4 < this.dirRecords.length; t4++)
+            this.push({ data: this.dirRecords[t4], meta: { percent: 100 } });
+          var r3 = this.bytesWritten - e3, n4 = function(e4, t5, r4, n5, i4) {
+            var s4 = I2.transformTo("string", i4(n5));
+            return R2.CENTRAL_DIRECTORY_END + "\0\0\0\0" + A3(e4, 2) + A3(e4, 2) + A3(t5, 4) + A3(r4, 4) + A3(s4.length, 2) + s4;
+          }(this.dirRecords.length, r3, e3, this.zipComment, this.encodeFileName);
+          this.push({ data: n4, meta: { percent: 100 } });
+        }, s3.prototype.prepareNextSource = function() {
+          this.previous = this._sources.shift(), this.openedSource(this.previous.streamInfo), this.isPaused ? this.previous.pause() : this.previous.resume();
+        }, s3.prototype.registerPrevious = function(e3) {
+          this._sources.push(e3);
+          var t4 = this;
+          return e3.on("data", function(e4) {
+            t4.processChunk(e4);
+          }), e3.on("end", function() {
+            t4.closedSource(t4.previous.streamInfo), t4._sources.length ? t4.prepareNextSource() : t4.end();
+          }), e3.on("error", function(e4) {
+            t4.error(e4);
+          }), this;
+        }, s3.prototype.resume = function() {
+          return !!i3.prototype.resume.call(this) && (!this.previous && this._sources.length ? (this.prepareNextSource(), true) : this.previous || this._sources.length || this.generatedError ? void 0 : (this.end(), true));
+        }, s3.prototype.error = function(e3) {
+          var t4 = this._sources;
+          if (!i3.prototype.error.call(this, e3))
+            return false;
+          for (var r3 = 0; r3 < t4.length; r3++)
+            try {
+              t4[r3].error(e3);
+            } catch (e4) {
+            }
+          return true;
+        }, s3.prototype.lock = function() {
+          i3.prototype.lock.call(this);
+          for (var e3 = this._sources, t4 = 0; t4 < e3.length; t4++)
+            e3[t4].lock();
+        }, t3.exports = s3;
+      }, { "../crc32": 4, "../signature": 23, "../stream/GenericWorker": 28, "../utf8": 31, "../utils": 32 }], 9: [function(e2, t3, r2) {
+        "use strict";
+        var u3 = e2("../compressions"), n3 = e2("./ZipFileWorker");
+        r2.generateWorker = function(e3, a3, t4) {
+          var o3 = new n3(a3.streamFiles, t4, a3.platform, a3.encodeFileName), h3 = 0;
+          try {
+            e3.forEach(function(e4, t5) {
+              h3++;
+              var r3 = function(e5, t6) {
+                var r4 = e5 || t6, n5 = u3[r4];
+                if (!n5)
+                  throw new Error(r4 + " is not a valid compression method !");
+                return n5;
+              }(t5.options.compression, a3.compression), n4 = t5.options.compressionOptions || a3.compressionOptions || {}, i3 = t5.dir, s3 = t5.date;
+              t5._compressWorker(r3, n4).withStreamInfo("file", { name: e4, dir: i3, date: s3, comment: t5.comment || "", unixPermissions: t5.unixPermissions, dosPermissions: t5.dosPermissions }).pipe(o3);
+            }), o3.entriesCount = h3;
+          } catch (e4) {
+            o3.error(e4);
+          }
+          return o3;
+        };
+      }, { "../compressions": 3, "./ZipFileWorker": 8 }], 10: [function(e2, t3, r2) {
+        "use strict";
+        function n3() {
+          if (!(this instanceof n3))
+            return new n3();
+          if (arguments.length)
+            throw new Error("The constructor with parameters has been removed in JSZip 3.0, please check the upgrade guide.");
+          this.files = /* @__PURE__ */ Object.create(null), this.comment = null, this.root = "", this.clone = function() {
+            var e3 = new n3();
+            for (var t4 in this)
+              "function" != typeof this[t4] && (e3[t4] = this[t4]);
+            return e3;
+          };
+        }
+        (n3.prototype = e2("./object")).loadAsync = e2("./load"), n3.support = e2("./support"), n3.defaults = e2("./defaults"), n3.version = "3.10.1", n3.loadAsync = function(e3, t4) {
+          return new n3().loadAsync(e3, t4);
+        }, n3.external = e2("./external"), t3.exports = n3;
+      }, { "./defaults": 5, "./external": 6, "./load": 11, "./object": 15, "./support": 30 }], 11: [function(e2, t3, r2) {
+        "use strict";
+        var u3 = e2("./utils"), i3 = e2("./external"), n3 = e2("./utf8"), s3 = e2("./zipEntries"), a3 = e2("./stream/Crc32Probe"), l3 = e2("./nodejsUtils");
+        function f3(n4) {
+          return new i3.Promise(function(e3, t4) {
+            var r3 = n4.decompressed.getContentWorker().pipe(new a3());
+            r3.on("error", function(e4) {
+              t4(e4);
+            }).on("end", function() {
+              r3.streamInfo.crc32 !== n4.decompressed.crc32 ? t4(new Error("Corrupted zip : CRC32 mismatch")) : e3();
+            }).resume();
+          });
+        }
+        t3.exports = function(e3, o3) {
+          var h3 = this;
+          return o3 = u3.extend(o3 || {}, { base64: false, checkCRC32: false, optimizedBinaryString: false, createFolders: false, decodeFileName: n3.utf8decode }), l3.isNode && l3.isStream(e3) ? i3.Promise.reject(new Error("JSZip can't accept a stream when loading a zip file.")) : u3.prepareContent("the loaded zip file", e3, true, o3.optimizedBinaryString, o3.base64).then(function(e4) {
+            var t4 = new s3(o3);
+            return t4.load(e4), t4;
+          }).then(function(e4) {
+            var t4 = [i3.Promise.resolve(e4)], r3 = e4.files;
+            if (o3.checkCRC32)
+              for (var n4 = 0; n4 < r3.length; n4++)
+                t4.push(f3(r3[n4]));
+            return i3.Promise.all(t4);
+          }).then(function(e4) {
+            for (var t4 = e4.shift(), r3 = t4.files, n4 = 0; n4 < r3.length; n4++) {
+              var i4 = r3[n4], s4 = i4.fileNameStr, a4 = u3.resolve(i4.fileNameStr);
+              h3.file(a4, i4.decompressed, { binary: true, optimizedBinaryString: true, date: i4.date, dir: i4.dir, comment: i4.fileCommentStr.length ? i4.fileCommentStr : null, unixPermissions: i4.unixPermissions, dosPermissions: i4.dosPermissions, createFolders: o3.createFolders }), i4.dir || (h3.file(a4).unsafeOriginalName = s4);
+            }
+            return t4.zipComment.length && (h3.comment = t4.zipComment), h3;
+          });
+        };
+      }, { "./external": 6, "./nodejsUtils": 14, "./stream/Crc32Probe": 25, "./utf8": 31, "./utils": 32, "./zipEntries": 33 }], 12: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("../utils"), i3 = e2("../stream/GenericWorker");
+        function s3(e3, t4) {
+          i3.call(this, "Nodejs stream input adapter for " + e3), this._upstreamEnded = false, this._bindStream(t4);
+        }
+        n3.inherits(s3, i3), s3.prototype._bindStream = function(e3) {
+          var t4 = this;
+          (this._stream = e3).pause(), e3.on("data", function(e4) {
+            t4.push({ data: e4, meta: { percent: 0 } });
+          }).on("error", function(e4) {
+            t4.isPaused ? this.generatedError = e4 : t4.error(e4);
+          }).on("end", function() {
+            t4.isPaused ? t4._upstreamEnded = true : t4.end();
+          });
+        }, s3.prototype.pause = function() {
+          return !!i3.prototype.pause.call(this) && (this._stream.pause(), true);
+        }, s3.prototype.resume = function() {
+          return !!i3.prototype.resume.call(this) && (this._upstreamEnded ? this.end() : this._stream.resume(), true);
+        }, t3.exports = s3;
+      }, { "../stream/GenericWorker": 28, "../utils": 32 }], 13: [function(e2, t3, r2) {
+        "use strict";
+        var i3 = e2("readable-stream").Readable;
+        function n3(e3, t4, r3) {
+          i3.call(this, t4), this._helper = e3;
+          var n4 = this;
+          e3.on("data", function(e4, t5) {
+            n4.push(e4) || n4._helper.pause(), r3 && r3(t5);
+          }).on("error", function(e4) {
+            n4.emit("error", e4);
+          }).on("end", function() {
+            n4.push(null);
+          });
+        }
+        e2("../utils").inherits(n3, i3), n3.prototype._read = function() {
+          this._helper.resume();
+        }, t3.exports = n3;
+      }, { "../utils": 32, "readable-stream": 16 }], 14: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = { isNode: "undefined" != typeof Buffer, newBufferFrom: function(e3, t4) {
+          if (Buffer.from && Buffer.from !== Uint8Array.from)
+            return Buffer.from(e3, t4);
+          if ("number" == typeof e3)
+            throw new Error('The "data" argument must not be a number');
+          return new Buffer(e3, t4);
+        }, allocBuffer: function(e3) {
+          if (Buffer.alloc)
+            return Buffer.alloc(e3);
+          var t4 = new Buffer(e3);
+          return t4.fill(0), t4;
+        }, isBuffer: function(e3) {
+          return Buffer.isBuffer(e3);
+        }, isStream: function(e3) {
+          return e3 && "function" == typeof e3.on && "function" == typeof e3.pause && "function" == typeof e3.resume;
+        } };
+      }, {}], 15: [function(e2, t3, r2) {
+        "use strict";
+        function s3(e3, t4, r3) {
+          var n4, i4 = u3.getTypeOf(t4), s4 = u3.extend(r3 || {}, f3);
+          s4.date = s4.date || /* @__PURE__ */ new Date(), null !== s4.compression && (s4.compression = s4.compression.toUpperCase()), "string" == typeof s4.unixPermissions && (s4.unixPermissions = parseInt(s4.unixPermissions, 8)), s4.unixPermissions && 16384 & s4.unixPermissions && (s4.dir = true), s4.dosPermissions && 16 & s4.dosPermissions && (s4.dir = true), s4.dir && (e3 = g2(e3)), s4.createFolders && (n4 = _3(e3)) && b2.call(this, n4, true);
+          var a4 = "string" === i4 && false === s4.binary && false === s4.base64;
+          r3 && void 0 !== r3.binary || (s4.binary = !a4), (t4 instanceof c4 && 0 === t4.uncompressedSize || s4.dir || !t4 || 0 === t4.length) && (s4.base64 = false, s4.binary = true, t4 = "", s4.compression = "STORE", i4 = "string");
+          var o4 = null;
+          o4 = t4 instanceof c4 || t4 instanceof l3 ? t4 : p3.isNode && p3.isStream(t4) ? new m4(e3, t4) : u3.prepareContent(e3, t4, s4.binary, s4.optimizedBinaryString, s4.base64);
+          var h4 = new d2(e3, o4, s4);
+          this.files[e3] = h4;
+        }
+        var i3 = e2("./utf8"), u3 = e2("./utils"), l3 = e2("./stream/GenericWorker"), a3 = e2("./stream/StreamHelper"), f3 = e2("./defaults"), c4 = e2("./compressedObject"), d2 = e2("./zipObject"), o3 = e2("./generate"), p3 = e2("./nodejsUtils"), m4 = e2("./nodejs/NodejsStreamInputAdapter"), _3 = function(e3) {
+          "/" === e3.slice(-1) && (e3 = e3.substring(0, e3.length - 1));
+          var t4 = e3.lastIndexOf("/");
+          return 0 < t4 ? e3.substring(0, t4) : "";
+        }, g2 = function(e3) {
+          return "/" !== e3.slice(-1) && (e3 += "/"), e3;
+        }, b2 = function(e3, t4) {
+          return t4 = void 0 !== t4 ? t4 : f3.createFolders, e3 = g2(e3), this.files[e3] || s3.call(this, e3, null, { dir: true, createFolders: t4 }), this.files[e3];
+        };
+        function h3(e3) {
+          return "[object RegExp]" === Object.prototype.toString.call(e3);
+        }
+        var n3 = { load: function() {
+          throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
+        }, forEach: function(e3) {
+          var t4, r3, n4;
+          for (t4 in this.files)
+            n4 = this.files[t4], (r3 = t4.slice(this.root.length, t4.length)) && t4.slice(0, this.root.length) === this.root && e3(r3, n4);
+        }, filter: function(r3) {
+          var n4 = [];
+          return this.forEach(function(e3, t4) {
+            r3(e3, t4) && n4.push(t4);
+          }), n4;
+        }, file: function(e3, t4, r3) {
+          if (1 !== arguments.length)
+            return e3 = this.root + e3, s3.call(this, e3, t4, r3), this;
+          if (h3(e3)) {
+            var n4 = e3;
+            return this.filter(function(e4, t5) {
+              return !t5.dir && n4.test(e4);
+            });
+          }
+          var i4 = this.files[this.root + e3];
+          return i4 && !i4.dir ? i4 : null;
+        }, folder: function(r3) {
+          if (!r3)
+            return this;
+          if (h3(r3))
+            return this.filter(function(e4, t5) {
+              return t5.dir && r3.test(e4);
+            });
+          var e3 = this.root + r3, t4 = b2.call(this, e3), n4 = this.clone();
+          return n4.root = t4.name, n4;
+        }, remove: function(r3) {
+          r3 = this.root + r3;
+          var e3 = this.files[r3];
+          if (e3 || ("/" !== r3.slice(-1) && (r3 += "/"), e3 = this.files[r3]), e3 && !e3.dir)
+            delete this.files[r3];
+          else
+            for (var t4 = this.filter(function(e4, t5) {
+              return t5.name.slice(0, r3.length) === r3;
+            }), n4 = 0; n4 < t4.length; n4++)
+              delete this.files[t4[n4].name];
+          return this;
+        }, generate: function() {
+          throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
+        }, generateInternalStream: function(e3) {
+          var t4, r3 = {};
+          try {
+            if ((r3 = u3.extend(e3 || {}, { streamFiles: false, compression: "STORE", compressionOptions: null, type: "", platform: "DOS", comment: null, mimeType: "application/zip", encodeFileName: i3.utf8encode })).type = r3.type.toLowerCase(), r3.compression = r3.compression.toUpperCase(), "binarystring" === r3.type && (r3.type = "string"), !r3.type)
+              throw new Error("No output type specified.");
+            u3.checkSupport(r3.type), "darwin" !== r3.platform && "freebsd" !== r3.platform && "linux" !== r3.platform && "sunos" !== r3.platform || (r3.platform = "UNIX"), "win32" === r3.platform && (r3.platform = "DOS");
+            var n4 = r3.comment || this.comment || "";
+            t4 = o3.generateWorker(this, r3, n4);
+          } catch (e4) {
+            (t4 = new l3("error")).error(e4);
+          }
+          return new a3(t4, r3.type || "string", r3.mimeType);
+        }, generateAsync: function(e3, t4) {
+          return this.generateInternalStream(e3).accumulate(t4);
+        }, generateNodeStream: function(e3, t4) {
+          return (e3 = e3 || {}).type || (e3.type = "nodebuffer"), this.generateInternalStream(e3).toNodejsStream(t4);
+        } };
+        t3.exports = n3;
+      }, { "./compressedObject": 2, "./defaults": 5, "./generate": 9, "./nodejs/NodejsStreamInputAdapter": 12, "./nodejsUtils": 14, "./stream/GenericWorker": 28, "./stream/StreamHelper": 29, "./utf8": 31, "./utils": 32, "./zipObject": 35 }], 16: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = e2("stream");
+      }, { stream: void 0 }], 17: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./DataReader");
+        function i3(e3) {
+          n3.call(this, e3);
+          for (var t4 = 0; t4 < this.data.length; t4++)
+            e3[t4] = 255 & e3[t4];
+        }
+        e2("../utils").inherits(i3, n3), i3.prototype.byteAt = function(e3) {
+          return this.data[this.zero + e3];
+        }, i3.prototype.lastIndexOfSignature = function(e3) {
+          for (var t4 = e3.charCodeAt(0), r3 = e3.charCodeAt(1), n4 = e3.charCodeAt(2), i4 = e3.charCodeAt(3), s3 = this.length - 4; 0 <= s3; --s3)
+            if (this.data[s3] === t4 && this.data[s3 + 1] === r3 && this.data[s3 + 2] === n4 && this.data[s3 + 3] === i4)
+              return s3 - this.zero;
+          return -1;
+        }, i3.prototype.readAndCheckSignature = function(e3) {
+          var t4 = e3.charCodeAt(0), r3 = e3.charCodeAt(1), n4 = e3.charCodeAt(2), i4 = e3.charCodeAt(3), s3 = this.readData(4);
+          return t4 === s3[0] && r3 === s3[1] && n4 === s3[2] && i4 === s3[3];
+        }, i3.prototype.readData = function(e3) {
+          if (this.checkOffset(e3), 0 === e3)
+            return [];
+          var t4 = this.data.slice(this.zero + this.index, this.zero + this.index + e3);
+          return this.index += e3, t4;
+        }, t3.exports = i3;
+      }, { "../utils": 32, "./DataReader": 18 }], 18: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("../utils");
+        function i3(e3) {
+          this.data = e3, this.length = e3.length, this.index = 0, this.zero = 0;
+        }
+        i3.prototype = { checkOffset: function(e3) {
+          this.checkIndex(this.index + e3);
+        }, checkIndex: function(e3) {
+          if (this.length < this.zero + e3 || e3 < 0)
+            throw new Error("End of data reached (data length = " + this.length + ", asked index = " + e3 + "). Corrupted zip ?");
+        }, setIndex: function(e3) {
+          this.checkIndex(e3), this.index = e3;
+        }, skip: function(e3) {
+          this.setIndex(this.index + e3);
+        }, byteAt: function() {
+        }, readInt: function(e3) {
+          var t4, r3 = 0;
+          for (this.checkOffset(e3), t4 = this.index + e3 - 1; t4 >= this.index; t4--)
+            r3 = (r3 << 8) + this.byteAt(t4);
+          return this.index += e3, r3;
+        }, readString: function(e3) {
+          return n3.transformTo("string", this.readData(e3));
+        }, readData: function() {
+        }, lastIndexOfSignature: function() {
+        }, readAndCheckSignature: function() {
+        }, readDate: function() {
+          var e3 = this.readInt(4);
+          return new Date(Date.UTC(1980 + (e3 >> 25 & 127), (e3 >> 21 & 15) - 1, e3 >> 16 & 31, e3 >> 11 & 31, e3 >> 5 & 63, (31 & e3) << 1));
+        } }, t3.exports = i3;
+      }, { "../utils": 32 }], 19: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./Uint8ArrayReader");
+        function i3(e3) {
+          n3.call(this, e3);
+        }
+        e2("../utils").inherits(i3, n3), i3.prototype.readData = function(e3) {
+          this.checkOffset(e3);
+          var t4 = this.data.slice(this.zero + this.index, this.zero + this.index + e3);
+          return this.index += e3, t4;
+        }, t3.exports = i3;
+      }, { "../utils": 32, "./Uint8ArrayReader": 21 }], 20: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./DataReader");
+        function i3(e3) {
+          n3.call(this, e3);
+        }
+        e2("../utils").inherits(i3, n3), i3.prototype.byteAt = function(e3) {
+          return this.data.charCodeAt(this.zero + e3);
+        }, i3.prototype.lastIndexOfSignature = function(e3) {
+          return this.data.lastIndexOf(e3) - this.zero;
+        }, i3.prototype.readAndCheckSignature = function(e3) {
+          return e3 === this.readData(4);
+        }, i3.prototype.readData = function(e3) {
+          this.checkOffset(e3);
+          var t4 = this.data.slice(this.zero + this.index, this.zero + this.index + e3);
+          return this.index += e3, t4;
+        }, t3.exports = i3;
+      }, { "../utils": 32, "./DataReader": 18 }], 21: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./ArrayReader");
+        function i3(e3) {
+          n3.call(this, e3);
+        }
+        e2("../utils").inherits(i3, n3), i3.prototype.readData = function(e3) {
+          if (this.checkOffset(e3), 0 === e3)
+            return new Uint8Array(0);
+          var t4 = this.data.subarray(this.zero + this.index, this.zero + this.index + e3);
+          return this.index += e3, t4;
+        }, t3.exports = i3;
+      }, { "../utils": 32, "./ArrayReader": 17 }], 22: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("../utils"), i3 = e2("../support"), s3 = e2("./ArrayReader"), a3 = e2("./StringReader"), o3 = e2("./NodeBufferReader"), h3 = e2("./Uint8ArrayReader");
+        t3.exports = function(e3) {
+          var t4 = n3.getTypeOf(e3);
+          return n3.checkSupport(t4), "string" !== t4 || i3.uint8array ? "nodebuffer" === t4 ? new o3(e3) : i3.uint8array ? new h3(n3.transformTo("uint8array", e3)) : new s3(n3.transformTo("array", e3)) : new a3(e3);
+        };
+      }, { "../support": 30, "../utils": 32, "./ArrayReader": 17, "./NodeBufferReader": 19, "./StringReader": 20, "./Uint8ArrayReader": 21 }], 23: [function(e2, t3, r2) {
+        "use strict";
+        r2.LOCAL_FILE_HEADER = "PK", r2.CENTRAL_FILE_HEADER = "PK", r2.CENTRAL_DIRECTORY_END = "PK", r2.ZIP64_CENTRAL_DIRECTORY_LOCATOR = "PK\x07", r2.ZIP64_CENTRAL_DIRECTORY_END = "PK", r2.DATA_DESCRIPTOR = "PK\x07\b";
+      }, {}], 24: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./GenericWorker"), i3 = e2("../utils");
+        function s3(e3) {
+          n3.call(this, "ConvertWorker to " + e3), this.destType = e3;
+        }
+        i3.inherits(s3, n3), s3.prototype.processChunk = function(e3) {
+          this.push({ data: i3.transformTo(this.destType, e3.data), meta: e3.meta });
+        }, t3.exports = s3;
+      }, { "../utils": 32, "./GenericWorker": 28 }], 25: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./GenericWorker"), i3 = e2("../crc32");
+        function s3() {
+          n3.call(this, "Crc32Probe"), this.withStreamInfo("crc32", 0);
+        }
+        e2("../utils").inherits(s3, n3), s3.prototype.processChunk = function(e3) {
+          this.streamInfo.crc32 = i3(e3.data, this.streamInfo.crc32 || 0), this.push(e3);
+        }, t3.exports = s3;
+      }, { "../crc32": 4, "../utils": 32, "./GenericWorker": 28 }], 26: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("../utils"), i3 = e2("./GenericWorker");
+        function s3(e3) {
+          i3.call(this, "DataLengthProbe for " + e3), this.propName = e3, this.withStreamInfo(e3, 0);
+        }
+        n3.inherits(s3, i3), s3.prototype.processChunk = function(e3) {
+          if (e3) {
+            var t4 = this.streamInfo[this.propName] || 0;
+            this.streamInfo[this.propName] = t4 + e3.data.length;
+          }
+          i3.prototype.processChunk.call(this, e3);
+        }, t3.exports = s3;
+      }, { "../utils": 32, "./GenericWorker": 28 }], 27: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("../utils"), i3 = e2("./GenericWorker");
+        function s3(e3) {
+          i3.call(this, "DataWorker");
+          var t4 = this;
+          this.dataIsReady = false, this.index = 0, this.max = 0, this.data = null, this.type = "", this._tickScheduled = false, e3.then(function(e4) {
+            t4.dataIsReady = true, t4.data = e4, t4.max = e4 && e4.length || 0, t4.type = n3.getTypeOf(e4), t4.isPaused || t4._tickAndRepeat();
+          }, function(e4) {
+            t4.error(e4);
+          });
+        }
+        n3.inherits(s3, i3), s3.prototype.cleanUp = function() {
+          i3.prototype.cleanUp.call(this), this.data = null;
+        }, s3.prototype.resume = function() {
+          return !!i3.prototype.resume.call(this) && (!this._tickScheduled && this.dataIsReady && (this._tickScheduled = true, n3.delay(this._tickAndRepeat, [], this)), true);
+        }, s3.prototype._tickAndRepeat = function() {
+          this._tickScheduled = false, this.isPaused || this.isFinished || (this._tick(), this.isFinished || (n3.delay(this._tickAndRepeat, [], this), this._tickScheduled = true));
+        }, s3.prototype._tick = function() {
+          if (this.isPaused || this.isFinished)
+            return false;
+          var e3 = null, t4 = Math.min(this.max, this.index + 16384);
+          if (this.index >= this.max)
+            return this.end();
+          switch (this.type) {
+            case "string":
+              e3 = this.data.substring(this.index, t4);
+              break;
+            case "uint8array":
+              e3 = this.data.subarray(this.index, t4);
+              break;
+            case "array":
+            case "nodebuffer":
+              e3 = this.data.slice(this.index, t4);
+          }
+          return this.index = t4, this.push({ data: e3, meta: { percent: this.max ? this.index / this.max * 100 : 0 } });
+        }, t3.exports = s3;
+      }, { "../utils": 32, "./GenericWorker": 28 }], 28: [function(e2, t3, r2) {
+        "use strict";
+        function n3(e3) {
+          this.name = e3 || "default", this.streamInfo = {}, this.generatedError = null, this.extraStreamInfo = {}, this.isPaused = true, this.isFinished = false, this.isLocked = false, this._listeners = { data: [], end: [], error: [] }, this.previous = null;
+        }
+        n3.prototype = { push: function(e3) {
+          this.emit("data", e3);
+        }, end: function() {
+          if (this.isFinished)
+            return false;
+          this.flush();
+          try {
+            this.emit("end"), this.cleanUp(), this.isFinished = true;
+          } catch (e3) {
+            this.emit("error", e3);
+          }
+          return true;
+        }, error: function(e3) {
+          return !this.isFinished && (this.isPaused ? this.generatedError = e3 : (this.isFinished = true, this.emit("error", e3), this.previous && this.previous.error(e3), this.cleanUp()), true);
+        }, on: function(e3, t4) {
+          return this._listeners[e3].push(t4), this;
+        }, cleanUp: function() {
+          this.streamInfo = this.generatedError = this.extraStreamInfo = null, this._listeners = [];
+        }, emit: function(e3, t4) {
+          if (this._listeners[e3])
+            for (var r3 = 0; r3 < this._listeners[e3].length; r3++)
+              this._listeners[e3][r3].call(this, t4);
+        }, pipe: function(e3) {
+          return e3.registerPrevious(this);
+        }, registerPrevious: function(e3) {
+          if (this.isLocked)
+            throw new Error("The stream '" + this + "' has already been used.");
+          this.streamInfo = e3.streamInfo, this.mergeStreamInfo(), this.previous = e3;
+          var t4 = this;
+          return e3.on("data", function(e4) {
+            t4.processChunk(e4);
+          }), e3.on("end", function() {
+            t4.end();
+          }), e3.on("error", function(e4) {
+            t4.error(e4);
+          }), this;
+        }, pause: function() {
+          return !this.isPaused && !this.isFinished && (this.isPaused = true, this.previous && this.previous.pause(), true);
+        }, resume: function() {
+          if (!this.isPaused || this.isFinished)
+            return false;
+          var e3 = this.isPaused = false;
+          return this.generatedError && (this.error(this.generatedError), e3 = true), this.previous && this.previous.resume(), !e3;
+        }, flush: function() {
+        }, processChunk: function(e3) {
+          this.push(e3);
+        }, withStreamInfo: function(e3, t4) {
+          return this.extraStreamInfo[e3] = t4, this.mergeStreamInfo(), this;
+        }, mergeStreamInfo: function() {
+          for (var e3 in this.extraStreamInfo)
+            Object.prototype.hasOwnProperty.call(this.extraStreamInfo, e3) && (this.streamInfo[e3] = this.extraStreamInfo[e3]);
+        }, lock: function() {
+          if (this.isLocked)
+            throw new Error("The stream '" + this + "' has already been used.");
+          this.isLocked = true, this.previous && this.previous.lock();
+        }, toString: function() {
+          var e3 = "Worker " + this.name;
+          return this.previous ? this.previous + " -> " + e3 : e3;
+        } }, t3.exports = n3;
+      }, {}], 29: [function(e2, t3, r2) {
+        "use strict";
+        var h3 = e2("../utils"), i3 = e2("./ConvertWorker"), s3 = e2("./GenericWorker"), u3 = e2("../base64"), n3 = e2("../support"), a3 = e2("../external"), o3 = null;
+        if (n3.nodestream)
+          try {
+            o3 = e2("../nodejs/NodejsStreamOutputAdapter");
+          } catch (e3) {
+          }
+        function l3(e3, o4) {
+          return new a3.Promise(function(t4, r3) {
+            var n4 = [], i4 = e3._internalType, s4 = e3._outputType, a4 = e3._mimeType;
+            e3.on("data", function(e4, t5) {
+              n4.push(e4), o4 && o4(t5);
+            }).on("error", function(e4) {
+              n4 = [], r3(e4);
+            }).on("end", function() {
+              try {
+                var e4 = function(e5, t5, r4) {
+                  switch (e5) {
+                    case "blob":
+                      return h3.newBlob(h3.transformTo("arraybuffer", t5), r4);
+                    case "base64":
+                      return u3.encode(t5);
+                    default:
+                      return h3.transformTo(e5, t5);
+                  }
+                }(s4, function(e5, t5) {
+                  var r4, n5 = 0, i5 = null, s5 = 0;
+                  for (r4 = 0; r4 < t5.length; r4++)
+                    s5 += t5[r4].length;
+                  switch (e5) {
+                    case "string":
+                      return t5.join("");
+                    case "array":
+                      return Array.prototype.concat.apply([], t5);
+                    case "uint8array":
+                      for (i5 = new Uint8Array(s5), r4 = 0; r4 < t5.length; r4++)
+                        i5.set(t5[r4], n5), n5 += t5[r4].length;
+                      return i5;
+                    case "nodebuffer":
+                      return Buffer.concat(t5);
+                    default:
+                      throw new Error("concat : unsupported type '" + e5 + "'");
+                  }
+                }(i4, n4), a4);
+                t4(e4);
+              } catch (e5) {
+                r3(e5);
+              }
+              n4 = [];
+            }).resume();
+          });
+        }
+        function f3(e3, t4, r3) {
+          var n4 = t4;
+          switch (t4) {
+            case "blob":
+            case "arraybuffer":
+              n4 = "uint8array";
+              break;
+            case "base64":
+              n4 = "string";
+          }
+          try {
+            this._internalType = n4, this._outputType = t4, this._mimeType = r3, h3.checkSupport(n4), this._worker = e3.pipe(new i3(n4)), e3.lock();
+          } catch (e4) {
+            this._worker = new s3("error"), this._worker.error(e4);
+          }
+        }
+        f3.prototype = { accumulate: function(e3) {
+          return l3(this, e3);
+        }, on: function(e3, t4) {
+          var r3 = this;
+          return "data" === e3 ? this._worker.on(e3, function(e4) {
+            t4.call(r3, e4.data, e4.meta);
+          }) : this._worker.on(e3, function() {
+            h3.delay(t4, arguments, r3);
+          }), this;
+        }, resume: function() {
+          return h3.delay(this._worker.resume, [], this._worker), this;
+        }, pause: function() {
+          return this._worker.pause(), this;
+        }, toNodejsStream: function(e3) {
+          if (h3.checkSupport("nodestream"), "nodebuffer" !== this._outputType)
+            throw new Error(this._outputType + " is not supported by this method");
+          return new o3(this, { objectMode: "nodebuffer" !== this._outputType }, e3);
+        } }, t3.exports = f3;
+      }, { "../base64": 1, "../external": 6, "../nodejs/NodejsStreamOutputAdapter": 13, "../support": 30, "../utils": 32, "./ConvertWorker": 24, "./GenericWorker": 28 }], 30: [function(e2, t3, r2) {
+        "use strict";
+        if (r2.base64 = true, r2.array = true, r2.string = true, r2.arraybuffer = "undefined" != typeof ArrayBuffer && "undefined" != typeof Uint8Array, r2.nodebuffer = "undefined" != typeof Buffer, r2.uint8array = "undefined" != typeof Uint8Array, "undefined" == typeof ArrayBuffer)
+          r2.blob = false;
+        else {
+          var n3 = new ArrayBuffer(0);
+          try {
+            r2.blob = 0 === new Blob([n3], { type: "application/zip" }).size;
+          } catch (e3) {
+            try {
+              var i3 = new (self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder || self.MSBlobBuilder)();
+              i3.append(n3), r2.blob = 0 === i3.getBlob("application/zip").size;
+            } catch (e4) {
+              r2.blob = false;
+            }
+          }
+        }
+        try {
+          r2.nodestream = !!e2("readable-stream").Readable;
+        } catch (e3) {
+          r2.nodestream = false;
+        }
+      }, { "readable-stream": 16 }], 31: [function(e2, t3, s3) {
+        "use strict";
+        for (var o3 = e2("./utils"), h3 = e2("./support"), r2 = e2("./nodejsUtils"), n3 = e2("./stream/GenericWorker"), u3 = new Array(256), i3 = 0; i3 < 256; i3++)
+          u3[i3] = 252 <= i3 ? 6 : 248 <= i3 ? 5 : 240 <= i3 ? 4 : 224 <= i3 ? 3 : 192 <= i3 ? 2 : 1;
+        u3[254] = u3[254] = 1;
+        function a3() {
+          n3.call(this, "utf-8 decode"), this.leftOver = null;
+        }
+        function l3() {
+          n3.call(this, "utf-8 encode");
+        }
+        s3.utf8encode = function(e3) {
+          return h3.nodebuffer ? r2.newBufferFrom(e3, "utf-8") : function(e4) {
+            var t4, r3, n4, i4, s4, a4 = e4.length, o4 = 0;
+            for (i4 = 0; i4 < a4; i4++)
+              55296 == (64512 & (r3 = e4.charCodeAt(i4))) && i4 + 1 < a4 && 56320 == (64512 & (n4 = e4.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), o4 += r3 < 128 ? 1 : r3 < 2048 ? 2 : r3 < 65536 ? 3 : 4;
+            for (t4 = h3.uint8array ? new Uint8Array(o4) : new Array(o4), i4 = s4 = 0; s4 < o4; i4++)
+              55296 == (64512 & (r3 = e4.charCodeAt(i4))) && i4 + 1 < a4 && 56320 == (64512 & (n4 = e4.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), r3 < 128 ? t4[s4++] = r3 : (r3 < 2048 ? t4[s4++] = 192 | r3 >>> 6 : (r3 < 65536 ? t4[s4++] = 224 | r3 >>> 12 : (t4[s4++] = 240 | r3 >>> 18, t4[s4++] = 128 | r3 >>> 12 & 63), t4[s4++] = 128 | r3 >>> 6 & 63), t4[s4++] = 128 | 63 & r3);
+            return t4;
+          }(e3);
+        }, s3.utf8decode = function(e3) {
+          return h3.nodebuffer ? o3.transformTo("nodebuffer", e3).toString("utf-8") : function(e4) {
+            var t4, r3, n4, i4, s4 = e4.length, a4 = new Array(2 * s4);
+            for (t4 = r3 = 0; t4 < s4; )
+              if ((n4 = e4[t4++]) < 128)
+                a4[r3++] = n4;
+              else if (4 < (i4 = u3[n4]))
+                a4[r3++] = 65533, t4 += i4 - 1;
+              else {
+                for (n4 &= 2 === i4 ? 31 : 3 === i4 ? 15 : 7; 1 < i4 && t4 < s4; )
+                  n4 = n4 << 6 | 63 & e4[t4++], i4--;
+                1 < i4 ? a4[r3++] = 65533 : n4 < 65536 ? a4[r3++] = n4 : (n4 -= 65536, a4[r3++] = 55296 | n4 >> 10 & 1023, a4[r3++] = 56320 | 1023 & n4);
+              }
+            return a4.length !== r3 && (a4.subarray ? a4 = a4.subarray(0, r3) : a4.length = r3), o3.applyFromCharCode(a4);
+          }(e3 = o3.transformTo(h3.uint8array ? "uint8array" : "array", e3));
+        }, o3.inherits(a3, n3), a3.prototype.processChunk = function(e3) {
+          var t4 = o3.transformTo(h3.uint8array ? "uint8array" : "array", e3.data);
+          if (this.leftOver && this.leftOver.length) {
+            if (h3.uint8array) {
+              var r3 = t4;
+              (t4 = new Uint8Array(r3.length + this.leftOver.length)).set(this.leftOver, 0), t4.set(r3, this.leftOver.length);
+            } else
+              t4 = this.leftOver.concat(t4);
+            this.leftOver = null;
+          }
+          var n4 = function(e4, t5) {
+            var r4;
+            for ((t5 = t5 || e4.length) > e4.length && (t5 = e4.length), r4 = t5 - 1; 0 <= r4 && 128 == (192 & e4[r4]); )
+              r4--;
+            return r4 < 0 ? t5 : 0 === r4 ? t5 : r4 + u3[e4[r4]] > t5 ? r4 : t5;
+          }(t4), i4 = t4;
+          n4 !== t4.length && (h3.uint8array ? (i4 = t4.subarray(0, n4), this.leftOver = t4.subarray(n4, t4.length)) : (i4 = t4.slice(0, n4), this.leftOver = t4.slice(n4, t4.length))), this.push({ data: s3.utf8decode(i4), meta: e3.meta });
+        }, a3.prototype.flush = function() {
+          this.leftOver && this.leftOver.length && (this.push({ data: s3.utf8decode(this.leftOver), meta: {} }), this.leftOver = null);
+        }, s3.Utf8DecodeWorker = a3, o3.inherits(l3, n3), l3.prototype.processChunk = function(e3) {
+          this.push({ data: s3.utf8encode(e3.data), meta: e3.meta });
+        }, s3.Utf8EncodeWorker = l3;
+      }, { "./nodejsUtils": 14, "./stream/GenericWorker": 28, "./support": 30, "./utils": 32 }], 32: [function(e2, t3, a3) {
+        "use strict";
+        var o3 = e2("./support"), h3 = e2("./base64"), r2 = e2("./nodejsUtils"), u3 = e2("./external");
+        function n3(e3) {
+          return e3;
+        }
+        function l3(e3, t4) {
+          for (var r3 = 0; r3 < e3.length; ++r3)
+            t4[r3] = 255 & e3.charCodeAt(r3);
+          return t4;
+        }
+        e2("setimmediate"), a3.newBlob = function(t4, r3) {
+          a3.checkSupport("blob");
+          try {
+            return new Blob([t4], { type: r3 });
+          } catch (e3) {
+            try {
+              var n4 = new (self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder || self.MSBlobBuilder)();
+              return n4.append(t4), n4.getBlob(r3);
+            } catch (e4) {
+              throw new Error("Bug : can't construct the Blob.");
+            }
+          }
+        };
+        var i3 = { stringifyByChunk: function(e3, t4, r3) {
+          var n4 = [], i4 = 0, s4 = e3.length;
+          if (s4 <= r3)
+            return String.fromCharCode.apply(null, e3);
+          for (; i4 < s4; )
+            "array" === t4 || "nodebuffer" === t4 ? n4.push(String.fromCharCode.apply(null, e3.slice(i4, Math.min(i4 + r3, s4)))) : n4.push(String.fromCharCode.apply(null, e3.subarray(i4, Math.min(i4 + r3, s4)))), i4 += r3;
+          return n4.join("");
+        }, stringifyByChar: function(e3) {
+          for (var t4 = "", r3 = 0; r3 < e3.length; r3++)
+            t4 += String.fromCharCode(e3[r3]);
+          return t4;
+        }, applyCanBeUsed: { uint8array: function() {
+          try {
+            return o3.uint8array && 1 === String.fromCharCode.apply(null, new Uint8Array(1)).length;
+          } catch (e3) {
+            return false;
+          }
+        }(), nodebuffer: function() {
+          try {
+            return o3.nodebuffer && 1 === String.fromCharCode.apply(null, r2.allocBuffer(1)).length;
+          } catch (e3) {
+            return false;
+          }
+        }() } };
+        function s3(e3) {
+          var t4 = 65536, r3 = a3.getTypeOf(e3), n4 = true;
+          if ("uint8array" === r3 ? n4 = i3.applyCanBeUsed.uint8array : "nodebuffer" === r3 && (n4 = i3.applyCanBeUsed.nodebuffer), n4)
+            for (; 1 < t4; )
+              try {
+                return i3.stringifyByChunk(e3, r3, t4);
+              } catch (e4) {
+                t4 = Math.floor(t4 / 2);
+              }
+          return i3.stringifyByChar(e3);
+        }
+        function f3(e3, t4) {
+          for (var r3 = 0; r3 < e3.length; r3++)
+            t4[r3] = e3[r3];
+          return t4;
+        }
+        a3.applyFromCharCode = s3;
+        var c4 = {};
+        c4.string = { string: n3, array: function(e3) {
+          return l3(e3, new Array(e3.length));
+        }, arraybuffer: function(e3) {
+          return c4.string.uint8array(e3).buffer;
+        }, uint8array: function(e3) {
+          return l3(e3, new Uint8Array(e3.length));
+        }, nodebuffer: function(e3) {
+          return l3(e3, r2.allocBuffer(e3.length));
+        } }, c4.array = { string: s3, array: n3, arraybuffer: function(e3) {
+          return new Uint8Array(e3).buffer;
+        }, uint8array: function(e3) {
+          return new Uint8Array(e3);
+        }, nodebuffer: function(e3) {
+          return r2.newBufferFrom(e3);
+        } }, c4.arraybuffer = { string: function(e3) {
+          return s3(new Uint8Array(e3));
+        }, array: function(e3) {
+          return f3(new Uint8Array(e3), new Array(e3.byteLength));
+        }, arraybuffer: n3, uint8array: function(e3) {
+          return new Uint8Array(e3);
+        }, nodebuffer: function(e3) {
+          return r2.newBufferFrom(new Uint8Array(e3));
+        } }, c4.uint8array = { string: s3, array: function(e3) {
+          return f3(e3, new Array(e3.length));
+        }, arraybuffer: function(e3) {
+          return e3.buffer;
+        }, uint8array: n3, nodebuffer: function(e3) {
+          return r2.newBufferFrom(e3);
+        } }, c4.nodebuffer = { string: s3, array: function(e3) {
+          return f3(e3, new Array(e3.length));
+        }, arraybuffer: function(e3) {
+          return c4.nodebuffer.uint8array(e3).buffer;
+        }, uint8array: function(e3) {
+          return f3(e3, new Uint8Array(e3.length));
+        }, nodebuffer: n3 }, a3.transformTo = function(e3, t4) {
+          if (t4 = t4 || "", !e3)
+            return t4;
+          a3.checkSupport(e3);
+          var r3 = a3.getTypeOf(t4);
+          return c4[r3][e3](t4);
+        }, a3.resolve = function(e3) {
+          for (var t4 = e3.split("/"), r3 = [], n4 = 0; n4 < t4.length; n4++) {
+            var i4 = t4[n4];
+            "." === i4 || "" === i4 && 0 !== n4 && n4 !== t4.length - 1 || (".." === i4 ? r3.pop() : r3.push(i4));
+          }
+          return r3.join("/");
+        }, a3.getTypeOf = function(e3) {
+          return "string" == typeof e3 ? "string" : "[object Array]" === Object.prototype.toString.call(e3) ? "array" : o3.nodebuffer && r2.isBuffer(e3) ? "nodebuffer" : o3.uint8array && e3 instanceof Uint8Array ? "uint8array" : o3.arraybuffer && e3 instanceof ArrayBuffer ? "arraybuffer" : void 0;
+        }, a3.checkSupport = function(e3) {
+          if (!o3[e3.toLowerCase()])
+            throw new Error(e3 + " is not supported by this platform");
+        }, a3.MAX_VALUE_16BITS = 65535, a3.MAX_VALUE_32BITS = -1, a3.pretty = function(e3) {
+          var t4, r3, n4 = "";
+          for (r3 = 0; r3 < (e3 || "").length; r3++)
+            n4 += "\\x" + ((t4 = e3.charCodeAt(r3)) < 16 ? "0" : "") + t4.toString(16).toUpperCase();
+          return n4;
+        }, a3.delay = function(e3, t4, r3) {
+          setImmediate(function() {
+            e3.apply(r3 || null, t4 || []);
+          });
+        }, a3.inherits = function(e3, t4) {
+          function r3() {
+          }
+          r3.prototype = t4.prototype, e3.prototype = new r3();
+        }, a3.extend = function() {
+          var e3, t4, r3 = {};
+          for (e3 = 0; e3 < arguments.length; e3++)
+            for (t4 in arguments[e3])
+              Object.prototype.hasOwnProperty.call(arguments[e3], t4) && void 0 === r3[t4] && (r3[t4] = arguments[e3][t4]);
+          return r3;
+        }, a3.prepareContent = function(r3, e3, n4, i4, s4) {
+          return u3.Promise.resolve(e3).then(function(n5) {
+            return o3.blob && (n5 instanceof Blob || -1 !== ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(n5))) && "undefined" != typeof FileReader ? new u3.Promise(function(t4, r4) {
+              var e4 = new FileReader();
+              e4.onload = function(e5) {
+                t4(e5.target.result);
+              }, e4.onerror = function(e5) {
+                r4(e5.target.error);
+              }, e4.readAsArrayBuffer(n5);
+            }) : n5;
+          }).then(function(e4) {
+            var t4 = a3.getTypeOf(e4);
+            return t4 ? ("arraybuffer" === t4 ? e4 = a3.transformTo("uint8array", e4) : "string" === t4 && (s4 ? e4 = h3.decode(e4) : n4 && true !== i4 && (e4 = function(e5) {
+              return l3(e5, o3.uint8array ? new Uint8Array(e5.length) : new Array(e5.length));
+            }(e4))), e4) : u3.Promise.reject(new Error("Can't read the data of '" + r3 + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?"));
+          });
+        };
+      }, { "./base64": 1, "./external": 6, "./nodejsUtils": 14, "./support": 30, setimmediate: 54 }], 33: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./reader/readerFor"), i3 = e2("./utils"), s3 = e2("./signature"), a3 = e2("./zipEntry"), o3 = e2("./support");
+        function h3(e3) {
+          this.files = [], this.loadOptions = e3;
+        }
+        h3.prototype = { checkSignature: function(e3) {
+          if (!this.reader.readAndCheckSignature(e3)) {
+            this.reader.index -= 4;
+            var t4 = this.reader.readString(4);
+            throw new Error("Corrupted zip or bug: unexpected signature (" + i3.pretty(t4) + ", expected " + i3.pretty(e3) + ")");
+          }
+        }, isSignature: function(e3, t4) {
+          var r3 = this.reader.index;
+          this.reader.setIndex(e3);
+          var n4 = this.reader.readString(4) === t4;
+          return this.reader.setIndex(r3), n4;
+        }, readBlockEndOfCentral: function() {
+          this.diskNumber = this.reader.readInt(2), this.diskWithCentralDirStart = this.reader.readInt(2), this.centralDirRecordsOnThisDisk = this.reader.readInt(2), this.centralDirRecords = this.reader.readInt(2), this.centralDirSize = this.reader.readInt(4), this.centralDirOffset = this.reader.readInt(4), this.zipCommentLength = this.reader.readInt(2);
+          var e3 = this.reader.readData(this.zipCommentLength), t4 = o3.uint8array ? "uint8array" : "array", r3 = i3.transformTo(t4, e3);
+          this.zipComment = this.loadOptions.decodeFileName(r3);
+        }, readBlockZip64EndOfCentral: function() {
+          this.zip64EndOfCentralSize = this.reader.readInt(8), this.reader.skip(4), this.diskNumber = this.reader.readInt(4), this.diskWithCentralDirStart = this.reader.readInt(4), this.centralDirRecordsOnThisDisk = this.reader.readInt(8), this.centralDirRecords = this.reader.readInt(8), this.centralDirSize = this.reader.readInt(8), this.centralDirOffset = this.reader.readInt(8), this.zip64ExtensibleData = {};
+          for (var e3, t4, r3, n4 = this.zip64EndOfCentralSize - 44; 0 < n4; )
+            e3 = this.reader.readInt(2), t4 = this.reader.readInt(4), r3 = this.reader.readData(t4), this.zip64ExtensibleData[e3] = { id: e3, length: t4, value: r3 };
+        }, readBlockZip64EndOfCentralLocator: function() {
+          if (this.diskWithZip64CentralDirStart = this.reader.readInt(4), this.relativeOffsetEndOfZip64CentralDir = this.reader.readInt(8), this.disksCount = this.reader.readInt(4), 1 < this.disksCount)
+            throw new Error("Multi-volumes zip are not supported");
+        }, readLocalFiles: function() {
+          var e3, t4;
+          for (e3 = 0; e3 < this.files.length; e3++)
+            t4 = this.files[e3], this.reader.setIndex(t4.localHeaderOffset), this.checkSignature(s3.LOCAL_FILE_HEADER), t4.readLocalPart(this.reader), t4.handleUTF8(), t4.processAttributes();
+        }, readCentralDir: function() {
+          var e3;
+          for (this.reader.setIndex(this.centralDirOffset); this.reader.readAndCheckSignature(s3.CENTRAL_FILE_HEADER); )
+            (e3 = new a3({ zip64: this.zip64 }, this.loadOptions)).readCentralPart(this.reader), this.files.push(e3);
+          if (this.centralDirRecords !== this.files.length && 0 !== this.centralDirRecords && 0 === this.files.length)
+            throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
+        }, readEndOfCentral: function() {
+          var e3 = this.reader.lastIndexOfSignature(s3.CENTRAL_DIRECTORY_END);
+          if (e3 < 0)
+            throw !this.isSignature(0, s3.LOCAL_FILE_HEADER) ? new Error("Can't find end of central directory : is this a zip file ? If it is, see https://stuk.github.io/jszip/documentation/howto/read_zip.html") : new Error("Corrupted zip: can't find end of central directory");
+          this.reader.setIndex(e3);
+          var t4 = e3;
+          if (this.checkSignature(s3.CENTRAL_DIRECTORY_END), this.readBlockEndOfCentral(), this.diskNumber === i3.MAX_VALUE_16BITS || this.diskWithCentralDirStart === i3.MAX_VALUE_16BITS || this.centralDirRecordsOnThisDisk === i3.MAX_VALUE_16BITS || this.centralDirRecords === i3.MAX_VALUE_16BITS || this.centralDirSize === i3.MAX_VALUE_32BITS || this.centralDirOffset === i3.MAX_VALUE_32BITS) {
+            if (this.zip64 = true, (e3 = this.reader.lastIndexOfSignature(s3.ZIP64_CENTRAL_DIRECTORY_LOCATOR)) < 0)
+              throw new Error("Corrupted zip: can't find the ZIP64 end of central directory locator");
+            if (this.reader.setIndex(e3), this.checkSignature(s3.ZIP64_CENTRAL_DIRECTORY_LOCATOR), this.readBlockZip64EndOfCentralLocator(), !this.isSignature(this.relativeOffsetEndOfZip64CentralDir, s3.ZIP64_CENTRAL_DIRECTORY_END) && (this.relativeOffsetEndOfZip64CentralDir = this.reader.lastIndexOfSignature(s3.ZIP64_CENTRAL_DIRECTORY_END), this.relativeOffsetEndOfZip64CentralDir < 0))
+              throw new Error("Corrupted zip: can't find the ZIP64 end of central directory");
+            this.reader.setIndex(this.relativeOffsetEndOfZip64CentralDir), this.checkSignature(s3.ZIP64_CENTRAL_DIRECTORY_END), this.readBlockZip64EndOfCentral();
+          }
+          var r3 = this.centralDirOffset + this.centralDirSize;
+          this.zip64 && (r3 += 20, r3 += 12 + this.zip64EndOfCentralSize);
+          var n4 = t4 - r3;
+          if (0 < n4)
+            this.isSignature(t4, s3.CENTRAL_FILE_HEADER) || (this.reader.zero = n4);
+          else if (n4 < 0)
+            throw new Error("Corrupted zip: missing " + Math.abs(n4) + " bytes.");
+        }, prepareReader: function(e3) {
+          this.reader = n3(e3);
+        }, load: function(e3) {
+          this.prepareReader(e3), this.readEndOfCentral(), this.readCentralDir(), this.readLocalFiles();
+        } }, t3.exports = h3;
+      }, { "./reader/readerFor": 22, "./signature": 23, "./support": 30, "./utils": 32, "./zipEntry": 34 }], 34: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = e2("./reader/readerFor"), s3 = e2("./utils"), i3 = e2("./compressedObject"), a3 = e2("./crc32"), o3 = e2("./utf8"), h3 = e2("./compressions"), u3 = e2("./support");
+        function l3(e3, t4) {
+          this.options = e3, this.loadOptions = t4;
+        }
+        l3.prototype = { isEncrypted: function() {
+          return 1 == (1 & this.bitFlag);
+        }, useUTF8: function() {
+          return 2048 == (2048 & this.bitFlag);
+        }, readLocalPart: function(e3) {
+          var t4, r3;
+          if (e3.skip(22), this.fileNameLength = e3.readInt(2), r3 = e3.readInt(2), this.fileName = e3.readData(this.fileNameLength), e3.skip(r3), -1 === this.compressedSize || -1 === this.uncompressedSize)
+            throw new Error("Bug or corrupted zip : didn't get enough information from the central directory (compressedSize === -1 || uncompressedSize === -1)");
+          if (null === (t4 = function(e4) {
+            for (var t5 in h3)
+              if (Object.prototype.hasOwnProperty.call(h3, t5) && h3[t5].magic === e4)
+                return h3[t5];
+            return null;
+          }(this.compressionMethod)))
+            throw new Error("Corrupted zip : compression " + s3.pretty(this.compressionMethod) + " unknown (inner file : " + s3.transformTo("string", this.fileName) + ")");
+          this.decompressed = new i3(this.compressedSize, this.uncompressedSize, this.crc32, t4, e3.readData(this.compressedSize));
+        }, readCentralPart: function(e3) {
+          this.versionMadeBy = e3.readInt(2), e3.skip(2), this.bitFlag = e3.readInt(2), this.compressionMethod = e3.readString(2), this.date = e3.readDate(), this.crc32 = e3.readInt(4), this.compressedSize = e3.readInt(4), this.uncompressedSize = e3.readInt(4);
+          var t4 = e3.readInt(2);
+          if (this.extraFieldsLength = e3.readInt(2), this.fileCommentLength = e3.readInt(2), this.diskNumberStart = e3.readInt(2), this.internalFileAttributes = e3.readInt(2), this.externalFileAttributes = e3.readInt(4), this.localHeaderOffset = e3.readInt(4), this.isEncrypted())
+            throw new Error("Encrypted zip are not supported");
+          e3.skip(t4), this.readExtraFields(e3), this.parseZIP64ExtraField(e3), this.fileComment = e3.readData(this.fileCommentLength);
+        }, processAttributes: function() {
+          this.unixPermissions = null, this.dosPermissions = null;
+          var e3 = this.versionMadeBy >> 8;
+          this.dir = !!(16 & this.externalFileAttributes), 0 == e3 && (this.dosPermissions = 63 & this.externalFileAttributes), 3 == e3 && (this.unixPermissions = this.externalFileAttributes >> 16 & 65535), this.dir || "/" !== this.fileNameStr.slice(-1) || (this.dir = true);
+        }, parseZIP64ExtraField: function() {
+          if (this.extraFields[1]) {
+            var e3 = n3(this.extraFields[1].value);
+            this.uncompressedSize === s3.MAX_VALUE_32BITS && (this.uncompressedSize = e3.readInt(8)), this.compressedSize === s3.MAX_VALUE_32BITS && (this.compressedSize = e3.readInt(8)), this.localHeaderOffset === s3.MAX_VALUE_32BITS && (this.localHeaderOffset = e3.readInt(8)), this.diskNumberStart === s3.MAX_VALUE_32BITS && (this.diskNumberStart = e3.readInt(4));
+          }
+        }, readExtraFields: function(e3) {
+          var t4, r3, n4, i4 = e3.index + this.extraFieldsLength;
+          for (this.extraFields || (this.extraFields = {}); e3.index + 4 < i4; )
+            t4 = e3.readInt(2), r3 = e3.readInt(2), n4 = e3.readData(r3), this.extraFields[t4] = { id: t4, length: r3, value: n4 };
+          e3.setIndex(i4);
+        }, handleUTF8: function() {
+          var e3 = u3.uint8array ? "uint8array" : "array";
+          if (this.useUTF8())
+            this.fileNameStr = o3.utf8decode(this.fileName), this.fileCommentStr = o3.utf8decode(this.fileComment);
+          else {
+            var t4 = this.findExtraFieldUnicodePath();
+            if (null !== t4)
+              this.fileNameStr = t4;
+            else {
+              var r3 = s3.transformTo(e3, this.fileName);
+              this.fileNameStr = this.loadOptions.decodeFileName(r3);
+            }
+            var n4 = this.findExtraFieldUnicodeComment();
+            if (null !== n4)
+              this.fileCommentStr = n4;
+            else {
+              var i4 = s3.transformTo(e3, this.fileComment);
+              this.fileCommentStr = this.loadOptions.decodeFileName(i4);
+            }
+          }
+        }, findExtraFieldUnicodePath: function() {
+          var e3 = this.extraFields[28789];
+          if (e3) {
+            var t4 = n3(e3.value);
+            return 1 !== t4.readInt(1) ? null : a3(this.fileName) !== t4.readInt(4) ? null : o3.utf8decode(t4.readData(e3.length - 5));
+          }
+          return null;
+        }, findExtraFieldUnicodeComment: function() {
+          var e3 = this.extraFields[25461];
+          if (e3) {
+            var t4 = n3(e3.value);
+            return 1 !== t4.readInt(1) ? null : a3(this.fileComment) !== t4.readInt(4) ? null : o3.utf8decode(t4.readData(e3.length - 5));
+          }
+          return null;
+        } }, t3.exports = l3;
+      }, { "./compressedObject": 2, "./compressions": 3, "./crc32": 4, "./reader/readerFor": 22, "./support": 30, "./utf8": 31, "./utils": 32 }], 35: [function(e2, t3, r2) {
+        "use strict";
+        function n3(e3, t4, r3) {
+          this.name = e3, this.dir = r3.dir, this.date = r3.date, this.comment = r3.comment, this.unixPermissions = r3.unixPermissions, this.dosPermissions = r3.dosPermissions, this._data = t4, this._dataBinary = r3.binary, this.options = { compression: r3.compression, compressionOptions: r3.compressionOptions };
+        }
+        var s3 = e2("./stream/StreamHelper"), i3 = e2("./stream/DataWorker"), a3 = e2("./utf8"), o3 = e2("./compressedObject"), h3 = e2("./stream/GenericWorker");
+        n3.prototype = { internalStream: function(e3) {
+          var t4 = null, r3 = "string";
+          try {
+            if (!e3)
+              throw new Error("No output type specified.");
+            var n4 = "string" === (r3 = e3.toLowerCase()) || "text" === r3;
+            "binarystring" !== r3 && "text" !== r3 || (r3 = "string"), t4 = this._decompressWorker();
+            var i4 = !this._dataBinary;
+            i4 && !n4 && (t4 = t4.pipe(new a3.Utf8EncodeWorker())), !i4 && n4 && (t4 = t4.pipe(new a3.Utf8DecodeWorker()));
+          } catch (e4) {
+            (t4 = new h3("error")).error(e4);
+          }
+          return new s3(t4, r3, "");
+        }, async: function(e3, t4) {
+          return this.internalStream(e3).accumulate(t4);
+        }, nodeStream: function(e3, t4) {
+          return this.internalStream(e3 || "nodebuffer").toNodejsStream(t4);
+        }, _compressWorker: function(e3, t4) {
+          if (this._data instanceof o3 && this._data.compression.magic === e3.magic)
+            return this._data.getCompressedWorker();
+          var r3 = this._decompressWorker();
+          return this._dataBinary || (r3 = r3.pipe(new a3.Utf8EncodeWorker())), o3.createWorkerFrom(r3, e3, t4);
+        }, _decompressWorker: function() {
+          return this._data instanceof o3 ? this._data.getContentWorker() : this._data instanceof h3 ? this._data : new i3(this._data);
+        } };
+        for (var u3 = ["asText", "asBinary", "asNodeBuffer", "asUint8Array", "asArrayBuffer"], l3 = function() {
+          throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
+        }, f3 = 0; f3 < u3.length; f3++)
+          n3.prototype[u3[f3]] = l3;
+        t3.exports = n3;
+      }, { "./compressedObject": 2, "./stream/DataWorker": 27, "./stream/GenericWorker": 28, "./stream/StreamHelper": 29, "./utf8": 31 }], 36: [function(e2, l3, t3) {
+        (function(t4) {
+          "use strict";
+          var r2, n3, e3 = t4.MutationObserver || t4.WebKitMutationObserver;
+          if (e3) {
+            var i3 = 0, s3 = new e3(u3), a3 = t4.document.createTextNode("");
+            s3.observe(a3, { characterData: true }), r2 = function() {
+              a3.data = i3 = ++i3 % 2;
+            };
+          } else if (t4.setImmediate || void 0 === t4.MessageChannel)
+            r2 = "document" in t4 && "onreadystatechange" in t4.document.createElement("script") ? function() {
+              var e4 = t4.document.createElement("script");
+              e4.onreadystatechange = function() {
+                u3(), e4.onreadystatechange = null, e4.parentNode.removeChild(e4), e4 = null;
+              }, t4.document.documentElement.appendChild(e4);
+            } : function() {
+              setTimeout(u3, 0);
+            };
+          else {
+            var o3 = new t4.MessageChannel();
+            o3.port1.onmessage = u3, r2 = function() {
+              o3.port2.postMessage(0);
+            };
+          }
+          var h3 = [];
+          function u3() {
+            var e4, t5;
+            n3 = true;
+            for (var r3 = h3.length; r3; ) {
+              for (t5 = h3, h3 = [], e4 = -1; ++e4 < r3; )
+                t5[e4]();
+              r3 = h3.length;
+            }
+            n3 = false;
+          }
+          l3.exports = function(e4) {
+            1 !== h3.push(e4) || n3 || r2();
+          };
+        }).call(this, "undefined" != typeof global ? global : "undefined" != typeof self ? self : "undefined" != typeof window ? window : {});
+      }, {}], 37: [function(e2, t3, r2) {
+        "use strict";
+        var i3 = e2("immediate");
+        function u3() {
+        }
+        var l3 = {}, s3 = ["REJECTED"], a3 = ["FULFILLED"], n3 = ["PENDING"];
+        function o3(e3) {
+          if ("function" != typeof e3)
+            throw new TypeError("resolver must be a function");
+          this.state = n3, this.queue = [], this.outcome = void 0, e3 !== u3 && d2(this, e3);
+        }
+        function h3(e3, t4, r3) {
+          this.promise = e3, "function" == typeof t4 && (this.onFulfilled = t4, this.callFulfilled = this.otherCallFulfilled), "function" == typeof r3 && (this.onRejected = r3, this.callRejected = this.otherCallRejected);
+        }
+        function f3(t4, r3, n4) {
+          i3(function() {
+            var e3;
+            try {
+              e3 = r3(n4);
+            } catch (e4) {
+              return l3.reject(t4, e4);
+            }
+            e3 === t4 ? l3.reject(t4, new TypeError("Cannot resolve promise with itself")) : l3.resolve(t4, e3);
+          });
+        }
+        function c4(e3) {
+          var t4 = e3 && e3.then;
+          if (e3 && ("object" == typeof e3 || "function" == typeof e3) && "function" == typeof t4)
+            return function() {
+              t4.apply(e3, arguments);
+            };
+        }
+        function d2(t4, e3) {
+          var r3 = false;
+          function n4(e4) {
+            r3 || (r3 = true, l3.reject(t4, e4));
+          }
+          function i4(e4) {
+            r3 || (r3 = true, l3.resolve(t4, e4));
+          }
+          var s4 = p3(function() {
+            e3(i4, n4);
+          });
+          "error" === s4.status && n4(s4.value);
+        }
+        function p3(e3, t4) {
+          var r3 = {};
+          try {
+            r3.value = e3(t4), r3.status = "success";
+          } catch (e4) {
+            r3.status = "error", r3.value = e4;
+          }
+          return r3;
+        }
+        (t3.exports = o3).prototype.finally = function(t4) {
+          if ("function" != typeof t4)
+            return this;
+          var r3 = this.constructor;
+          return this.then(function(e3) {
+            return r3.resolve(t4()).then(function() {
+              return e3;
+            });
+          }, function(e3) {
+            return r3.resolve(t4()).then(function() {
+              throw e3;
+            });
+          });
+        }, o3.prototype.catch = function(e3) {
+          return this.then(null, e3);
+        }, o3.prototype.then = function(e3, t4) {
+          if ("function" != typeof e3 && this.state === a3 || "function" != typeof t4 && this.state === s3)
+            return this;
+          var r3 = new this.constructor(u3);
+          this.state !== n3 ? f3(r3, this.state === a3 ? e3 : t4, this.outcome) : this.queue.push(new h3(r3, e3, t4));
+          return r3;
+        }, h3.prototype.callFulfilled = function(e3) {
+          l3.resolve(this.promise, e3);
+        }, h3.prototype.otherCallFulfilled = function(e3) {
+          f3(this.promise, this.onFulfilled, e3);
+        }, h3.prototype.callRejected = function(e3) {
+          l3.reject(this.promise, e3);
+        }, h3.prototype.otherCallRejected = function(e3) {
+          f3(this.promise, this.onRejected, e3);
+        }, l3.resolve = function(e3, t4) {
+          var r3 = p3(c4, t4);
+          if ("error" === r3.status)
+            return l3.reject(e3, r3.value);
+          var n4 = r3.value;
+          if (n4)
+            d2(e3, n4);
+          else {
+            e3.state = a3, e3.outcome = t4;
+            for (var i4 = -1, s4 = e3.queue.length; ++i4 < s4; )
+              e3.queue[i4].callFulfilled(t4);
+          }
+          return e3;
+        }, l3.reject = function(e3, t4) {
+          e3.state = s3, e3.outcome = t4;
+          for (var r3 = -1, n4 = e3.queue.length; ++r3 < n4; )
+            e3.queue[r3].callRejected(t4);
+          return e3;
+        }, o3.resolve = function(e3) {
+          if (e3 instanceof this)
+            return e3;
+          return l3.resolve(new this(u3), e3);
+        }, o3.reject = function(e3) {
+          var t4 = new this(u3);
+          return l3.reject(t4, e3);
+        }, o3.all = function(e3) {
+          var r3 = this;
+          if ("[object Array]" !== Object.prototype.toString.call(e3))
+            return this.reject(new TypeError("must be an array"));
+          var n4 = e3.length, i4 = false;
+          if (!n4)
+            return this.resolve([]);
+          var s4 = new Array(n4), a4 = 0, t4 = -1, o4 = new this(u3);
+          for (; ++t4 < n4; )
+            h4(e3[t4], t4);
+          return o4;
+          function h4(e4, t5) {
+            r3.resolve(e4).then(function(e5) {
+              s4[t5] = e5, ++a4 !== n4 || i4 || (i4 = true, l3.resolve(o4, s4));
+            }, function(e5) {
+              i4 || (i4 = true, l3.reject(o4, e5));
+            });
+          }
+        }, o3.race = function(e3) {
+          var t4 = this;
+          if ("[object Array]" !== Object.prototype.toString.call(e3))
+            return this.reject(new TypeError("must be an array"));
+          var r3 = e3.length, n4 = false;
+          if (!r3)
+            return this.resolve([]);
+          var i4 = -1, s4 = new this(u3);
+          for (; ++i4 < r3; )
+            a4 = e3[i4], t4.resolve(a4).then(function(e4) {
+              n4 || (n4 = true, l3.resolve(s4, e4));
+            }, function(e4) {
+              n4 || (n4 = true, l3.reject(s4, e4));
+            });
+          var a4;
+          return s4;
+        };
+      }, { immediate: 36 }], 38: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = {};
+        (0, e2("./lib/utils/common").assign)(n3, e2("./lib/deflate"), e2("./lib/inflate"), e2("./lib/zlib/constants")), t3.exports = n3;
+      }, { "./lib/deflate": 39, "./lib/inflate": 40, "./lib/utils/common": 41, "./lib/zlib/constants": 44 }], 39: [function(e2, t3, r2) {
+        "use strict";
+        var a3 = e2("./zlib/deflate"), o3 = e2("./utils/common"), h3 = e2("./utils/strings"), i3 = e2("./zlib/messages"), s3 = e2("./zlib/zstream"), u3 = Object.prototype.toString, l3 = 0, f3 = -1, c4 = 0, d2 = 8;
+        function p3(e3) {
+          if (!(this instanceof p3))
+            return new p3(e3);
+          this.options = o3.assign({ level: f3, method: d2, chunkSize: 16384, windowBits: 15, memLevel: 8, strategy: c4, to: "" }, e3 || {});
+          var t4 = this.options;
+          t4.raw && 0 < t4.windowBits ? t4.windowBits = -t4.windowBits : t4.gzip && 0 < t4.windowBits && t4.windowBits < 16 && (t4.windowBits += 16), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new s3(), this.strm.avail_out = 0;
+          var r3 = a3.deflateInit2(this.strm, t4.level, t4.method, t4.windowBits, t4.memLevel, t4.strategy);
+          if (r3 !== l3)
+            throw new Error(i3[r3]);
+          if (t4.header && a3.deflateSetHeader(this.strm, t4.header), t4.dictionary) {
+            var n4;
+            if (n4 = "string" == typeof t4.dictionary ? h3.string2buf(t4.dictionary) : "[object ArrayBuffer]" === u3.call(t4.dictionary) ? new Uint8Array(t4.dictionary) : t4.dictionary, (r3 = a3.deflateSetDictionary(this.strm, n4)) !== l3)
+              throw new Error(i3[r3]);
+            this._dict_set = true;
+          }
+        }
+        function n3(e3, t4) {
+          var r3 = new p3(t4);
+          if (r3.push(e3, true), r3.err)
+            throw r3.msg || i3[r3.err];
+          return r3.result;
+        }
+        p3.prototype.push = function(e3, t4) {
+          var r3, n4, i4 = this.strm, s4 = this.options.chunkSize;
+          if (this.ended)
+            return false;
+          n4 = t4 === ~~t4 ? t4 : true === t4 ? 4 : 0, "string" == typeof e3 ? i4.input = h3.string2buf(e3) : "[object ArrayBuffer]" === u3.call(e3) ? i4.input = new Uint8Array(e3) : i4.input = e3, i4.next_in = 0, i4.avail_in = i4.input.length;
+          do {
+            if (0 === i4.avail_out && (i4.output = new o3.Buf8(s4), i4.next_out = 0, i4.avail_out = s4), 1 !== (r3 = a3.deflate(i4, n4)) && r3 !== l3)
+              return this.onEnd(r3), !(this.ended = true);
+            0 !== i4.avail_out && (0 !== i4.avail_in || 4 !== n4 && 2 !== n4) || ("string" === this.options.to ? this.onData(h3.buf2binstring(o3.shrinkBuf(i4.output, i4.next_out))) : this.onData(o3.shrinkBuf(i4.output, i4.next_out)));
+          } while ((0 < i4.avail_in || 0 === i4.avail_out) && 1 !== r3);
+          return 4 === n4 ? (r3 = a3.deflateEnd(this.strm), this.onEnd(r3), this.ended = true, r3 === l3) : 2 !== n4 || (this.onEnd(l3), !(i4.avail_out = 0));
+        }, p3.prototype.onData = function(e3) {
+          this.chunks.push(e3);
+        }, p3.prototype.onEnd = function(e3) {
+          e3 === l3 && ("string" === this.options.to ? this.result = this.chunks.join("") : this.result = o3.flattenChunks(this.chunks)), this.chunks = [], this.err = e3, this.msg = this.strm.msg;
+        }, r2.Deflate = p3, r2.deflate = n3, r2.deflateRaw = function(e3, t4) {
+          return (t4 = t4 || {}).raw = true, n3(e3, t4);
+        }, r2.gzip = function(e3, t4) {
+          return (t4 = t4 || {}).gzip = true, n3(e3, t4);
+        };
+      }, { "./utils/common": 41, "./utils/strings": 42, "./zlib/deflate": 46, "./zlib/messages": 51, "./zlib/zstream": 53 }], 40: [function(e2, t3, r2) {
+        "use strict";
+        var c4 = e2("./zlib/inflate"), d2 = e2("./utils/common"), p3 = e2("./utils/strings"), m4 = e2("./zlib/constants"), n3 = e2("./zlib/messages"), i3 = e2("./zlib/zstream"), s3 = e2("./zlib/gzheader"), _3 = Object.prototype.toString;
+        function a3(e3) {
+          if (!(this instanceof a3))
+            return new a3(e3);
+          this.options = d2.assign({ chunkSize: 16384, windowBits: 0, to: "" }, e3 || {});
+          var t4 = this.options;
+          t4.raw && 0 <= t4.windowBits && t4.windowBits < 16 && (t4.windowBits = -t4.windowBits, 0 === t4.windowBits && (t4.windowBits = -15)), !(0 <= t4.windowBits && t4.windowBits < 16) || e3 && e3.windowBits || (t4.windowBits += 32), 15 < t4.windowBits && t4.windowBits < 48 && 0 == (15 & t4.windowBits) && (t4.windowBits |= 15), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new i3(), this.strm.avail_out = 0;
+          var r3 = c4.inflateInit2(this.strm, t4.windowBits);
+          if (r3 !== m4.Z_OK)
+            throw new Error(n3[r3]);
+          this.header = new s3(), c4.inflateGetHeader(this.strm, this.header);
+        }
+        function o3(e3, t4) {
+          var r3 = new a3(t4);
+          if (r3.push(e3, true), r3.err)
+            throw r3.msg || n3[r3.err];
+          return r3.result;
+        }
+        a3.prototype.push = function(e3, t4) {
+          var r3, n4, i4, s4, a4, o4, h3 = this.strm, u3 = this.options.chunkSize, l3 = this.options.dictionary, f3 = false;
+          if (this.ended)
+            return false;
+          n4 = t4 === ~~t4 ? t4 : true === t4 ? m4.Z_FINISH : m4.Z_NO_FLUSH, "string" == typeof e3 ? h3.input = p3.binstring2buf(e3) : "[object ArrayBuffer]" === _3.call(e3) ? h3.input = new Uint8Array(e3) : h3.input = e3, h3.next_in = 0, h3.avail_in = h3.input.length;
+          do {
+            if (0 === h3.avail_out && (h3.output = new d2.Buf8(u3), h3.next_out = 0, h3.avail_out = u3), (r3 = c4.inflate(h3, m4.Z_NO_FLUSH)) === m4.Z_NEED_DICT && l3 && (o4 = "string" == typeof l3 ? p3.string2buf(l3) : "[object ArrayBuffer]" === _3.call(l3) ? new Uint8Array(l3) : l3, r3 = c4.inflateSetDictionary(this.strm, o4)), r3 === m4.Z_BUF_ERROR && true === f3 && (r3 = m4.Z_OK, f3 = false), r3 !== m4.Z_STREAM_END && r3 !== m4.Z_OK)
+              return this.onEnd(r3), !(this.ended = true);
+            h3.next_out && (0 !== h3.avail_out && r3 !== m4.Z_STREAM_END && (0 !== h3.avail_in || n4 !== m4.Z_FINISH && n4 !== m4.Z_SYNC_FLUSH) || ("string" === this.options.to ? (i4 = p3.utf8border(h3.output, h3.next_out), s4 = h3.next_out - i4, a4 = p3.buf2string(h3.output, i4), h3.next_out = s4, h3.avail_out = u3 - s4, s4 && d2.arraySet(h3.output, h3.output, i4, s4, 0), this.onData(a4)) : this.onData(d2.shrinkBuf(h3.output, h3.next_out)))), 0 === h3.avail_in && 0 === h3.avail_out && (f3 = true);
+          } while ((0 < h3.avail_in || 0 === h3.avail_out) && r3 !== m4.Z_STREAM_END);
+          return r3 === m4.Z_STREAM_END && (n4 = m4.Z_FINISH), n4 === m4.Z_FINISH ? (r3 = c4.inflateEnd(this.strm), this.onEnd(r3), this.ended = true, r3 === m4.Z_OK) : n4 !== m4.Z_SYNC_FLUSH || (this.onEnd(m4.Z_OK), !(h3.avail_out = 0));
+        }, a3.prototype.onData = function(e3) {
+          this.chunks.push(e3);
+        }, a3.prototype.onEnd = function(e3) {
+          e3 === m4.Z_OK && ("string" === this.options.to ? this.result = this.chunks.join("") : this.result = d2.flattenChunks(this.chunks)), this.chunks = [], this.err = e3, this.msg = this.strm.msg;
+        }, r2.Inflate = a3, r2.inflate = o3, r2.inflateRaw = function(e3, t4) {
+          return (t4 = t4 || {}).raw = true, o3(e3, t4);
+        }, r2.ungzip = o3;
+      }, { "./utils/common": 41, "./utils/strings": 42, "./zlib/constants": 44, "./zlib/gzheader": 47, "./zlib/inflate": 49, "./zlib/messages": 51, "./zlib/zstream": 53 }], 41: [function(e2, t3, r2) {
+        "use strict";
+        var n3 = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Int32Array;
+        r2.assign = function(e3) {
+          for (var t4 = Array.prototype.slice.call(arguments, 1); t4.length; ) {
+            var r3 = t4.shift();
+            if (r3) {
+              if ("object" != typeof r3)
+                throw new TypeError(r3 + "must be non-object");
+              for (var n4 in r3)
+                r3.hasOwnProperty(n4) && (e3[n4] = r3[n4]);
+            }
+          }
+          return e3;
+        }, r2.shrinkBuf = function(e3, t4) {
+          return e3.length === t4 ? e3 : e3.subarray ? e3.subarray(0, t4) : (e3.length = t4, e3);
+        };
+        var i3 = { arraySet: function(e3, t4, r3, n4, i4) {
+          if (t4.subarray && e3.subarray)
+            e3.set(t4.subarray(r3, r3 + n4), i4);
+          else
+            for (var s4 = 0; s4 < n4; s4++)
+              e3[i4 + s4] = t4[r3 + s4];
+        }, flattenChunks: function(e3) {
+          var t4, r3, n4, i4, s4, a3;
+          for (t4 = n4 = 0, r3 = e3.length; t4 < r3; t4++)
+            n4 += e3[t4].length;
+          for (a3 = new Uint8Array(n4), t4 = i4 = 0, r3 = e3.length; t4 < r3; t4++)
+            s4 = e3[t4], a3.set(s4, i4), i4 += s4.length;
+          return a3;
+        } }, s3 = { arraySet: function(e3, t4, r3, n4, i4) {
+          for (var s4 = 0; s4 < n4; s4++)
+            e3[i4 + s4] = t4[r3 + s4];
+        }, flattenChunks: function(e3) {
+          return [].concat.apply([], e3);
+        } };
+        r2.setTyped = function(e3) {
+          e3 ? (r2.Buf8 = Uint8Array, r2.Buf16 = Uint16Array, r2.Buf32 = Int32Array, r2.assign(r2, i3)) : (r2.Buf8 = Array, r2.Buf16 = Array, r2.Buf32 = Array, r2.assign(r2, s3));
+        }, r2.setTyped(n3);
+      }, {}], 42: [function(e2, t3, r2) {
+        "use strict";
+        var h3 = e2("./common"), i3 = true, s3 = true;
+        try {
+          String.fromCharCode.apply(null, [0]);
+        } catch (e3) {
+          i3 = false;
+        }
+        try {
+          String.fromCharCode.apply(null, new Uint8Array(1));
+        } catch (e3) {
+          s3 = false;
+        }
+        for (var u3 = new h3.Buf8(256), n3 = 0; n3 < 256; n3++)
+          u3[n3] = 252 <= n3 ? 6 : 248 <= n3 ? 5 : 240 <= n3 ? 4 : 224 <= n3 ? 3 : 192 <= n3 ? 2 : 1;
+        function l3(e3, t4) {
+          if (t4 < 65537 && (e3.subarray && s3 || !e3.subarray && i3))
+            return String.fromCharCode.apply(null, h3.shrinkBuf(e3, t4));
+          for (var r3 = "", n4 = 0; n4 < t4; n4++)
+            r3 += String.fromCharCode(e3[n4]);
+          return r3;
+        }
+        u3[254] = u3[254] = 1, r2.string2buf = function(e3) {
+          var t4, r3, n4, i4, s4, a3 = e3.length, o3 = 0;
+          for (i4 = 0; i4 < a3; i4++)
+            55296 == (64512 & (r3 = e3.charCodeAt(i4))) && i4 + 1 < a3 && 56320 == (64512 & (n4 = e3.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), o3 += r3 < 128 ? 1 : r3 < 2048 ? 2 : r3 < 65536 ? 3 : 4;
+          for (t4 = new h3.Buf8(o3), i4 = s4 = 0; s4 < o3; i4++)
+            55296 == (64512 & (r3 = e3.charCodeAt(i4))) && i4 + 1 < a3 && 56320 == (64512 & (n4 = e3.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), r3 < 128 ? t4[s4++] = r3 : (r3 < 2048 ? t4[s4++] = 192 | r3 >>> 6 : (r3 < 65536 ? t4[s4++] = 224 | r3 >>> 12 : (t4[s4++] = 240 | r3 >>> 18, t4[s4++] = 128 | r3 >>> 12 & 63), t4[s4++] = 128 | r3 >>> 6 & 63), t4[s4++] = 128 | 63 & r3);
+          return t4;
+        }, r2.buf2binstring = function(e3) {
+          return l3(e3, e3.length);
+        }, r2.binstring2buf = function(e3) {
+          for (var t4 = new h3.Buf8(e3.length), r3 = 0, n4 = t4.length; r3 < n4; r3++)
+            t4[r3] = e3.charCodeAt(r3);
+          return t4;
+        }, r2.buf2string = function(e3, t4) {
+          var r3, n4, i4, s4, a3 = t4 || e3.length, o3 = new Array(2 * a3);
+          for (r3 = n4 = 0; r3 < a3; )
+            if ((i4 = e3[r3++]) < 128)
+              o3[n4++] = i4;
+            else if (4 < (s4 = u3[i4]))
+              o3[n4++] = 65533, r3 += s4 - 1;
+            else {
+              for (i4 &= 2 === s4 ? 31 : 3 === s4 ? 15 : 7; 1 < s4 && r3 < a3; )
+                i4 = i4 << 6 | 63 & e3[r3++], s4--;
+              1 < s4 ? o3[n4++] = 65533 : i4 < 65536 ? o3[n4++] = i4 : (i4 -= 65536, o3[n4++] = 55296 | i4 >> 10 & 1023, o3[n4++] = 56320 | 1023 & i4);
+            }
+          return l3(o3, n4);
+        }, r2.utf8border = function(e3, t4) {
+          var r3;
+          for ((t4 = t4 || e3.length) > e3.length && (t4 = e3.length), r3 = t4 - 1; 0 <= r3 && 128 == (192 & e3[r3]); )
+            r3--;
+          return r3 < 0 ? t4 : 0 === r3 ? t4 : r3 + u3[e3[r3]] > t4 ? r3 : t4;
+        };
+      }, { "./common": 41 }], 43: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = function(e3, t4, r3, n3) {
+          for (var i3 = 65535 & e3 | 0, s3 = e3 >>> 16 & 65535 | 0, a3 = 0; 0 !== r3; ) {
+            for (r3 -= a3 = 2e3 < r3 ? 2e3 : r3; s3 = s3 + (i3 = i3 + t4[n3++] | 0) | 0, --a3; )
+              ;
+            i3 %= 65521, s3 %= 65521;
+          }
+          return i3 | s3 << 16 | 0;
+        };
+      }, {}], 44: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = { Z_NO_FLUSH: 0, Z_PARTIAL_FLUSH: 1, Z_SYNC_FLUSH: 2, Z_FULL_FLUSH: 3, Z_FINISH: 4, Z_BLOCK: 5, Z_TREES: 6, Z_OK: 0, Z_STREAM_END: 1, Z_NEED_DICT: 2, Z_ERRNO: -1, Z_STREAM_ERROR: -2, Z_DATA_ERROR: -3, Z_BUF_ERROR: -5, Z_NO_COMPRESSION: 0, Z_BEST_SPEED: 1, Z_BEST_COMPRESSION: 9, Z_DEFAULT_COMPRESSION: -1, Z_FILTERED: 1, Z_HUFFMAN_ONLY: 2, Z_RLE: 3, Z_FIXED: 4, Z_DEFAULT_STRATEGY: 0, Z_BINARY: 0, Z_TEXT: 1, Z_UNKNOWN: 2, Z_DEFLATED: 8 };
+      }, {}], 45: [function(e2, t3, r2) {
+        "use strict";
+        var o3 = function() {
+          for (var e3, t4 = [], r3 = 0; r3 < 256; r3++) {
+            e3 = r3;
+            for (var n3 = 0; n3 < 8; n3++)
+              e3 = 1 & e3 ? 3988292384 ^ e3 >>> 1 : e3 >>> 1;
+            t4[r3] = e3;
+          }
+          return t4;
+        }();
+        t3.exports = function(e3, t4, r3, n3) {
+          var i3 = o3, s3 = n3 + r3;
+          e3 ^= -1;
+          for (var a3 = n3; a3 < s3; a3++)
+            e3 = e3 >>> 8 ^ i3[255 & (e3 ^ t4[a3])];
+          return -1 ^ e3;
+        };
+      }, {}], 46: [function(e2, t3, r2) {
+        "use strict";
+        var h3, c4 = e2("../utils/common"), u3 = e2("./trees"), d2 = e2("./adler32"), p3 = e2("./crc32"), n3 = e2("./messages"), l3 = 0, f3 = 4, m4 = 0, _3 = -2, g2 = -1, b2 = 4, i3 = 2, v3 = 8, y4 = 9, s3 = 286, a3 = 30, o3 = 19, w2 = 2 * s3 + 1, k2 = 15, x3 = 3, S2 = 258, z2 = S2 + x3 + 1, C2 = 42, E2 = 113, A3 = 1, I2 = 2, O3 = 3, B2 = 4;
+        function R2(e3, t4) {
+          return e3.msg = n3[t4], t4;
+        }
+        function T3(e3) {
+          return (e3 << 1) - (4 < e3 ? 9 : 0);
+        }
+        function D2(e3) {
+          for (var t4 = e3.length; 0 <= --t4; )
+            e3[t4] = 0;
+        }
+        function F2(e3) {
+          var t4 = e3.state, r3 = t4.pending;
+          r3 > e3.avail_out && (r3 = e3.avail_out), 0 !== r3 && (c4.arraySet(e3.output, t4.pending_buf, t4.pending_out, r3, e3.next_out), e3.next_out += r3, t4.pending_out += r3, e3.total_out += r3, e3.avail_out -= r3, t4.pending -= r3, 0 === t4.pending && (t4.pending_out = 0));
+        }
+        function N3(e3, t4) {
+          u3._tr_flush_block(e3, 0 <= e3.block_start ? e3.block_start : -1, e3.strstart - e3.block_start, t4), e3.block_start = e3.strstart, F2(e3.strm);
+        }
+        function U2(e3, t4) {
+          e3.pending_buf[e3.pending++] = t4;
+        }
+        function P2(e3, t4) {
+          e3.pending_buf[e3.pending++] = t4 >>> 8 & 255, e3.pending_buf[e3.pending++] = 255 & t4;
+        }
+        function L2(e3, t4) {
+          var r3, n4, i4 = e3.max_chain_length, s4 = e3.strstart, a4 = e3.prev_length, o4 = e3.nice_match, h4 = e3.strstart > e3.w_size - z2 ? e3.strstart - (e3.w_size - z2) : 0, u4 = e3.window, l4 = e3.w_mask, f4 = e3.prev, c5 = e3.strstart + S2, d3 = u4[s4 + a4 - 1], p4 = u4[s4 + a4];
+          e3.prev_length >= e3.good_match && (i4 >>= 2), o4 > e3.lookahead && (o4 = e3.lookahead);
+          do {
+            if (u4[(r3 = t4) + a4] === p4 && u4[r3 + a4 - 1] === d3 && u4[r3] === u4[s4] && u4[++r3] === u4[s4 + 1]) {
+              s4 += 2, r3++;
+              do {
+              } while (u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && s4 < c5);
+              if (n4 = S2 - (c5 - s4), s4 = c5 - S2, a4 < n4) {
+                if (e3.match_start = t4, o4 <= (a4 = n4))
+                  break;
+                d3 = u4[s4 + a4 - 1], p4 = u4[s4 + a4];
+              }
+            }
+          } while ((t4 = f4[t4 & l4]) > h4 && 0 != --i4);
+          return a4 <= e3.lookahead ? a4 : e3.lookahead;
+        }
+        function j2(e3) {
+          var t4, r3, n4, i4, s4, a4, o4, h4, u4, l4, f4 = e3.w_size;
+          do {
+            if (i4 = e3.window_size - e3.lookahead - e3.strstart, e3.strstart >= f4 + (f4 - z2)) {
+              for (c4.arraySet(e3.window, e3.window, f4, f4, 0), e3.match_start -= f4, e3.strstart -= f4, e3.block_start -= f4, t4 = r3 = e3.hash_size; n4 = e3.head[--t4], e3.head[t4] = f4 <= n4 ? n4 - f4 : 0, --r3; )
+                ;
+              for (t4 = r3 = f4; n4 = e3.prev[--t4], e3.prev[t4] = f4 <= n4 ? n4 - f4 : 0, --r3; )
+                ;
+              i4 += f4;
+            }
+            if (0 === e3.strm.avail_in)
+              break;
+            if (a4 = e3.strm, o4 = e3.window, h4 = e3.strstart + e3.lookahead, u4 = i4, l4 = void 0, l4 = a4.avail_in, u4 < l4 && (l4 = u4), r3 = 0 === l4 ? 0 : (a4.avail_in -= l4, c4.arraySet(o4, a4.input, a4.next_in, l4, h4), 1 === a4.state.wrap ? a4.adler = d2(a4.adler, o4, l4, h4) : 2 === a4.state.wrap && (a4.adler = p3(a4.adler, o4, l4, h4)), a4.next_in += l4, a4.total_in += l4, l4), e3.lookahead += r3, e3.lookahead + e3.insert >= x3)
+              for (s4 = e3.strstart - e3.insert, e3.ins_h = e3.window[s4], e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[s4 + 1]) & e3.hash_mask; e3.insert && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[s4 + x3 - 1]) & e3.hash_mask, e3.prev[s4 & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = s4, s4++, e3.insert--, !(e3.lookahead + e3.insert < x3)); )
+                ;
+          } while (e3.lookahead < z2 && 0 !== e3.strm.avail_in);
+        }
+        function Z2(e3, t4) {
+          for (var r3, n4; ; ) {
+            if (e3.lookahead < z2) {
+              if (j2(e3), e3.lookahead < z2 && t4 === l3)
+                return A3;
+              if (0 === e3.lookahead)
+                break;
+            }
+            if (r3 = 0, e3.lookahead >= x3 && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart), 0 !== r3 && e3.strstart - r3 <= e3.w_size - z2 && (e3.match_length = L2(e3, r3)), e3.match_length >= x3)
+              if (n4 = u3._tr_tally(e3, e3.strstart - e3.match_start, e3.match_length - x3), e3.lookahead -= e3.match_length, e3.match_length <= e3.max_lazy_match && e3.lookahead >= x3) {
+                for (e3.match_length--; e3.strstart++, e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart, 0 != --e3.match_length; )
+                  ;
+                e3.strstart++;
+              } else
+                e3.strstart += e3.match_length, e3.match_length = 0, e3.ins_h = e3.window[e3.strstart], e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + 1]) & e3.hash_mask;
+            else
+              n4 = u3._tr_tally(e3, 0, e3.window[e3.strstart]), e3.lookahead--, e3.strstart++;
+            if (n4 && (N3(e3, false), 0 === e3.strm.avail_out))
+              return A3;
+          }
+          return e3.insert = e3.strstart < x3 - 1 ? e3.strstart : x3 - 1, t4 === f3 ? (N3(e3, true), 0 === e3.strm.avail_out ? O3 : B2) : e3.last_lit && (N3(e3, false), 0 === e3.strm.avail_out) ? A3 : I2;
+        }
+        function W2(e3, t4) {
+          for (var r3, n4, i4; ; ) {
+            if (e3.lookahead < z2) {
+              if (j2(e3), e3.lookahead < z2 && t4 === l3)
+                return A3;
+              if (0 === e3.lookahead)
+                break;
+            }
+            if (r3 = 0, e3.lookahead >= x3 && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart), e3.prev_length = e3.match_length, e3.prev_match = e3.match_start, e3.match_length = x3 - 1, 0 !== r3 && e3.prev_length < e3.max_lazy_match && e3.strstart - r3 <= e3.w_size - z2 && (e3.match_length = L2(e3, r3), e3.match_length <= 5 && (1 === e3.strategy || e3.match_length === x3 && 4096 < e3.strstart - e3.match_start) && (e3.match_length = x3 - 1)), e3.prev_length >= x3 && e3.match_length <= e3.prev_length) {
+              for (i4 = e3.strstart + e3.lookahead - x3, n4 = u3._tr_tally(e3, e3.strstart - 1 - e3.prev_match, e3.prev_length - x3), e3.lookahead -= e3.prev_length - 1, e3.prev_length -= 2; ++e3.strstart <= i4 && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart), 0 != --e3.prev_length; )
+                ;
+              if (e3.match_available = 0, e3.match_length = x3 - 1, e3.strstart++, n4 && (N3(e3, false), 0 === e3.strm.avail_out))
+                return A3;
+            } else if (e3.match_available) {
+              if ((n4 = u3._tr_tally(e3, 0, e3.window[e3.strstart - 1])) && N3(e3, false), e3.strstart++, e3.lookahead--, 0 === e3.strm.avail_out)
+                return A3;
+            } else
+              e3.match_available = 1, e3.strstart++, e3.lookahead--;
+          }
+          return e3.match_available && (n4 = u3._tr_tally(e3, 0, e3.window[e3.strstart - 1]), e3.match_available = 0), e3.insert = e3.strstart < x3 - 1 ? e3.strstart : x3 - 1, t4 === f3 ? (N3(e3, true), 0 === e3.strm.avail_out ? O3 : B2) : e3.last_lit && (N3(e3, false), 0 === e3.strm.avail_out) ? A3 : I2;
+        }
+        function M2(e3, t4, r3, n4, i4) {
+          this.good_length = e3, this.max_lazy = t4, this.nice_length = r3, this.max_chain = n4, this.func = i4;
+        }
+        function H2() {
+          this.strm = null, this.status = 0, this.pending_buf = null, this.pending_buf_size = 0, this.pending_out = 0, this.pending = 0, this.wrap = 0, this.gzhead = null, this.gzindex = 0, this.method = v3, this.last_flush = -1, this.w_size = 0, this.w_bits = 0, this.w_mask = 0, this.window = null, this.window_size = 0, this.prev = null, this.head = null, this.ins_h = 0, this.hash_size = 0, this.hash_bits = 0, this.hash_mask = 0, this.hash_shift = 0, this.block_start = 0, this.match_length = 0, this.prev_match = 0, this.match_available = 0, this.strstart = 0, this.match_start = 0, this.lookahead = 0, this.prev_length = 0, this.max_chain_length = 0, this.max_lazy_match = 0, this.level = 0, this.strategy = 0, this.good_match = 0, this.nice_match = 0, this.dyn_ltree = new c4.Buf16(2 * w2), this.dyn_dtree = new c4.Buf16(2 * (2 * a3 + 1)), this.bl_tree = new c4.Buf16(2 * (2 * o3 + 1)), D2(this.dyn_ltree), D2(this.dyn_dtree), D2(this.bl_tree), this.l_desc = null, this.d_desc = null, this.bl_desc = null, this.bl_count = new c4.Buf16(k2 + 1), this.heap = new c4.Buf16(2 * s3 + 1), D2(this.heap), this.heap_len = 0, this.heap_max = 0, this.depth = new c4.Buf16(2 * s3 + 1), D2(this.depth), this.l_buf = 0, this.lit_bufsize = 0, this.last_lit = 0, this.d_buf = 0, this.opt_len = 0, this.static_len = 0, this.matches = 0, this.insert = 0, this.bi_buf = 0, this.bi_valid = 0;
+        }
+        function G3(e3) {
+          var t4;
+          return e3 && e3.state ? (e3.total_in = e3.total_out = 0, e3.data_type = i3, (t4 = e3.state).pending = 0, t4.pending_out = 0, t4.wrap < 0 && (t4.wrap = -t4.wrap), t4.status = t4.wrap ? C2 : E2, e3.adler = 2 === t4.wrap ? 0 : 1, t4.last_flush = l3, u3._tr_init(t4), m4) : R2(e3, _3);
+        }
+        function K2(e3) {
+          var t4 = G3(e3);
+          return t4 === m4 && function(e4) {
+            e4.window_size = 2 * e4.w_size, D2(e4.head), e4.max_lazy_match = h3[e4.level].max_lazy, e4.good_match = h3[e4.level].good_length, e4.nice_match = h3[e4.level].nice_length, e4.max_chain_length = h3[e4.level].max_chain, e4.strstart = 0, e4.block_start = 0, e4.lookahead = 0, e4.insert = 0, e4.match_length = e4.prev_length = x3 - 1, e4.match_available = 0, e4.ins_h = 0;
+          }(e3.state), t4;
+        }
+        function Y2(e3, t4, r3, n4, i4, s4) {
+          if (!e3)
+            return _3;
+          var a4 = 1;
+          if (t4 === g2 && (t4 = 6), n4 < 0 ? (a4 = 0, n4 = -n4) : 15 < n4 && (a4 = 2, n4 -= 16), i4 < 1 || y4 < i4 || r3 !== v3 || n4 < 8 || 15 < n4 || t4 < 0 || 9 < t4 || s4 < 0 || b2 < s4)
+            return R2(e3, _3);
+          8 === n4 && (n4 = 9);
+          var o4 = new H2();
+          return (e3.state = o4).strm = e3, o4.wrap = a4, o4.gzhead = null, o4.w_bits = n4, o4.w_size = 1 << o4.w_bits, o4.w_mask = o4.w_size - 1, o4.hash_bits = i4 + 7, o4.hash_size = 1 << o4.hash_bits, o4.hash_mask = o4.hash_size - 1, o4.hash_shift = ~~((o4.hash_bits + x3 - 1) / x3), o4.window = new c4.Buf8(2 * o4.w_size), o4.head = new c4.Buf16(o4.hash_size), o4.prev = new c4.Buf16(o4.w_size), o4.lit_bufsize = 1 << i4 + 6, o4.pending_buf_size = 4 * o4.lit_bufsize, o4.pending_buf = new c4.Buf8(o4.pending_buf_size), o4.d_buf = 1 * o4.lit_bufsize, o4.l_buf = 3 * o4.lit_bufsize, o4.level = t4, o4.strategy = s4, o4.method = r3, K2(e3);
+        }
+        h3 = [new M2(0, 0, 0, 0, function(e3, t4) {
+          var r3 = 65535;
+          for (r3 > e3.pending_buf_size - 5 && (r3 = e3.pending_buf_size - 5); ; ) {
+            if (e3.lookahead <= 1) {
+              if (j2(e3), 0 === e3.lookahead && t4 === l3)
+                return A3;
+              if (0 === e3.lookahead)
+                break;
+            }
+            e3.strstart += e3.lookahead, e3.lookahead = 0;
+            var n4 = e3.block_start + r3;
+            if ((0 === e3.strstart || e3.strstart >= n4) && (e3.lookahead = e3.strstart - n4, e3.strstart = n4, N3(e3, false), 0 === e3.strm.avail_out))
+              return A3;
+            if (e3.strstart - e3.block_start >= e3.w_size - z2 && (N3(e3, false), 0 === e3.strm.avail_out))
+              return A3;
+          }
+          return e3.insert = 0, t4 === f3 ? (N3(e3, true), 0 === e3.strm.avail_out ? O3 : B2) : (e3.strstart > e3.block_start && (N3(e3, false), e3.strm.avail_out), A3);
+        }), new M2(4, 4, 8, 4, Z2), new M2(4, 5, 16, 8, Z2), new M2(4, 6, 32, 32, Z2), new M2(4, 4, 16, 16, W2), new M2(8, 16, 32, 32, W2), new M2(8, 16, 128, 128, W2), new M2(8, 32, 128, 256, W2), new M2(32, 128, 258, 1024, W2), new M2(32, 258, 258, 4096, W2)], r2.deflateInit = function(e3, t4) {
+          return Y2(e3, t4, v3, 15, 8, 0);
+        }, r2.deflateInit2 = Y2, r2.deflateReset = K2, r2.deflateResetKeep = G3, r2.deflateSetHeader = function(e3, t4) {
+          return e3 && e3.state ? 2 !== e3.state.wrap ? _3 : (e3.state.gzhead = t4, m4) : _3;
+        }, r2.deflate = function(e3, t4) {
+          var r3, n4, i4, s4;
+          if (!e3 || !e3.state || 5 < t4 || t4 < 0)
+            return e3 ? R2(e3, _3) : _3;
+          if (n4 = e3.state, !e3.output || !e3.input && 0 !== e3.avail_in || 666 === n4.status && t4 !== f3)
+            return R2(e3, 0 === e3.avail_out ? -5 : _3);
+          if (n4.strm = e3, r3 = n4.last_flush, n4.last_flush = t4, n4.status === C2)
+            if (2 === n4.wrap)
+              e3.adler = 0, U2(n4, 31), U2(n4, 139), U2(n4, 8), n4.gzhead ? (U2(n4, (n4.gzhead.text ? 1 : 0) + (n4.gzhead.hcrc ? 2 : 0) + (n4.gzhead.extra ? 4 : 0) + (n4.gzhead.name ? 8 : 0) + (n4.gzhead.comment ? 16 : 0)), U2(n4, 255 & n4.gzhead.time), U2(n4, n4.gzhead.time >> 8 & 255), U2(n4, n4.gzhead.time >> 16 & 255), U2(n4, n4.gzhead.time >> 24 & 255), U2(n4, 9 === n4.level ? 2 : 2 <= n4.strategy || n4.level < 2 ? 4 : 0), U2(n4, 255 & n4.gzhead.os), n4.gzhead.extra && n4.gzhead.extra.length && (U2(n4, 255 & n4.gzhead.extra.length), U2(n4, n4.gzhead.extra.length >> 8 & 255)), n4.gzhead.hcrc && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending, 0)), n4.gzindex = 0, n4.status = 69) : (U2(n4, 0), U2(n4, 0), U2(n4, 0), U2(n4, 0), U2(n4, 0), U2(n4, 9 === n4.level ? 2 : 2 <= n4.strategy || n4.level < 2 ? 4 : 0), U2(n4, 3), n4.status = E2);
+            else {
+              var a4 = v3 + (n4.w_bits - 8 << 4) << 8;
+              a4 |= (2 <= n4.strategy || n4.level < 2 ? 0 : n4.level < 6 ? 1 : 6 === n4.level ? 2 : 3) << 6, 0 !== n4.strstart && (a4 |= 32), a4 += 31 - a4 % 31, n4.status = E2, P2(n4, a4), 0 !== n4.strstart && (P2(n4, e3.adler >>> 16), P2(n4, 65535 & e3.adler)), e3.adler = 1;
+            }
+          if (69 === n4.status)
+            if (n4.gzhead.extra) {
+              for (i4 = n4.pending; n4.gzindex < (65535 & n4.gzhead.extra.length) && (n4.pending !== n4.pending_buf_size || (n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), F2(e3), i4 = n4.pending, n4.pending !== n4.pending_buf_size)); )
+                U2(n4, 255 & n4.gzhead.extra[n4.gzindex]), n4.gzindex++;
+              n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), n4.gzindex === n4.gzhead.extra.length && (n4.gzindex = 0, n4.status = 73);
+            } else
+              n4.status = 73;
+          if (73 === n4.status)
+            if (n4.gzhead.name) {
+              i4 = n4.pending;
+              do {
+                if (n4.pending === n4.pending_buf_size && (n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), F2(e3), i4 = n4.pending, n4.pending === n4.pending_buf_size)) {
+                  s4 = 1;
+                  break;
+                }
+                s4 = n4.gzindex < n4.gzhead.name.length ? 255 & n4.gzhead.name.charCodeAt(n4.gzindex++) : 0, U2(n4, s4);
+              } while (0 !== s4);
+              n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), 0 === s4 && (n4.gzindex = 0, n4.status = 91);
+            } else
+              n4.status = 91;
+          if (91 === n4.status)
+            if (n4.gzhead.comment) {
+              i4 = n4.pending;
+              do {
+                if (n4.pending === n4.pending_buf_size && (n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), F2(e3), i4 = n4.pending, n4.pending === n4.pending_buf_size)) {
+                  s4 = 1;
+                  break;
+                }
+                s4 = n4.gzindex < n4.gzhead.comment.length ? 255 & n4.gzhead.comment.charCodeAt(n4.gzindex++) : 0, U2(n4, s4);
+              } while (0 !== s4);
+              n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), 0 === s4 && (n4.status = 103);
+            } else
+              n4.status = 103;
+          if (103 === n4.status && (n4.gzhead.hcrc ? (n4.pending + 2 > n4.pending_buf_size && F2(e3), n4.pending + 2 <= n4.pending_buf_size && (U2(n4, 255 & e3.adler), U2(n4, e3.adler >> 8 & 255), e3.adler = 0, n4.status = E2)) : n4.status = E2), 0 !== n4.pending) {
+            if (F2(e3), 0 === e3.avail_out)
+              return n4.last_flush = -1, m4;
+          } else if (0 === e3.avail_in && T3(t4) <= T3(r3) && t4 !== f3)
+            return R2(e3, -5);
+          if (666 === n4.status && 0 !== e3.avail_in)
+            return R2(e3, -5);
+          if (0 !== e3.avail_in || 0 !== n4.lookahead || t4 !== l3 && 666 !== n4.status) {
+            var o4 = 2 === n4.strategy ? function(e4, t5) {
+              for (var r4; ; ) {
+                if (0 === e4.lookahead && (j2(e4), 0 === e4.lookahead)) {
+                  if (t5 === l3)
+                    return A3;
+                  break;
+                }
+                if (e4.match_length = 0, r4 = u3._tr_tally(e4, 0, e4.window[e4.strstart]), e4.lookahead--, e4.strstart++, r4 && (N3(e4, false), 0 === e4.strm.avail_out))
+                  return A3;
+              }
+              return e4.insert = 0, t5 === f3 ? (N3(e4, true), 0 === e4.strm.avail_out ? O3 : B2) : e4.last_lit && (N3(e4, false), 0 === e4.strm.avail_out) ? A3 : I2;
+            }(n4, t4) : 3 === n4.strategy ? function(e4, t5) {
+              for (var r4, n5, i5, s5, a5 = e4.window; ; ) {
+                if (e4.lookahead <= S2) {
+                  if (j2(e4), e4.lookahead <= S2 && t5 === l3)
+                    return A3;
+                  if (0 === e4.lookahead)
+                    break;
+                }
+                if (e4.match_length = 0, e4.lookahead >= x3 && 0 < e4.strstart && (n5 = a5[i5 = e4.strstart - 1]) === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5]) {
+                  s5 = e4.strstart + S2;
+                  do {
+                  } while (n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && i5 < s5);
+                  e4.match_length = S2 - (s5 - i5), e4.match_length > e4.lookahead && (e4.match_length = e4.lookahead);
+                }
+                if (e4.match_length >= x3 ? (r4 = u3._tr_tally(e4, 1, e4.match_length - x3), e4.lookahead -= e4.match_length, e4.strstart += e4.match_length, e4.match_length = 0) : (r4 = u3._tr_tally(e4, 0, e4.window[e4.strstart]), e4.lookahead--, e4.strstart++), r4 && (N3(e4, false), 0 === e4.strm.avail_out))
+                  return A3;
+              }
+              return e4.insert = 0, t5 === f3 ? (N3(e4, true), 0 === e4.strm.avail_out ? O3 : B2) : e4.last_lit && (N3(e4, false), 0 === e4.strm.avail_out) ? A3 : I2;
+            }(n4, t4) : h3[n4.level].func(n4, t4);
+            if (o4 !== O3 && o4 !== B2 || (n4.status = 666), o4 === A3 || o4 === O3)
+              return 0 === e3.avail_out && (n4.last_flush = -1), m4;
+            if (o4 === I2 && (1 === t4 ? u3._tr_align(n4) : 5 !== t4 && (u3._tr_stored_block(n4, 0, 0, false), 3 === t4 && (D2(n4.head), 0 === n4.lookahead && (n4.strstart = 0, n4.block_start = 0, n4.insert = 0))), F2(e3), 0 === e3.avail_out))
+              return n4.last_flush = -1, m4;
+          }
+          return t4 !== f3 ? m4 : n4.wrap <= 0 ? 1 : (2 === n4.wrap ? (U2(n4, 255 & e3.adler), U2(n4, e3.adler >> 8 & 255), U2(n4, e3.adler >> 16 & 255), U2(n4, e3.adler >> 24 & 255), U2(n4, 255 & e3.total_in), U2(n4, e3.total_in >> 8 & 255), U2(n4, e3.total_in >> 16 & 255), U2(n4, e3.total_in >> 24 & 255)) : (P2(n4, e3.adler >>> 16), P2(n4, 65535 & e3.adler)), F2(e3), 0 < n4.wrap && (n4.wrap = -n4.wrap), 0 !== n4.pending ? m4 : 1);
+        }, r2.deflateEnd = function(e3) {
+          var t4;
+          return e3 && e3.state ? (t4 = e3.state.status) !== C2 && 69 !== t4 && 73 !== t4 && 91 !== t4 && 103 !== t4 && t4 !== E2 && 666 !== t4 ? R2(e3, _3) : (e3.state = null, t4 === E2 ? R2(e3, -3) : m4) : _3;
+        }, r2.deflateSetDictionary = function(e3, t4) {
+          var r3, n4, i4, s4, a4, o4, h4, u4, l4 = t4.length;
+          if (!e3 || !e3.state)
+            return _3;
+          if (2 === (s4 = (r3 = e3.state).wrap) || 1 === s4 && r3.status !== C2 || r3.lookahead)
+            return _3;
+          for (1 === s4 && (e3.adler = d2(e3.adler, t4, l4, 0)), r3.wrap = 0, l4 >= r3.w_size && (0 === s4 && (D2(r3.head), r3.strstart = 0, r3.block_start = 0, r3.insert = 0), u4 = new c4.Buf8(r3.w_size), c4.arraySet(u4, t4, l4 - r3.w_size, r3.w_size, 0), t4 = u4, l4 = r3.w_size), a4 = e3.avail_in, o4 = e3.next_in, h4 = e3.input, e3.avail_in = l4, e3.next_in = 0, e3.input = t4, j2(r3); r3.lookahead >= x3; ) {
+            for (n4 = r3.strstart, i4 = r3.lookahead - (x3 - 1); r3.ins_h = (r3.ins_h << r3.hash_shift ^ r3.window[n4 + x3 - 1]) & r3.hash_mask, r3.prev[n4 & r3.w_mask] = r3.head[r3.ins_h], r3.head[r3.ins_h] = n4, n4++, --i4; )
+              ;
+            r3.strstart = n4, r3.lookahead = x3 - 1, j2(r3);
+          }
+          return r3.strstart += r3.lookahead, r3.block_start = r3.strstart, r3.insert = r3.lookahead, r3.lookahead = 0, r3.match_length = r3.prev_length = x3 - 1, r3.match_available = 0, e3.next_in = o4, e3.input = h4, e3.avail_in = a4, r3.wrap = s4, m4;
+        }, r2.deflateInfo = "pako deflate (from Nodeca project)";
+      }, { "../utils/common": 41, "./adler32": 43, "./crc32": 45, "./messages": 51, "./trees": 52 }], 47: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = function() {
+          this.text = 0, this.time = 0, this.xflags = 0, this.os = 0, this.extra = null, this.extra_len = 0, this.name = "", this.comment = "", this.hcrc = 0, this.done = false;
+        };
+      }, {}], 48: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = function(e3, t4) {
+          var r3, n3, i3, s3, a3, o3, h3, u3, l3, f3, c4, d2, p3, m4, _3, g2, b2, v3, y4, w2, k2, x3, S2, z2, C2;
+          r3 = e3.state, n3 = e3.next_in, z2 = e3.input, i3 = n3 + (e3.avail_in - 5), s3 = e3.next_out, C2 = e3.output, a3 = s3 - (t4 - e3.avail_out), o3 = s3 + (e3.avail_out - 257), h3 = r3.dmax, u3 = r3.wsize, l3 = r3.whave, f3 = r3.wnext, c4 = r3.window, d2 = r3.hold, p3 = r3.bits, m4 = r3.lencode, _3 = r3.distcode, g2 = (1 << r3.lenbits) - 1, b2 = (1 << r3.distbits) - 1;
+          e:
+            do {
+              p3 < 15 && (d2 += z2[n3++] << p3, p3 += 8, d2 += z2[n3++] << p3, p3 += 8), v3 = m4[d2 & g2];
+              t:
+                for (; ; ) {
+                  if (d2 >>>= y4 = v3 >>> 24, p3 -= y4, 0 === (y4 = v3 >>> 16 & 255))
+                    C2[s3++] = 65535 & v3;
+                  else {
+                    if (!(16 & y4)) {
+                      if (0 == (64 & y4)) {
+                        v3 = m4[(65535 & v3) + (d2 & (1 << y4) - 1)];
+                        continue t;
+                      }
+                      if (32 & y4) {
+                        r3.mode = 12;
+                        break e;
+                      }
+                      e3.msg = "invalid literal/length code", r3.mode = 30;
+                      break e;
+                    }
+                    w2 = 65535 & v3, (y4 &= 15) && (p3 < y4 && (d2 += z2[n3++] << p3, p3 += 8), w2 += d2 & (1 << y4) - 1, d2 >>>= y4, p3 -= y4), p3 < 15 && (d2 += z2[n3++] << p3, p3 += 8, d2 += z2[n3++] << p3, p3 += 8), v3 = _3[d2 & b2];
+                    r:
+                      for (; ; ) {
+                        if (d2 >>>= y4 = v3 >>> 24, p3 -= y4, !(16 & (y4 = v3 >>> 16 & 255))) {
+                          if (0 == (64 & y4)) {
+                            v3 = _3[(65535 & v3) + (d2 & (1 << y4) - 1)];
+                            continue r;
+                          }
+                          e3.msg = "invalid distance code", r3.mode = 30;
+                          break e;
+                        }
+                        if (k2 = 65535 & v3, p3 < (y4 &= 15) && (d2 += z2[n3++] << p3, (p3 += 8) < y4 && (d2 += z2[n3++] << p3, p3 += 8)), h3 < (k2 += d2 & (1 << y4) - 1)) {
+                          e3.msg = "invalid distance too far back", r3.mode = 30;
+                          break e;
+                        }
+                        if (d2 >>>= y4, p3 -= y4, (y4 = s3 - a3) < k2) {
+                          if (l3 < (y4 = k2 - y4) && r3.sane) {
+                            e3.msg = "invalid distance too far back", r3.mode = 30;
+                            break e;
+                          }
+                          if (S2 = c4, (x3 = 0) === f3) {
+                            if (x3 += u3 - y4, y4 < w2) {
+                              for (w2 -= y4; C2[s3++] = c4[x3++], --y4; )
+                                ;
+                              x3 = s3 - k2, S2 = C2;
+                            }
+                          } else if (f3 < y4) {
+                            if (x3 += u3 + f3 - y4, (y4 -= f3) < w2) {
+                              for (w2 -= y4; C2[s3++] = c4[x3++], --y4; )
+                                ;
+                              if (x3 = 0, f3 < w2) {
+                                for (w2 -= y4 = f3; C2[s3++] = c4[x3++], --y4; )
+                                  ;
+                                x3 = s3 - k2, S2 = C2;
+                              }
+                            }
+                          } else if (x3 += f3 - y4, y4 < w2) {
+                            for (w2 -= y4; C2[s3++] = c4[x3++], --y4; )
+                              ;
+                            x3 = s3 - k2, S2 = C2;
+                          }
+                          for (; 2 < w2; )
+                            C2[s3++] = S2[x3++], C2[s3++] = S2[x3++], C2[s3++] = S2[x3++], w2 -= 3;
+                          w2 && (C2[s3++] = S2[x3++], 1 < w2 && (C2[s3++] = S2[x3++]));
+                        } else {
+                          for (x3 = s3 - k2; C2[s3++] = C2[x3++], C2[s3++] = C2[x3++], C2[s3++] = C2[x3++], 2 < (w2 -= 3); )
+                            ;
+                          w2 && (C2[s3++] = C2[x3++], 1 < w2 && (C2[s3++] = C2[x3++]));
+                        }
+                        break;
+                      }
+                  }
+                  break;
+                }
+            } while (n3 < i3 && s3 < o3);
+          n3 -= w2 = p3 >> 3, d2 &= (1 << (p3 -= w2 << 3)) - 1, e3.next_in = n3, e3.next_out = s3, e3.avail_in = n3 < i3 ? i3 - n3 + 5 : 5 - (n3 - i3), e3.avail_out = s3 < o3 ? o3 - s3 + 257 : 257 - (s3 - o3), r3.hold = d2, r3.bits = p3;
+        };
+      }, {}], 49: [function(e2, t3, r2) {
+        "use strict";
+        var I2 = e2("../utils/common"), O3 = e2("./adler32"), B2 = e2("./crc32"), R2 = e2("./inffast"), T3 = e2("./inftrees"), D2 = 1, F2 = 2, N3 = 0, U2 = -2, P2 = 1, n3 = 852, i3 = 592;
+        function L2(e3) {
+          return (e3 >>> 24 & 255) + (e3 >>> 8 & 65280) + ((65280 & e3) << 8) + ((255 & e3) << 24);
+        }
+        function s3() {
+          this.mode = 0, this.last = false, this.wrap = 0, this.havedict = false, this.flags = 0, this.dmax = 0, this.check = 0, this.total = 0, this.head = null, this.wbits = 0, this.wsize = 0, this.whave = 0, this.wnext = 0, this.window = null, this.hold = 0, this.bits = 0, this.length = 0, this.offset = 0, this.extra = 0, this.lencode = null, this.distcode = null, this.lenbits = 0, this.distbits = 0, this.ncode = 0, this.nlen = 0, this.ndist = 0, this.have = 0, this.next = null, this.lens = new I2.Buf16(320), this.work = new I2.Buf16(288), this.lendyn = null, this.distdyn = null, this.sane = 0, this.back = 0, this.was = 0;
+        }
+        function a3(e3) {
+          var t4;
+          return e3 && e3.state ? (t4 = e3.state, e3.total_in = e3.total_out = t4.total = 0, e3.msg = "", t4.wrap && (e3.adler = 1 & t4.wrap), t4.mode = P2, t4.last = 0, t4.havedict = 0, t4.dmax = 32768, t4.head = null, t4.hold = 0, t4.bits = 0, t4.lencode = t4.lendyn = new I2.Buf32(n3), t4.distcode = t4.distdyn = new I2.Buf32(i3), t4.sane = 1, t4.back = -1, N3) : U2;
+        }
+        function o3(e3) {
+          var t4;
+          return e3 && e3.state ? ((t4 = e3.state).wsize = 0, t4.whave = 0, t4.wnext = 0, a3(e3)) : U2;
+        }
+        function h3(e3, t4) {
+          var r3, n4;
+          return e3 && e3.state ? (n4 = e3.state, t4 < 0 ? (r3 = 0, t4 = -t4) : (r3 = 1 + (t4 >> 4), t4 < 48 && (t4 &= 15)), t4 && (t4 < 8 || 15 < t4) ? U2 : (null !== n4.window && n4.wbits !== t4 && (n4.window = null), n4.wrap = r3, n4.wbits = t4, o3(e3))) : U2;
+        }
+        function u3(e3, t4) {
+          var r3, n4;
+          return e3 ? (n4 = new s3(), (e3.state = n4).window = null, (r3 = h3(e3, t4)) !== N3 && (e3.state = null), r3) : U2;
+        }
+        var l3, f3, c4 = true;
+        function j2(e3) {
+          if (c4) {
+            var t4;
+            for (l3 = new I2.Buf32(512), f3 = new I2.Buf32(32), t4 = 0; t4 < 144; )
+              e3.lens[t4++] = 8;
+            for (; t4 < 256; )
+              e3.lens[t4++] = 9;
+            for (; t4 < 280; )
+              e3.lens[t4++] = 7;
+            for (; t4 < 288; )
+              e3.lens[t4++] = 8;
+            for (T3(D2, e3.lens, 0, 288, l3, 0, e3.work, { bits: 9 }), t4 = 0; t4 < 32; )
+              e3.lens[t4++] = 5;
+            T3(F2, e3.lens, 0, 32, f3, 0, e3.work, { bits: 5 }), c4 = false;
+          }
+          e3.lencode = l3, e3.lenbits = 9, e3.distcode = f3, e3.distbits = 5;
+        }
+        function Z2(e3, t4, r3, n4) {
+          var i4, s4 = e3.state;
+          return null === s4.window && (s4.wsize = 1 << s4.wbits, s4.wnext = 0, s4.whave = 0, s4.window = new I2.Buf8(s4.wsize)), n4 >= s4.wsize ? (I2.arraySet(s4.window, t4, r3 - s4.wsize, s4.wsize, 0), s4.wnext = 0, s4.whave = s4.wsize) : (n4 < (i4 = s4.wsize - s4.wnext) && (i4 = n4), I2.arraySet(s4.window, t4, r3 - n4, i4, s4.wnext), (n4 -= i4) ? (I2.arraySet(s4.window, t4, r3 - n4, n4, 0), s4.wnext = n4, s4.whave = s4.wsize) : (s4.wnext += i4, s4.wnext === s4.wsize && (s4.wnext = 0), s4.whave < s4.wsize && (s4.whave += i4))), 0;
+        }
+        r2.inflateReset = o3, r2.inflateReset2 = h3, r2.inflateResetKeep = a3, r2.inflateInit = function(e3) {
+          return u3(e3, 15);
+        }, r2.inflateInit2 = u3, r2.inflate = function(e3, t4) {
+          var r3, n4, i4, s4, a4, o4, h4, u4, l4, f4, c5, d2, p3, m4, _3, g2, b2, v3, y4, w2, k2, x3, S2, z2, C2 = 0, E2 = new I2.Buf8(4), A3 = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+          if (!e3 || !e3.state || !e3.output || !e3.input && 0 !== e3.avail_in)
+            return U2;
+          12 === (r3 = e3.state).mode && (r3.mode = 13), a4 = e3.next_out, i4 = e3.output, h4 = e3.avail_out, s4 = e3.next_in, n4 = e3.input, o4 = e3.avail_in, u4 = r3.hold, l4 = r3.bits, f4 = o4, c5 = h4, x3 = N3;
+          e:
+            for (; ; )
+              switch (r3.mode) {
+                case P2:
+                  if (0 === r3.wrap) {
+                    r3.mode = 13;
+                    break;
+                  }
+                  for (; l4 < 16; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  if (2 & r3.wrap && 35615 === u4) {
+                    E2[r3.check = 0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0), l4 = u4 = 0, r3.mode = 2;
+                    break;
+                  }
+                  if (r3.flags = 0, r3.head && (r3.head.done = false), !(1 & r3.wrap) || (((255 & u4) << 8) + (u4 >> 8)) % 31) {
+                    e3.msg = "incorrect header check", r3.mode = 30;
+                    break;
+                  }
+                  if (8 != (15 & u4)) {
+                    e3.msg = "unknown compression method", r3.mode = 30;
+                    break;
+                  }
+                  if (l4 -= 4, k2 = 8 + (15 & (u4 >>>= 4)), 0 === r3.wbits)
+                    r3.wbits = k2;
+                  else if (k2 > r3.wbits) {
+                    e3.msg = "invalid window size", r3.mode = 30;
+                    break;
+                  }
+                  r3.dmax = 1 << k2, e3.adler = r3.check = 1, r3.mode = 512 & u4 ? 10 : 12, l4 = u4 = 0;
+                  break;
+                case 2:
+                  for (; l4 < 16; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  if (r3.flags = u4, 8 != (255 & r3.flags)) {
+                    e3.msg = "unknown compression method", r3.mode = 30;
+                    break;
+                  }
+                  if (57344 & r3.flags) {
+                    e3.msg = "unknown header flags set", r3.mode = 30;
+                    break;
+                  }
+                  r3.head && (r3.head.text = u4 >> 8 & 1), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0)), l4 = u4 = 0, r3.mode = 3;
+                case 3:
+                  for (; l4 < 32; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  r3.head && (r3.head.time = u4), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, E2[2] = u4 >>> 16 & 255, E2[3] = u4 >>> 24 & 255, r3.check = B2(r3.check, E2, 4, 0)), l4 = u4 = 0, r3.mode = 4;
+                case 4:
+                  for (; l4 < 16; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  r3.head && (r3.head.xflags = 255 & u4, r3.head.os = u4 >> 8), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0)), l4 = u4 = 0, r3.mode = 5;
+                case 5:
+                  if (1024 & r3.flags) {
+                    for (; l4 < 16; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    r3.length = u4, r3.head && (r3.head.extra_len = u4), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0)), l4 = u4 = 0;
+                  } else
+                    r3.head && (r3.head.extra = null);
+                  r3.mode = 6;
+                case 6:
+                  if (1024 & r3.flags && (o4 < (d2 = r3.length) && (d2 = o4), d2 && (r3.head && (k2 = r3.head.extra_len - r3.length, r3.head.extra || (r3.head.extra = new Array(r3.head.extra_len)), I2.arraySet(r3.head.extra, n4, s4, d2, k2)), 512 & r3.flags && (r3.check = B2(r3.check, n4, d2, s4)), o4 -= d2, s4 += d2, r3.length -= d2), r3.length))
+                    break e;
+                  r3.length = 0, r3.mode = 7;
+                case 7:
+                  if (2048 & r3.flags) {
+                    if (0 === o4)
+                      break e;
+                    for (d2 = 0; k2 = n4[s4 + d2++], r3.head && k2 && r3.length < 65536 && (r3.head.name += String.fromCharCode(k2)), k2 && d2 < o4; )
+                      ;
+                    if (512 & r3.flags && (r3.check = B2(r3.check, n4, d2, s4)), o4 -= d2, s4 += d2, k2)
+                      break e;
+                  } else
+                    r3.head && (r3.head.name = null);
+                  r3.length = 0, r3.mode = 8;
+                case 8:
+                  if (4096 & r3.flags) {
+                    if (0 === o4)
+                      break e;
+                    for (d2 = 0; k2 = n4[s4 + d2++], r3.head && k2 && r3.length < 65536 && (r3.head.comment += String.fromCharCode(k2)), k2 && d2 < o4; )
+                      ;
+                    if (512 & r3.flags && (r3.check = B2(r3.check, n4, d2, s4)), o4 -= d2, s4 += d2, k2)
+                      break e;
+                  } else
+                    r3.head && (r3.head.comment = null);
+                  r3.mode = 9;
+                case 9:
+                  if (512 & r3.flags) {
+                    for (; l4 < 16; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    if (u4 !== (65535 & r3.check)) {
+                      e3.msg = "header crc mismatch", r3.mode = 30;
+                      break;
+                    }
+                    l4 = u4 = 0;
+                  }
+                  r3.head && (r3.head.hcrc = r3.flags >> 9 & 1, r3.head.done = true), e3.adler = r3.check = 0, r3.mode = 12;
+                  break;
+                case 10:
+                  for (; l4 < 32; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  e3.adler = r3.check = L2(u4), l4 = u4 = 0, r3.mode = 11;
+                case 11:
+                  if (0 === r3.havedict)
+                    return e3.next_out = a4, e3.avail_out = h4, e3.next_in = s4, e3.avail_in = o4, r3.hold = u4, r3.bits = l4, 2;
+                  e3.adler = r3.check = 1, r3.mode = 12;
+                case 12:
+                  if (5 === t4 || 6 === t4)
+                    break e;
+                case 13:
+                  if (r3.last) {
+                    u4 >>>= 7 & l4, l4 -= 7 & l4, r3.mode = 27;
+                    break;
+                  }
+                  for (; l4 < 3; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  switch (r3.last = 1 & u4, l4 -= 1, 3 & (u4 >>>= 1)) {
+                    case 0:
+                      r3.mode = 14;
+                      break;
+                    case 1:
+                      if (j2(r3), r3.mode = 20, 6 !== t4)
+                        break;
+                      u4 >>>= 2, l4 -= 2;
+                      break e;
+                    case 2:
+                      r3.mode = 17;
+                      break;
+                    case 3:
+                      e3.msg = "invalid block type", r3.mode = 30;
+                  }
+                  u4 >>>= 2, l4 -= 2;
+                  break;
+                case 14:
+                  for (u4 >>>= 7 & l4, l4 -= 7 & l4; l4 < 32; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  if ((65535 & u4) != (u4 >>> 16 ^ 65535)) {
+                    e3.msg = "invalid stored block lengths", r3.mode = 30;
+                    break;
+                  }
+                  if (r3.length = 65535 & u4, l4 = u4 = 0, r3.mode = 15, 6 === t4)
+                    break e;
+                case 15:
+                  r3.mode = 16;
+                case 16:
+                  if (d2 = r3.length) {
+                    if (o4 < d2 && (d2 = o4), h4 < d2 && (d2 = h4), 0 === d2)
+                      break e;
+                    I2.arraySet(i4, n4, s4, d2, a4), o4 -= d2, s4 += d2, h4 -= d2, a4 += d2, r3.length -= d2;
+                    break;
+                  }
+                  r3.mode = 12;
+                  break;
+                case 17:
+                  for (; l4 < 14; ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  if (r3.nlen = 257 + (31 & u4), u4 >>>= 5, l4 -= 5, r3.ndist = 1 + (31 & u4), u4 >>>= 5, l4 -= 5, r3.ncode = 4 + (15 & u4), u4 >>>= 4, l4 -= 4, 286 < r3.nlen || 30 < r3.ndist) {
+                    e3.msg = "too many length or distance symbols", r3.mode = 30;
+                    break;
+                  }
+                  r3.have = 0, r3.mode = 18;
+                case 18:
+                  for (; r3.have < r3.ncode; ) {
+                    for (; l4 < 3; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    r3.lens[A3[r3.have++]] = 7 & u4, u4 >>>= 3, l4 -= 3;
+                  }
+                  for (; r3.have < 19; )
+                    r3.lens[A3[r3.have++]] = 0;
+                  if (r3.lencode = r3.lendyn, r3.lenbits = 7, S2 = { bits: r3.lenbits }, x3 = T3(0, r3.lens, 0, 19, r3.lencode, 0, r3.work, S2), r3.lenbits = S2.bits, x3) {
+                    e3.msg = "invalid code lengths set", r3.mode = 30;
+                    break;
+                  }
+                  r3.have = 0, r3.mode = 19;
+                case 19:
+                  for (; r3.have < r3.nlen + r3.ndist; ) {
+                    for (; g2 = (C2 = r3.lencode[u4 & (1 << r3.lenbits) - 1]) >>> 16 & 255, b2 = 65535 & C2, !((_3 = C2 >>> 24) <= l4); ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    if (b2 < 16)
+                      u4 >>>= _3, l4 -= _3, r3.lens[r3.have++] = b2;
+                    else {
+                      if (16 === b2) {
+                        for (z2 = _3 + 2; l4 < z2; ) {
+                          if (0 === o4)
+                            break e;
+                          o4--, u4 += n4[s4++] << l4, l4 += 8;
+                        }
+                        if (u4 >>>= _3, l4 -= _3, 0 === r3.have) {
+                          e3.msg = "invalid bit length repeat", r3.mode = 30;
+                          break;
+                        }
+                        k2 = r3.lens[r3.have - 1], d2 = 3 + (3 & u4), u4 >>>= 2, l4 -= 2;
+                      } else if (17 === b2) {
+                        for (z2 = _3 + 3; l4 < z2; ) {
+                          if (0 === o4)
+                            break e;
+                          o4--, u4 += n4[s4++] << l4, l4 += 8;
+                        }
+                        l4 -= _3, k2 = 0, d2 = 3 + (7 & (u4 >>>= _3)), u4 >>>= 3, l4 -= 3;
+                      } else {
+                        for (z2 = _3 + 7; l4 < z2; ) {
+                          if (0 === o4)
+                            break e;
+                          o4--, u4 += n4[s4++] << l4, l4 += 8;
+                        }
+                        l4 -= _3, k2 = 0, d2 = 11 + (127 & (u4 >>>= _3)), u4 >>>= 7, l4 -= 7;
+                      }
+                      if (r3.have + d2 > r3.nlen + r3.ndist) {
+                        e3.msg = "invalid bit length repeat", r3.mode = 30;
+                        break;
+                      }
+                      for (; d2--; )
+                        r3.lens[r3.have++] = k2;
+                    }
+                  }
+                  if (30 === r3.mode)
+                    break;
+                  if (0 === r3.lens[256]) {
+                    e3.msg = "invalid code -- missing end-of-block", r3.mode = 30;
+                    break;
+                  }
+                  if (r3.lenbits = 9, S2 = { bits: r3.lenbits }, x3 = T3(D2, r3.lens, 0, r3.nlen, r3.lencode, 0, r3.work, S2), r3.lenbits = S2.bits, x3) {
+                    e3.msg = "invalid literal/lengths set", r3.mode = 30;
+                    break;
+                  }
+                  if (r3.distbits = 6, r3.distcode = r3.distdyn, S2 = { bits: r3.distbits }, x3 = T3(F2, r3.lens, r3.nlen, r3.ndist, r3.distcode, 0, r3.work, S2), r3.distbits = S2.bits, x3) {
+                    e3.msg = "invalid distances set", r3.mode = 30;
+                    break;
+                  }
+                  if (r3.mode = 20, 6 === t4)
+                    break e;
+                case 20:
+                  r3.mode = 21;
+                case 21:
+                  if (6 <= o4 && 258 <= h4) {
+                    e3.next_out = a4, e3.avail_out = h4, e3.next_in = s4, e3.avail_in = o4, r3.hold = u4, r3.bits = l4, R2(e3, c5), a4 = e3.next_out, i4 = e3.output, h4 = e3.avail_out, s4 = e3.next_in, n4 = e3.input, o4 = e3.avail_in, u4 = r3.hold, l4 = r3.bits, 12 === r3.mode && (r3.back = -1);
+                    break;
+                  }
+                  for (r3.back = 0; g2 = (C2 = r3.lencode[u4 & (1 << r3.lenbits) - 1]) >>> 16 & 255, b2 = 65535 & C2, !((_3 = C2 >>> 24) <= l4); ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  if (g2 && 0 == (240 & g2)) {
+                    for (v3 = _3, y4 = g2, w2 = b2; g2 = (C2 = r3.lencode[w2 + ((u4 & (1 << v3 + y4) - 1) >> v3)]) >>> 16 & 255, b2 = 65535 & C2, !(v3 + (_3 = C2 >>> 24) <= l4); ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    u4 >>>= v3, l4 -= v3, r3.back += v3;
+                  }
+                  if (u4 >>>= _3, l4 -= _3, r3.back += _3, r3.length = b2, 0 === g2) {
+                    r3.mode = 26;
+                    break;
+                  }
+                  if (32 & g2) {
+                    r3.back = -1, r3.mode = 12;
+                    break;
+                  }
+                  if (64 & g2) {
+                    e3.msg = "invalid literal/length code", r3.mode = 30;
+                    break;
+                  }
+                  r3.extra = 15 & g2, r3.mode = 22;
+                case 22:
+                  if (r3.extra) {
+                    for (z2 = r3.extra; l4 < z2; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    r3.length += u4 & (1 << r3.extra) - 1, u4 >>>= r3.extra, l4 -= r3.extra, r3.back += r3.extra;
+                  }
+                  r3.was = r3.length, r3.mode = 23;
+                case 23:
+                  for (; g2 = (C2 = r3.distcode[u4 & (1 << r3.distbits) - 1]) >>> 16 & 255, b2 = 65535 & C2, !((_3 = C2 >>> 24) <= l4); ) {
+                    if (0 === o4)
+                      break e;
+                    o4--, u4 += n4[s4++] << l4, l4 += 8;
+                  }
+                  if (0 == (240 & g2)) {
+                    for (v3 = _3, y4 = g2, w2 = b2; g2 = (C2 = r3.distcode[w2 + ((u4 & (1 << v3 + y4) - 1) >> v3)]) >>> 16 & 255, b2 = 65535 & C2, !(v3 + (_3 = C2 >>> 24) <= l4); ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    u4 >>>= v3, l4 -= v3, r3.back += v3;
+                  }
+                  if (u4 >>>= _3, l4 -= _3, r3.back += _3, 64 & g2) {
+                    e3.msg = "invalid distance code", r3.mode = 30;
+                    break;
+                  }
+                  r3.offset = b2, r3.extra = 15 & g2, r3.mode = 24;
+                case 24:
+                  if (r3.extra) {
+                    for (z2 = r3.extra; l4 < z2; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    r3.offset += u4 & (1 << r3.extra) - 1, u4 >>>= r3.extra, l4 -= r3.extra, r3.back += r3.extra;
+                  }
+                  if (r3.offset > r3.dmax) {
+                    e3.msg = "invalid distance too far back", r3.mode = 30;
+                    break;
+                  }
+                  r3.mode = 25;
+                case 25:
+                  if (0 === h4)
+                    break e;
+                  if (d2 = c5 - h4, r3.offset > d2) {
+                    if ((d2 = r3.offset - d2) > r3.whave && r3.sane) {
+                      e3.msg = "invalid distance too far back", r3.mode = 30;
+                      break;
+                    }
+                    p3 = d2 > r3.wnext ? (d2 -= r3.wnext, r3.wsize - d2) : r3.wnext - d2, d2 > r3.length && (d2 = r3.length), m4 = r3.window;
+                  } else
+                    m4 = i4, p3 = a4 - r3.offset, d2 = r3.length;
+                  for (h4 < d2 && (d2 = h4), h4 -= d2, r3.length -= d2; i4[a4++] = m4[p3++], --d2; )
+                    ;
+                  0 === r3.length && (r3.mode = 21);
+                  break;
+                case 26:
+                  if (0 === h4)
+                    break e;
+                  i4[a4++] = r3.length, h4--, r3.mode = 21;
+                  break;
+                case 27:
+                  if (r3.wrap) {
+                    for (; l4 < 32; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 |= n4[s4++] << l4, l4 += 8;
+                    }
+                    if (c5 -= h4, e3.total_out += c5, r3.total += c5, c5 && (e3.adler = r3.check = r3.flags ? B2(r3.check, i4, c5, a4 - c5) : O3(r3.check, i4, c5, a4 - c5)), c5 = h4, (r3.flags ? u4 : L2(u4)) !== r3.check) {
+                      e3.msg = "incorrect data check", r3.mode = 30;
+                      break;
+                    }
+                    l4 = u4 = 0;
+                  }
+                  r3.mode = 28;
+                case 28:
+                  if (r3.wrap && r3.flags) {
+                    for (; l4 < 32; ) {
+                      if (0 === o4)
+                        break e;
+                      o4--, u4 += n4[s4++] << l4, l4 += 8;
+                    }
+                    if (u4 !== (4294967295 & r3.total)) {
+                      e3.msg = "incorrect length check", r3.mode = 30;
+                      break;
+                    }
+                    l4 = u4 = 0;
+                  }
+                  r3.mode = 29;
+                case 29:
+                  x3 = 1;
+                  break e;
+                case 30:
+                  x3 = -3;
+                  break e;
+                case 31:
+                  return -4;
+                case 32:
+                default:
+                  return U2;
+              }
+          return e3.next_out = a4, e3.avail_out = h4, e3.next_in = s4, e3.avail_in = o4, r3.hold = u4, r3.bits = l4, (r3.wsize || c5 !== e3.avail_out && r3.mode < 30 && (r3.mode < 27 || 4 !== t4)) && Z2(e3, e3.output, e3.next_out, c5 - e3.avail_out) ? (r3.mode = 31, -4) : (f4 -= e3.avail_in, c5 -= e3.avail_out, e3.total_in += f4, e3.total_out += c5, r3.total += c5, r3.wrap && c5 && (e3.adler = r3.check = r3.flags ? B2(r3.check, i4, c5, e3.next_out - c5) : O3(r3.check, i4, c5, e3.next_out - c5)), e3.data_type = r3.bits + (r3.last ? 64 : 0) + (12 === r3.mode ? 128 : 0) + (20 === r3.mode || 15 === r3.mode ? 256 : 0), (0 == f4 && 0 === c5 || 4 === t4) && x3 === N3 && (x3 = -5), x3);
+        }, r2.inflateEnd = function(e3) {
+          if (!e3 || !e3.state)
+            return U2;
+          var t4 = e3.state;
+          return t4.window && (t4.window = null), e3.state = null, N3;
+        }, r2.inflateGetHeader = function(e3, t4) {
+          var r3;
+          return e3 && e3.state ? 0 == (2 & (r3 = e3.state).wrap) ? U2 : ((r3.head = t4).done = false, N3) : U2;
+        }, r2.inflateSetDictionary = function(e3, t4) {
+          var r3, n4 = t4.length;
+          return e3 && e3.state ? 0 !== (r3 = e3.state).wrap && 11 !== r3.mode ? U2 : 11 === r3.mode && O3(1, t4, n4, 0) !== r3.check ? -3 : Z2(e3, t4, n4, n4) ? (r3.mode = 31, -4) : (r3.havedict = 1, N3) : U2;
+        }, r2.inflateInfo = "pako inflate (from Nodeca project)";
+      }, { "../utils/common": 41, "./adler32": 43, "./crc32": 45, "./inffast": 48, "./inftrees": 50 }], 50: [function(e2, t3, r2) {
+        "use strict";
+        var D2 = e2("../utils/common"), F2 = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0], N3 = [16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 72, 78], U2 = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577, 0, 0], P2 = [16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 64, 64];
+        t3.exports = function(e3, t4, r3, n3, i3, s3, a3, o3) {
+          var h3, u3, l3, f3, c4, d2, p3, m4, _3, g2 = o3.bits, b2 = 0, v3 = 0, y4 = 0, w2 = 0, k2 = 0, x3 = 0, S2 = 0, z2 = 0, C2 = 0, E2 = 0, A3 = null, I2 = 0, O3 = new D2.Buf16(16), B2 = new D2.Buf16(16), R2 = null, T3 = 0;
+          for (b2 = 0; b2 <= 15; b2++)
+            O3[b2] = 0;
+          for (v3 = 0; v3 < n3; v3++)
+            O3[t4[r3 + v3]]++;
+          for (k2 = g2, w2 = 15; 1 <= w2 && 0 === O3[w2]; w2--)
+            ;
+          if (w2 < k2 && (k2 = w2), 0 === w2)
+            return i3[s3++] = 20971520, i3[s3++] = 20971520, o3.bits = 1, 0;
+          for (y4 = 1; y4 < w2 && 0 === O3[y4]; y4++)
+            ;
+          for (k2 < y4 && (k2 = y4), b2 = z2 = 1; b2 <= 15; b2++)
+            if (z2 <<= 1, (z2 -= O3[b2]) < 0)
+              return -1;
+          if (0 < z2 && (0 === e3 || 1 !== w2))
+            return -1;
+          for (B2[1] = 0, b2 = 1; b2 < 15; b2++)
+            B2[b2 + 1] = B2[b2] + O3[b2];
+          for (v3 = 0; v3 < n3; v3++)
+            0 !== t4[r3 + v3] && (a3[B2[t4[r3 + v3]]++] = v3);
+          if (d2 = 0 === e3 ? (A3 = R2 = a3, 19) : 1 === e3 ? (A3 = F2, I2 -= 257, R2 = N3, T3 -= 257, 256) : (A3 = U2, R2 = P2, -1), b2 = y4, c4 = s3, S2 = v3 = E2 = 0, l3 = -1, f3 = (C2 = 1 << (x3 = k2)) - 1, 1 === e3 && 852 < C2 || 2 === e3 && 592 < C2)
+            return 1;
+          for (; ; ) {
+            for (p3 = b2 - S2, _3 = a3[v3] < d2 ? (m4 = 0, a3[v3]) : a3[v3] > d2 ? (m4 = R2[T3 + a3[v3]], A3[I2 + a3[v3]]) : (m4 = 96, 0), h3 = 1 << b2 - S2, y4 = u3 = 1 << x3; i3[c4 + (E2 >> S2) + (u3 -= h3)] = p3 << 24 | m4 << 16 | _3 | 0, 0 !== u3; )
+              ;
+            for (h3 = 1 << b2 - 1; E2 & h3; )
+              h3 >>= 1;
+            if (0 !== h3 ? (E2 &= h3 - 1, E2 += h3) : E2 = 0, v3++, 0 == --O3[b2]) {
+              if (b2 === w2)
+                break;
+              b2 = t4[r3 + a3[v3]];
+            }
+            if (k2 < b2 && (E2 & f3) !== l3) {
+              for (0 === S2 && (S2 = k2), c4 += y4, z2 = 1 << (x3 = b2 - S2); x3 + S2 < w2 && !((z2 -= O3[x3 + S2]) <= 0); )
+                x3++, z2 <<= 1;
+              if (C2 += 1 << x3, 1 === e3 && 852 < C2 || 2 === e3 && 592 < C2)
+                return 1;
+              i3[l3 = E2 & f3] = k2 << 24 | x3 << 16 | c4 - s3 | 0;
+            }
+          }
+          return 0 !== E2 && (i3[c4 + E2] = b2 - S2 << 24 | 64 << 16 | 0), o3.bits = k2, 0;
+        };
+      }, { "../utils/common": 41 }], 51: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = { 2: "need dictionary", 1: "stream end", 0: "", "-1": "file error", "-2": "stream error", "-3": "data error", "-4": "insufficient memory", "-5": "buffer error", "-6": "incompatible version" };
+      }, {}], 52: [function(e2, t3, r2) {
+        "use strict";
+        var i3 = e2("../utils/common"), o3 = 0, h3 = 1;
+        function n3(e3) {
+          for (var t4 = e3.length; 0 <= --t4; )
+            e3[t4] = 0;
+        }
+        var s3 = 0, a3 = 29, u3 = 256, l3 = u3 + 1 + a3, f3 = 30, c4 = 19, _3 = 2 * l3 + 1, g2 = 15, d2 = 16, p3 = 7, m4 = 256, b2 = 16, v3 = 17, y4 = 18, w2 = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0], k2 = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13], x3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 7], S2 = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15], z2 = new Array(2 * (l3 + 2));
+        n3(z2);
+        var C2 = new Array(2 * f3);
+        n3(C2);
+        var E2 = new Array(512);
+        n3(E2);
+        var A3 = new Array(256);
+        n3(A3);
+        var I2 = new Array(a3);
+        n3(I2);
+        var O3, B2, R2, T3 = new Array(f3);
+        function D2(e3, t4, r3, n4, i4) {
+          this.static_tree = e3, this.extra_bits = t4, this.extra_base = r3, this.elems = n4, this.max_length = i4, this.has_stree = e3 && e3.length;
+        }
+        function F2(e3, t4) {
+          this.dyn_tree = e3, this.max_code = 0, this.stat_desc = t4;
+        }
+        function N3(e3) {
+          return e3 < 256 ? E2[e3] : E2[256 + (e3 >>> 7)];
+        }
+        function U2(e3, t4) {
+          e3.pending_buf[e3.pending++] = 255 & t4, e3.pending_buf[e3.pending++] = t4 >>> 8 & 255;
+        }
+        function P2(e3, t4, r3) {
+          e3.bi_valid > d2 - r3 ? (e3.bi_buf |= t4 << e3.bi_valid & 65535, U2(e3, e3.bi_buf), e3.bi_buf = t4 >> d2 - e3.bi_valid, e3.bi_valid += r3 - d2) : (e3.bi_buf |= t4 << e3.bi_valid & 65535, e3.bi_valid += r3);
+        }
+        function L2(e3, t4, r3) {
+          P2(e3, r3[2 * t4], r3[2 * t4 + 1]);
+        }
+        function j2(e3, t4) {
+          for (var r3 = 0; r3 |= 1 & e3, e3 >>>= 1, r3 <<= 1, 0 < --t4; )
+            ;
+          return r3 >>> 1;
+        }
+        function Z2(e3, t4, r3) {
+          var n4, i4, s4 = new Array(g2 + 1), a4 = 0;
+          for (n4 = 1; n4 <= g2; n4++)
+            s4[n4] = a4 = a4 + r3[n4 - 1] << 1;
+          for (i4 = 0; i4 <= t4; i4++) {
+            var o4 = e3[2 * i4 + 1];
+            0 !== o4 && (e3[2 * i4] = j2(s4[o4]++, o4));
+          }
+        }
+        function W2(e3) {
+          var t4;
+          for (t4 = 0; t4 < l3; t4++)
+            e3.dyn_ltree[2 * t4] = 0;
+          for (t4 = 0; t4 < f3; t4++)
+            e3.dyn_dtree[2 * t4] = 0;
+          for (t4 = 0; t4 < c4; t4++)
+            e3.bl_tree[2 * t4] = 0;
+          e3.dyn_ltree[2 * m4] = 1, e3.opt_len = e3.static_len = 0, e3.last_lit = e3.matches = 0;
+        }
+        function M2(e3) {
+          8 < e3.bi_valid ? U2(e3, e3.bi_buf) : 0 < e3.bi_valid && (e3.pending_buf[e3.pending++] = e3.bi_buf), e3.bi_buf = 0, e3.bi_valid = 0;
+        }
+        function H2(e3, t4, r3, n4) {
+          var i4 = 2 * t4, s4 = 2 * r3;
+          return e3[i4] < e3[s4] || e3[i4] === e3[s4] && n4[t4] <= n4[r3];
+        }
+        function G3(e3, t4, r3) {
+          for (var n4 = e3.heap[r3], i4 = r3 << 1; i4 <= e3.heap_len && (i4 < e3.heap_len && H2(t4, e3.heap[i4 + 1], e3.heap[i4], e3.depth) && i4++, !H2(t4, n4, e3.heap[i4], e3.depth)); )
+            e3.heap[r3] = e3.heap[i4], r3 = i4, i4 <<= 1;
+          e3.heap[r3] = n4;
+        }
+        function K2(e3, t4, r3) {
+          var n4, i4, s4, a4, o4 = 0;
+          if (0 !== e3.last_lit)
+            for (; n4 = e3.pending_buf[e3.d_buf + 2 * o4] << 8 | e3.pending_buf[e3.d_buf + 2 * o4 + 1], i4 = e3.pending_buf[e3.l_buf + o4], o4++, 0 === n4 ? L2(e3, i4, t4) : (L2(e3, (s4 = A3[i4]) + u3 + 1, t4), 0 !== (a4 = w2[s4]) && P2(e3, i4 -= I2[s4], a4), L2(e3, s4 = N3(--n4), r3), 0 !== (a4 = k2[s4]) && P2(e3, n4 -= T3[s4], a4)), o4 < e3.last_lit; )
+              ;
+          L2(e3, m4, t4);
+        }
+        function Y2(e3, t4) {
+          var r3, n4, i4, s4 = t4.dyn_tree, a4 = t4.stat_desc.static_tree, o4 = t4.stat_desc.has_stree, h4 = t4.stat_desc.elems, u4 = -1;
+          for (e3.heap_len = 0, e3.heap_max = _3, r3 = 0; r3 < h4; r3++)
+            0 !== s4[2 * r3] ? (e3.heap[++e3.heap_len] = u4 = r3, e3.depth[r3] = 0) : s4[2 * r3 + 1] = 0;
+          for (; e3.heap_len < 2; )
+            s4[2 * (i4 = e3.heap[++e3.heap_len] = u4 < 2 ? ++u4 : 0)] = 1, e3.depth[i4] = 0, e3.opt_len--, o4 && (e3.static_len -= a4[2 * i4 + 1]);
+          for (t4.max_code = u4, r3 = e3.heap_len >> 1; 1 <= r3; r3--)
+            G3(e3, s4, r3);
+          for (i4 = h4; r3 = e3.heap[1], e3.heap[1] = e3.heap[e3.heap_len--], G3(e3, s4, 1), n4 = e3.heap[1], e3.heap[--e3.heap_max] = r3, e3.heap[--e3.heap_max] = n4, s4[2 * i4] = s4[2 * r3] + s4[2 * n4], e3.depth[i4] = (e3.depth[r3] >= e3.depth[n4] ? e3.depth[r3] : e3.depth[n4]) + 1, s4[2 * r3 + 1] = s4[2 * n4 + 1] = i4, e3.heap[1] = i4++, G3(e3, s4, 1), 2 <= e3.heap_len; )
+            ;
+          e3.heap[--e3.heap_max] = e3.heap[1], function(e4, t5) {
+            var r4, n5, i5, s5, a5, o5, h5 = t5.dyn_tree, u5 = t5.max_code, l4 = t5.stat_desc.static_tree, f4 = t5.stat_desc.has_stree, c5 = t5.stat_desc.extra_bits, d3 = t5.stat_desc.extra_base, p4 = t5.stat_desc.max_length, m5 = 0;
+            for (s5 = 0; s5 <= g2; s5++)
+              e4.bl_count[s5] = 0;
+            for (h5[2 * e4.heap[e4.heap_max] + 1] = 0, r4 = e4.heap_max + 1; r4 < _3; r4++)
+              p4 < (s5 = h5[2 * h5[2 * (n5 = e4.heap[r4]) + 1] + 1] + 1) && (s5 = p4, m5++), h5[2 * n5 + 1] = s5, u5 < n5 || (e4.bl_count[s5]++, a5 = 0, d3 <= n5 && (a5 = c5[n5 - d3]), o5 = h5[2 * n5], e4.opt_len += o5 * (s5 + a5), f4 && (e4.static_len += o5 * (l4[2 * n5 + 1] + a5)));
+            if (0 !== m5) {
+              do {
+                for (s5 = p4 - 1; 0 === e4.bl_count[s5]; )
+                  s5--;
+                e4.bl_count[s5]--, e4.bl_count[s5 + 1] += 2, e4.bl_count[p4]--, m5 -= 2;
+              } while (0 < m5);
+              for (s5 = p4; 0 !== s5; s5--)
+                for (n5 = e4.bl_count[s5]; 0 !== n5; )
+                  u5 < (i5 = e4.heap[--r4]) || (h5[2 * i5 + 1] !== s5 && (e4.opt_len += (s5 - h5[2 * i5 + 1]) * h5[2 * i5], h5[2 * i5 + 1] = s5), n5--);
+            }
+          }(e3, t4), Z2(s4, u4, e3.bl_count);
+        }
+        function X2(e3, t4, r3) {
+          var n4, i4, s4 = -1, a4 = t4[1], o4 = 0, h4 = 7, u4 = 4;
+          for (0 === a4 && (h4 = 138, u4 = 3), t4[2 * (r3 + 1) + 1] = 65535, n4 = 0; n4 <= r3; n4++)
+            i4 = a4, a4 = t4[2 * (n4 + 1) + 1], ++o4 < h4 && i4 === a4 || (o4 < u4 ? e3.bl_tree[2 * i4] += o4 : 0 !== i4 ? (i4 !== s4 && e3.bl_tree[2 * i4]++, e3.bl_tree[2 * b2]++) : o4 <= 10 ? e3.bl_tree[2 * v3]++ : e3.bl_tree[2 * y4]++, s4 = i4, u4 = (o4 = 0) === a4 ? (h4 = 138, 3) : i4 === a4 ? (h4 = 6, 3) : (h4 = 7, 4));
+        }
+        function V2(e3, t4, r3) {
+          var n4, i4, s4 = -1, a4 = t4[1], o4 = 0, h4 = 7, u4 = 4;
+          for (0 === a4 && (h4 = 138, u4 = 3), n4 = 0; n4 <= r3; n4++)
+            if (i4 = a4, a4 = t4[2 * (n4 + 1) + 1], !(++o4 < h4 && i4 === a4)) {
+              if (o4 < u4)
+                for (; L2(e3, i4, e3.bl_tree), 0 != --o4; )
+                  ;
+              else
+                0 !== i4 ? (i4 !== s4 && (L2(e3, i4, e3.bl_tree), o4--), L2(e3, b2, e3.bl_tree), P2(e3, o4 - 3, 2)) : o4 <= 10 ? (L2(e3, v3, e3.bl_tree), P2(e3, o4 - 3, 3)) : (L2(e3, y4, e3.bl_tree), P2(e3, o4 - 11, 7));
+              s4 = i4, u4 = (o4 = 0) === a4 ? (h4 = 138, 3) : i4 === a4 ? (h4 = 6, 3) : (h4 = 7, 4);
+            }
+        }
+        n3(T3);
+        var q2 = false;
+        function J2(e3, t4, r3, n4) {
+          P2(e3, (s3 << 1) + (n4 ? 1 : 0), 3), function(e4, t5, r4, n5) {
+            M2(e4), n5 && (U2(e4, r4), U2(e4, ~r4)), i3.arraySet(e4.pending_buf, e4.window, t5, r4, e4.pending), e4.pending += r4;
+          }(e3, t4, r3, true);
+        }
+        r2._tr_init = function(e3) {
+          q2 || (function() {
+            var e4, t4, r3, n4, i4, s4 = new Array(g2 + 1);
+            for (n4 = r3 = 0; n4 < a3 - 1; n4++)
+              for (I2[n4] = r3, e4 = 0; e4 < 1 << w2[n4]; e4++)
+                A3[r3++] = n4;
+            for (A3[r3 - 1] = n4, n4 = i4 = 0; n4 < 16; n4++)
+              for (T3[n4] = i4, e4 = 0; e4 < 1 << k2[n4]; e4++)
+                E2[i4++] = n4;
+            for (i4 >>= 7; n4 < f3; n4++)
+              for (T3[n4] = i4 << 7, e4 = 0; e4 < 1 << k2[n4] - 7; e4++)
+                E2[256 + i4++] = n4;
+            for (t4 = 0; t4 <= g2; t4++)
+              s4[t4] = 0;
+            for (e4 = 0; e4 <= 143; )
+              z2[2 * e4 + 1] = 8, e4++, s4[8]++;
+            for (; e4 <= 255; )
+              z2[2 * e4 + 1] = 9, e4++, s4[9]++;
+            for (; e4 <= 279; )
+              z2[2 * e4 + 1] = 7, e4++, s4[7]++;
+            for (; e4 <= 287; )
+              z2[2 * e4 + 1] = 8, e4++, s4[8]++;
+            for (Z2(z2, l3 + 1, s4), e4 = 0; e4 < f3; e4++)
+              C2[2 * e4 + 1] = 5, C2[2 * e4] = j2(e4, 5);
+            O3 = new D2(z2, w2, u3 + 1, l3, g2), B2 = new D2(C2, k2, 0, f3, g2), R2 = new D2(new Array(0), x3, 0, c4, p3);
+          }(), q2 = true), e3.l_desc = new F2(e3.dyn_ltree, O3), e3.d_desc = new F2(e3.dyn_dtree, B2), e3.bl_desc = new F2(e3.bl_tree, R2), e3.bi_buf = 0, e3.bi_valid = 0, W2(e3);
+        }, r2._tr_stored_block = J2, r2._tr_flush_block = function(e3, t4, r3, n4) {
+          var i4, s4, a4 = 0;
+          0 < e3.level ? (2 === e3.strm.data_type && (e3.strm.data_type = function(e4) {
+            var t5, r4 = 4093624447;
+            for (t5 = 0; t5 <= 31; t5++, r4 >>>= 1)
+              if (1 & r4 && 0 !== e4.dyn_ltree[2 * t5])
+                return o3;
+            if (0 !== e4.dyn_ltree[18] || 0 !== e4.dyn_ltree[20] || 0 !== e4.dyn_ltree[26])
+              return h3;
+            for (t5 = 32; t5 < u3; t5++)
+              if (0 !== e4.dyn_ltree[2 * t5])
+                return h3;
+            return o3;
+          }(e3)), Y2(e3, e3.l_desc), Y2(e3, e3.d_desc), a4 = function(e4) {
+            var t5;
+            for (X2(e4, e4.dyn_ltree, e4.l_desc.max_code), X2(e4, e4.dyn_dtree, e4.d_desc.max_code), Y2(e4, e4.bl_desc), t5 = c4 - 1; 3 <= t5 && 0 === e4.bl_tree[2 * S2[t5] + 1]; t5--)
+              ;
+            return e4.opt_len += 3 * (t5 + 1) + 5 + 5 + 4, t5;
+          }(e3), i4 = e3.opt_len + 3 + 7 >>> 3, (s4 = e3.static_len + 3 + 7 >>> 3) <= i4 && (i4 = s4)) : i4 = s4 = r3 + 5, r3 + 4 <= i4 && -1 !== t4 ? J2(e3, t4, r3, n4) : 4 === e3.strategy || s4 === i4 ? (P2(e3, 2 + (n4 ? 1 : 0), 3), K2(e3, z2, C2)) : (P2(e3, 4 + (n4 ? 1 : 0), 3), function(e4, t5, r4, n5) {
+            var i5;
+            for (P2(e4, t5 - 257, 5), P2(e4, r4 - 1, 5), P2(e4, n5 - 4, 4), i5 = 0; i5 < n5; i5++)
+              P2(e4, e4.bl_tree[2 * S2[i5] + 1], 3);
+            V2(e4, e4.dyn_ltree, t5 - 1), V2(e4, e4.dyn_dtree, r4 - 1);
+          }(e3, e3.l_desc.max_code + 1, e3.d_desc.max_code + 1, a4 + 1), K2(e3, e3.dyn_ltree, e3.dyn_dtree)), W2(e3), n4 && M2(e3);
+        }, r2._tr_tally = function(e3, t4, r3) {
+          return e3.pending_buf[e3.d_buf + 2 * e3.last_lit] = t4 >>> 8 & 255, e3.pending_buf[e3.d_buf + 2 * e3.last_lit + 1] = 255 & t4, e3.pending_buf[e3.l_buf + e3.last_lit] = 255 & r3, e3.last_lit++, 0 === t4 ? e3.dyn_ltree[2 * r3]++ : (e3.matches++, t4--, e3.dyn_ltree[2 * (A3[r3] + u3 + 1)]++, e3.dyn_dtree[2 * N3(t4)]++), e3.last_lit === e3.lit_bufsize - 1;
+        }, r2._tr_align = function(e3) {
+          P2(e3, 2, 3), L2(e3, m4, z2), function(e4) {
+            16 === e4.bi_valid ? (U2(e4, e4.bi_buf), e4.bi_buf = 0, e4.bi_valid = 0) : 8 <= e4.bi_valid && (e4.pending_buf[e4.pending++] = 255 & e4.bi_buf, e4.bi_buf >>= 8, e4.bi_valid -= 8);
+          }(e3);
+        };
+      }, { "../utils/common": 41 }], 53: [function(e2, t3, r2) {
+        "use strict";
+        t3.exports = function() {
+          this.input = null, this.next_in = 0, this.avail_in = 0, this.total_in = 0, this.output = null, this.next_out = 0, this.avail_out = 0, this.total_out = 0, this.msg = "", this.state = null, this.data_type = 2, this.adler = 0;
+        };
+      }, {}], 54: [function(e2, t3, r2) {
+        (function(e3) {
+          !function(r3, n3) {
+            "use strict";
+            if (!r3.setImmediate) {
+              var i3, s3, t4, a3, o3 = 1, h3 = {}, u3 = false, l3 = r3.document, e4 = Object.getPrototypeOf && Object.getPrototypeOf(r3);
+              e4 = e4 && e4.setTimeout ? e4 : r3, i3 = "[object process]" === {}.toString.call(r3.process) ? function(e5) {
+                process.nextTick(function() {
+                  c4(e5);
+                });
+              } : function() {
+                if (r3.postMessage && !r3.importScripts) {
+                  var e5 = true, t5 = r3.onmessage;
+                  return r3.onmessage = function() {
+                    e5 = false;
+                  }, r3.postMessage("", "*"), r3.onmessage = t5, e5;
+                }
+              }() ? (a3 = "setImmediate$" + Math.random() + "$", r3.addEventListener ? r3.addEventListener("message", d2, false) : r3.attachEvent("onmessage", d2), function(e5) {
+                r3.postMessage(a3 + e5, "*");
+              }) : r3.MessageChannel ? ((t4 = new MessageChannel()).port1.onmessage = function(e5) {
+                c4(e5.data);
+              }, function(e5) {
+                t4.port2.postMessage(e5);
+              }) : l3 && "onreadystatechange" in l3.createElement("script") ? (s3 = l3.documentElement, function(e5) {
+                var t5 = l3.createElement("script");
+                t5.onreadystatechange = function() {
+                  c4(e5), t5.onreadystatechange = null, s3.removeChild(t5), t5 = null;
+                }, s3.appendChild(t5);
+              }) : function(e5) {
+                setTimeout(c4, 0, e5);
+              }, e4.setImmediate = function(e5) {
+                "function" != typeof e5 && (e5 = new Function("" + e5));
+                for (var t5 = new Array(arguments.length - 1), r4 = 0; r4 < t5.length; r4++)
+                  t5[r4] = arguments[r4 + 1];
+                var n4 = { callback: e5, args: t5 };
+                return h3[o3] = n4, i3(o3), o3++;
+              }, e4.clearImmediate = f3;
+            }
+            function f3(e5) {
+              delete h3[e5];
+            }
+            function c4(e5) {
+              if (u3)
+                setTimeout(c4, 0, e5);
+              else {
+                var t5 = h3[e5];
+                if (t5) {
+                  u3 = true;
+                  try {
+                    !function(e6) {
+                      var t6 = e6.callback, r4 = e6.args;
+                      switch (r4.length) {
+                        case 0:
+                          t6();
+                          break;
+                        case 1:
+                          t6(r4[0]);
+                          break;
+                        case 2:
+                          t6(r4[0], r4[1]);
+                          break;
+                        case 3:
+                          t6(r4[0], r4[1], r4[2]);
+                          break;
+                        default:
+                          t6.apply(n3, r4);
+                      }
+                    }(t5);
+                  } finally {
+                    f3(e5), u3 = false;
+                  }
+                }
+              }
+            }
+            function d2(e5) {
+              e5.source === r3 && "string" == typeof e5.data && 0 === e5.data.indexOf(a3) && c4(+e5.data.slice(a3.length));
+            }
+          }("undefined" == typeof self ? void 0 === e3 ? this : e3 : self);
+        }).call(this, "undefined" != typeof global ? global : "undefined" != typeof self ? self : "undefined" != typeof window ? window : {});
+      }, {}] }, {}, [10])(10);
+    });
+  }
+});
+
+// ../simple-mind-map/node_modules/safe-buffer/index.js
+var require_safe_buffer = __commonJS({
+  "../simple-mind-map/node_modules/safe-buffer/index.js"(exports, module) {
+    var buffer = __require("buffer");
+    var Buffer2 = buffer.Buffer;
+    function copyProps(src, dst) {
+      for (var key in src) {
+        dst[key] = src[key];
+      }
+    }
+    if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) {
+      module.exports = buffer;
+    } else {
+      copyProps(buffer, exports);
+      exports.Buffer = SafeBuffer;
+    }
+    function SafeBuffer(arg, encodingOrOffset, length2) {
+      return Buffer2(arg, encodingOrOffset, length2);
+    }
+    copyProps(Buffer2, SafeBuffer);
+    SafeBuffer.from = function(arg, encodingOrOffset, length2) {
+      if (typeof arg === "number") {
+        throw new TypeError("Argument must not be a number");
+      }
+      return Buffer2(arg, encodingOrOffset, length2);
+    };
+    SafeBuffer.alloc = function(size2, fill, encoding) {
+      if (typeof size2 !== "number") {
+        throw new TypeError("Argument must be a number");
+      }
+      var buf = Buffer2(size2);
+      if (fill !== void 0) {
+        if (typeof encoding === "string") {
+          buf.fill(fill, encoding);
+        } else {
+          buf.fill(fill);
+        }
+      } else {
+        buf.fill(0);
+      }
+      return buf;
+    };
+    SafeBuffer.allocUnsafe = function(size2) {
+      if (typeof size2 !== "number") {
+        throw new TypeError("Argument must be a number");
+      }
+      return Buffer2(size2);
+    };
+    SafeBuffer.allocUnsafeSlow = function(size2) {
+      if (typeof size2 !== "number") {
+        throw new TypeError("Argument must be a number");
+      }
+      return buffer.SlowBuffer(size2);
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/string_decoder/lib/string_decoder.js
+var require_string_decoder = __commonJS({
+  "../simple-mind-map/node_modules/string_decoder/lib/string_decoder.js"(exports) {
+    "use strict";
+    var Buffer2 = require_safe_buffer().Buffer;
+    var isEncoding = Buffer2.isEncoding || function(encoding) {
+      encoding = "" + encoding;
+      switch (encoding && encoding.toLowerCase()) {
+        case "hex":
+        case "utf8":
+        case "utf-8":
+        case "ascii":
+        case "binary":
+        case "base64":
+        case "ucs2":
+        case "ucs-2":
+        case "utf16le":
+        case "utf-16le":
+        case "raw":
+          return true;
+        default:
+          return false;
+      }
+    };
+    function _normalizeEncoding(enc) {
+      if (!enc)
+        return "utf8";
+      var retried;
+      while (true) {
+        switch (enc) {
+          case "utf8":
+          case "utf-8":
+            return "utf8";
+          case "ucs2":
+          case "ucs-2":
+          case "utf16le":
+          case "utf-16le":
+            return "utf16le";
+          case "latin1":
+          case "binary":
+            return "latin1";
+          case "base64":
+          case "ascii":
+          case "hex":
+            return enc;
+          default:
+            if (retried)
+              return;
+            enc = ("" + enc).toLowerCase();
+            retried = true;
+        }
+      }
+    }
+    function normalizeEncoding(enc) {
+      var nenc = _normalizeEncoding(enc);
+      if (typeof nenc !== "string" && (Buffer2.isEncoding === isEncoding || !isEncoding(enc)))
+        throw new Error("Unknown encoding: " + enc);
+      return nenc || enc;
+    }
+    exports.StringDecoder = StringDecoder;
+    function StringDecoder(encoding) {
+      this.encoding = normalizeEncoding(encoding);
+      var nb;
+      switch (this.encoding) {
+        case "utf16le":
+          this.text = utf16Text;
+          this.end = utf16End;
+          nb = 4;
+          break;
+        case "utf8":
+          this.fillLast = utf8FillLast;
+          nb = 4;
+          break;
+        case "base64":
+          this.text = base64Text;
+          this.end = base64End;
+          nb = 3;
+          break;
+        default:
+          this.write = simpleWrite;
+          this.end = simpleEnd;
+          return;
+      }
+      this.lastNeed = 0;
+      this.lastTotal = 0;
+      this.lastChar = Buffer2.allocUnsafe(nb);
+    }
+    StringDecoder.prototype.write = function(buf) {
+      if (buf.length === 0)
+        return "";
+      var r2;
+      var i3;
+      if (this.lastNeed) {
+        r2 = this.fillLast(buf);
+        if (r2 === void 0)
+          return "";
+        i3 = this.lastNeed;
+        this.lastNeed = 0;
+      } else {
+        i3 = 0;
+      }
+      if (i3 < buf.length)
+        return r2 ? r2 + this.text(buf, i3) : this.text(buf, i3);
+      return r2 || "";
+    };
+    StringDecoder.prototype.end = utf8End;
+    StringDecoder.prototype.text = utf8Text;
+    StringDecoder.prototype.fillLast = function(buf) {
+      if (this.lastNeed <= buf.length) {
+        buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, this.lastNeed);
+        return this.lastChar.toString(this.encoding, 0, this.lastTotal);
+      }
+      buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, buf.length);
+      this.lastNeed -= buf.length;
+    };
+    function utf8CheckByte(byte) {
+      if (byte <= 127)
+        return 0;
+      else if (byte >> 5 === 6)
+        return 2;
+      else if (byte >> 4 === 14)
+        return 3;
+      else if (byte >> 3 === 30)
+        return 4;
+      return byte >> 6 === 2 ? -1 : -2;
+    }
+    function utf8CheckIncomplete(self2, buf, i3) {
+      var j2 = buf.length - 1;
+      if (j2 < i3)
+        return 0;
+      var nb = utf8CheckByte(buf[j2]);
+      if (nb >= 0) {
+        if (nb > 0)
+          self2.lastNeed = nb - 1;
+        return nb;
+      }
+      if (--j2 < i3 || nb === -2)
+        return 0;
+      nb = utf8CheckByte(buf[j2]);
+      if (nb >= 0) {
+        if (nb > 0)
+          self2.lastNeed = nb - 2;
+        return nb;
+      }
+      if (--j2 < i3 || nb === -2)
+        return 0;
+      nb = utf8CheckByte(buf[j2]);
+      if (nb >= 0) {
+        if (nb > 0) {
+          if (nb === 2)
+            nb = 0;
+          else
+            self2.lastNeed = nb - 3;
+        }
+        return nb;
+      }
+      return 0;
+    }
+    function utf8CheckExtraBytes(self2, buf, p3) {
+      if ((buf[0] & 192) !== 128) {
+        self2.lastNeed = 0;
+        return "\uFFFD";
+      }
+      if (self2.lastNeed > 1 && buf.length > 1) {
+        if ((buf[1] & 192) !== 128) {
+          self2.lastNeed = 1;
+          return "\uFFFD";
+        }
+        if (self2.lastNeed > 2 && buf.length > 2) {
+          if ((buf[2] & 192) !== 128) {
+            self2.lastNeed = 2;
+            return "\uFFFD";
+          }
+        }
+      }
+    }
+    function utf8FillLast(buf) {
+      var p3 = this.lastTotal - this.lastNeed;
+      var r2 = utf8CheckExtraBytes(this, buf, p3);
+      if (r2 !== void 0)
+        return r2;
+      if (this.lastNeed <= buf.length) {
+        buf.copy(this.lastChar, p3, 0, this.lastNeed);
+        return this.lastChar.toString(this.encoding, 0, this.lastTotal);
+      }
+      buf.copy(this.lastChar, p3, 0, buf.length);
+      this.lastNeed -= buf.length;
+    }
+    function utf8Text(buf, i3) {
+      var total = utf8CheckIncomplete(this, buf, i3);
+      if (!this.lastNeed)
+        return buf.toString("utf8", i3);
+      this.lastTotal = total;
+      var end = buf.length - (total - this.lastNeed);
+      buf.copy(this.lastChar, 0, end);
+      return buf.toString("utf8", i3, end);
+    }
+    function utf8End(buf) {
+      var r2 = buf && buf.length ? this.write(buf) : "";
+      if (this.lastNeed)
+        return r2 + "\uFFFD";
+      return r2;
+    }
+    function utf16Text(buf, i3) {
+      if ((buf.length - i3) % 2 === 0) {
+        var r2 = buf.toString("utf16le", i3);
+        if (r2) {
+          var c4 = r2.charCodeAt(r2.length - 1);
+          if (c4 >= 55296 && c4 <= 56319) {
+            this.lastNeed = 2;
+            this.lastTotal = 4;
+            this.lastChar[0] = buf[buf.length - 2];
+            this.lastChar[1] = buf[buf.length - 1];
+            return r2.slice(0, -1);
+          }
+        }
+        return r2;
+      }
+      this.lastNeed = 1;
+      this.lastTotal = 2;
+      this.lastChar[0] = buf[buf.length - 1];
+      return buf.toString("utf16le", i3, buf.length - 1);
+    }
+    function utf16End(buf) {
+      var r2 = buf && buf.length ? this.write(buf) : "";
+      if (this.lastNeed) {
+        var end = this.lastTotal - this.lastNeed;
+        return r2 + this.lastChar.toString("utf16le", 0, end);
+      }
+      return r2;
+    }
+    function base64Text(buf, i3) {
+      var n3 = (buf.length - i3) % 3;
+      if (n3 === 0)
+        return buf.toString("base64", i3);
+      this.lastNeed = 3 - n3;
+      this.lastTotal = 3;
+      if (n3 === 1) {
+        this.lastChar[0] = buf[buf.length - 1];
+      } else {
+        this.lastChar[0] = buf[buf.length - 2];
+        this.lastChar[1] = buf[buf.length - 1];
+      }
+      return buf.toString("base64", i3, buf.length - n3);
+    }
+    function base64End(buf) {
+      var r2 = buf && buf.length ? this.write(buf) : "";
+      if (this.lastNeed)
+        return r2 + this.lastChar.toString("base64", 0, 3 - this.lastNeed);
+      return r2;
+    }
+    function simpleWrite(buf) {
+      return buf.toString(this.encoding);
+    }
+    function simpleEnd(buf) {
+      return buf && buf.length ? this.write(buf) : "";
+    }
+  }
+});
+
+// ../simple-mind-map/node_modules/sax/lib/sax.js
+var require_sax = __commonJS({
+  "../simple-mind-map/node_modules/sax/lib/sax.js"(exports) {
+    (function(sax) {
+      sax.parser = function(strict, opt) {
+        return new SAXParser(strict, opt);
+      };
+      sax.SAXParser = SAXParser;
+      sax.SAXStream = SAXStream;
+      sax.createStream = createStream;
+      sax.MAX_BUFFER_LENGTH = 64 * 1024;
+      var buffers = [
+        "comment",
+        "sgmlDecl",
+        "textNode",
+        "tagName",
+        "doctype",
+        "procInstName",
+        "procInstBody",
+        "entity",
+        "attribName",
+        "attribValue",
+        "cdata",
+        "script"
+      ];
+      sax.EVENTS = [
+        "text",
+        "processinginstruction",
+        "sgmldeclaration",
+        "doctype",
+        "comment",
+        "opentagstart",
+        "attribute",
+        "opentag",
+        "closetag",
+        "opencdata",
+        "cdata",
+        "closecdata",
+        "error",
+        "end",
+        "ready",
+        "script",
+        "opennamespace",
+        "closenamespace"
+      ];
+      function SAXParser(strict, opt) {
+        if (!(this instanceof SAXParser)) {
+          return new SAXParser(strict, opt);
+        }
+        var parser2 = this;
+        clearBuffers(parser2);
+        parser2.q = parser2.c = "";
+        parser2.bufferCheckPosition = sax.MAX_BUFFER_LENGTH;
+        parser2.opt = opt || {};
+        parser2.opt.lowercase = parser2.opt.lowercase || parser2.opt.lowercasetags;
+        parser2.looseCase = parser2.opt.lowercase ? "toLowerCase" : "toUpperCase";
+        parser2.tags = [];
+        parser2.closed = parser2.closedRoot = parser2.sawRoot = false;
+        parser2.tag = parser2.error = null;
+        parser2.strict = !!strict;
+        parser2.noscript = !!(strict || parser2.opt.noscript);
+        parser2.state = S2.BEGIN;
+        parser2.strictEntities = parser2.opt.strictEntities;
+        parser2.ENTITIES = parser2.strictEntities ? Object.create(sax.XML_ENTITIES) : Object.create(sax.ENTITIES);
+        parser2.attribList = [];
+        if (parser2.opt.xmlns) {
+          parser2.ns = Object.create(rootNS);
+        }
+        parser2.trackPosition = parser2.opt.position !== false;
+        if (parser2.trackPosition) {
+          parser2.position = parser2.line = parser2.column = 0;
+        }
+        emit(parser2, "onready");
+      }
+      if (!Object.create) {
+        Object.create = function(o3) {
+          function F2() {
+          }
+          F2.prototype = o3;
+          var newf = new F2();
+          return newf;
+        };
+      }
+      if (!Object.keys) {
+        Object.keys = function(o3) {
+          var a3 = [];
+          for (var i3 in o3)
+            if (o3.hasOwnProperty(i3))
+              a3.push(i3);
+          return a3;
+        };
+      }
+      function checkBufferLength(parser2) {
+        var maxAllowed = Math.max(sax.MAX_BUFFER_LENGTH, 10);
+        var maxActual = 0;
+        for (var i3 = 0, l3 = buffers.length; i3 < l3; i3++) {
+          var len = parser2[buffers[i3]].length;
+          if (len > maxAllowed) {
+            switch (buffers[i3]) {
+              case "textNode":
+                closeText(parser2);
+                break;
+              case "cdata":
+                emitNode(parser2, "oncdata", parser2.cdata);
+                parser2.cdata = "";
+                break;
+              case "script":
+                emitNode(parser2, "onscript", parser2.script);
+                parser2.script = "";
+                break;
+              default:
+                error(parser2, "Max buffer length exceeded: " + buffers[i3]);
+            }
+          }
+          maxActual = Math.max(maxActual, len);
+        }
+        var m4 = sax.MAX_BUFFER_LENGTH - maxActual;
+        parser2.bufferCheckPosition = m4 + parser2.position;
+      }
+      function clearBuffers(parser2) {
+        for (var i3 = 0, l3 = buffers.length; i3 < l3; i3++) {
+          parser2[buffers[i3]] = "";
+        }
+      }
+      function flushBuffers(parser2) {
+        closeText(parser2);
+        if (parser2.cdata !== "") {
+          emitNode(parser2, "oncdata", parser2.cdata);
+          parser2.cdata = "";
+        }
+        if (parser2.script !== "") {
+          emitNode(parser2, "onscript", parser2.script);
+          parser2.script = "";
+        }
+      }
+      SAXParser.prototype = {
+        end: function() {
+          end(this);
+        },
+        write,
+        resume: function() {
+          this.error = null;
+          return this;
+        },
+        close: function() {
+          return this.write(null);
+        },
+        flush: function() {
+          flushBuffers(this);
+        }
+      };
+      var Stream;
+      try {
+        Stream = __require("stream").Stream;
+      } catch (ex) {
+        Stream = function() {
+        };
+      }
+      var streamWraps = sax.EVENTS.filter(function(ev) {
+        return ev !== "error" && ev !== "end";
+      });
+      function createStream(strict, opt) {
+        return new SAXStream(strict, opt);
+      }
+      function SAXStream(strict, opt) {
+        if (!(this instanceof SAXStream)) {
+          return new SAXStream(strict, opt);
+        }
+        Stream.apply(this);
+        this._parser = new SAXParser(strict, opt);
+        this.writable = true;
+        this.readable = true;
+        var me2 = this;
+        this._parser.onend = function() {
+          me2.emit("end");
+        };
+        this._parser.onerror = function(er) {
+          me2.emit("error", er);
+          me2._parser.error = null;
+        };
+        this._decoder = null;
+        streamWraps.forEach(function(ev) {
+          Object.defineProperty(me2, "on" + ev, {
+            get: function() {
+              return me2._parser["on" + ev];
+            },
+            set: function(h3) {
+              if (!h3) {
+                me2.removeAllListeners(ev);
+                me2._parser["on" + ev] = h3;
+                return h3;
+              }
+              me2.on(ev, h3);
+            },
+            enumerable: true,
+            configurable: false
+          });
+        });
+      }
+      SAXStream.prototype = Object.create(Stream.prototype, {
+        constructor: {
+          value: SAXStream
+        }
+      });
+      SAXStream.prototype.write = function(data2) {
+        if (typeof Buffer === "function" && typeof Buffer.isBuffer === "function" && Buffer.isBuffer(data2)) {
+          if (!this._decoder) {
+            var SD = require_string_decoder().StringDecoder;
+            this._decoder = new SD("utf8");
+          }
+          data2 = this._decoder.write(data2);
+        }
+        this._parser.write(data2.toString());
+        this.emit("data", data2);
+        return true;
+      };
+      SAXStream.prototype.end = function(chunk) {
+        if (chunk && chunk.length) {
+          this.write(chunk);
+        }
+        this._parser.end();
+        return true;
+      };
+      SAXStream.prototype.on = function(ev, handler) {
+        var me2 = this;
+        if (!me2._parser["on" + ev] && streamWraps.indexOf(ev) !== -1) {
+          me2._parser["on" + ev] = function() {
+            var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments);
+            args.splice(0, 0, ev);
+            me2.emit.apply(me2, args);
+          };
+        }
+        return Stream.prototype.on.call(me2, ev, handler);
+      };
+      var CDATA = "[CDATA[";
+      var DOCTYPE = "DOCTYPE";
+      var XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
+      var XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/";
+      var rootNS = { xml: XML_NAMESPACE, xmlns: XMLNS_NAMESPACE };
+      var nameStart = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
+      var nameBody = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
+      var entityStart = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
+      var entityBody = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
+      function isWhitespace(c4) {
+        return c4 === " " || c4 === "\n" || c4 === "\r" || c4 === "	";
+      }
+      function isQuote(c4) {
+        return c4 === '"' || c4 === "'";
+      }
+      function isAttribEnd(c4) {
+        return c4 === ">" || isWhitespace(c4);
+      }
+      function isMatch(regex, c4) {
+        return regex.test(c4);
+      }
+      function notMatch(regex, c4) {
+        return !isMatch(regex, c4);
+      }
+      var S2 = 0;
+      sax.STATE = {
+        BEGIN: S2++,
+        // leading byte order mark or whitespace
+        BEGIN_WHITESPACE: S2++,
+        // leading whitespace
+        TEXT: S2++,
+        // general stuff
+        TEXT_ENTITY: S2++,
+        // &amp and such.
+        OPEN_WAKA: S2++,
+        // <
+        SGML_DECL: S2++,
+        // <!BLARG
+        SGML_DECL_QUOTED: S2++,
+        // <!BLARG foo "bar
+        DOCTYPE: S2++,
+        // <!DOCTYPE
+        DOCTYPE_QUOTED: S2++,
+        // <!DOCTYPE "//blah
+        DOCTYPE_DTD: S2++,
+        // <!DOCTYPE "//blah" [ ...
+        DOCTYPE_DTD_QUOTED: S2++,
+        // <!DOCTYPE "//blah" [ "foo
+        COMMENT_STARTING: S2++,
+        // <!-
+        COMMENT: S2++,
+        // <!--
+        COMMENT_ENDING: S2++,
+        // <!-- blah -
+        COMMENT_ENDED: S2++,
+        // <!-- blah --
+        CDATA: S2++,
+        // <![CDATA[ something
+        CDATA_ENDING: S2++,
+        // ]
+        CDATA_ENDING_2: S2++,
+        // ]]
+        PROC_INST: S2++,
+        // <?hi
+        PROC_INST_BODY: S2++,
+        // <?hi there
+        PROC_INST_ENDING: S2++,
+        // <?hi "there" ?
+        OPEN_TAG: S2++,
+        // <strong
+        OPEN_TAG_SLASH: S2++,
+        // <strong /
+        ATTRIB: S2++,
+        // <a
+        ATTRIB_NAME: S2++,
+        // <a foo
+        ATTRIB_NAME_SAW_WHITE: S2++,
+        // <a foo _
+        ATTRIB_VALUE: S2++,
+        // <a foo=
+        ATTRIB_VALUE_QUOTED: S2++,
+        // <a foo="bar
+        ATTRIB_VALUE_CLOSED: S2++,
+        // <a foo="bar"
+        ATTRIB_VALUE_UNQUOTED: S2++,
+        // <a foo=bar
+        ATTRIB_VALUE_ENTITY_Q: S2++,
+        // <foo bar="&quot;"
+        ATTRIB_VALUE_ENTITY_U: S2++,
+        // <foo bar=&quot
+        CLOSE_TAG: S2++,
+        // </a
+        CLOSE_TAG_SAW_WHITE: S2++,
+        // </a   >
+        SCRIPT: S2++,
+        // <script> ...
+        SCRIPT_ENDING: S2++
+        // <script> ... <
+      };
+      sax.XML_ENTITIES = {
+        "amp": "&",
+        "gt": ">",
+        "lt": "<",
+        "quot": '"',
+        "apos": "'"
+      };
+      sax.ENTITIES = {
+        "amp": "&",
+        "gt": ">",
+        "lt": "<",
+        "quot": '"',
+        "apos": "'",
+        "AElig": 198,
+        "Aacute": 193,
+        "Acirc": 194,
+        "Agrave": 192,
+        "Aring": 197,
+        "Atilde": 195,
+        "Auml": 196,
+        "Ccedil": 199,
+        "ETH": 208,
+        "Eacute": 201,
+        "Ecirc": 202,
+        "Egrave": 200,
+        "Euml": 203,
+        "Iacute": 205,
+        "Icirc": 206,
+        "Igrave": 204,
+        "Iuml": 207,
+        "Ntilde": 209,
+        "Oacute": 211,
+        "Ocirc": 212,
+        "Ograve": 210,
+        "Oslash": 216,
+        "Otilde": 213,
+        "Ouml": 214,
+        "THORN": 222,
+        "Uacute": 218,
+        "Ucirc": 219,
+        "Ugrave": 217,
+        "Uuml": 220,
+        "Yacute": 221,
+        "aacute": 225,
+        "acirc": 226,
+        "aelig": 230,
+        "agrave": 224,
+        "aring": 229,
+        "atilde": 227,
+        "auml": 228,
+        "ccedil": 231,
+        "eacute": 233,
+        "ecirc": 234,
+        "egrave": 232,
+        "eth": 240,
+        "euml": 235,
+        "iacute": 237,
+        "icirc": 238,
+        "igrave": 236,
+        "iuml": 239,
+        "ntilde": 241,
+        "oacute": 243,
+        "ocirc": 244,
+        "ograve": 242,
+        "oslash": 248,
+        "otilde": 245,
+        "ouml": 246,
+        "szlig": 223,
+        "thorn": 254,
+        "uacute": 250,
+        "ucirc": 251,
+        "ugrave": 249,
+        "uuml": 252,
+        "yacute": 253,
+        "yuml": 255,
+        "copy": 169,
+        "reg": 174,
+        "nbsp": 160,
+        "iexcl": 161,
+        "cent": 162,
+        "pound": 163,
+        "curren": 164,
+        "yen": 165,
+        "brvbar": 166,
+        "sect": 167,
+        "uml": 168,
+        "ordf": 170,
+        "laquo": 171,
+        "not": 172,
+        "shy": 173,
+        "macr": 175,
+        "deg": 176,
+        "plusmn": 177,
+        "sup1": 185,
+        "sup2": 178,
+        "sup3": 179,
+        "acute": 180,
+        "micro": 181,
+        "para": 182,
+        "middot": 183,
+        "cedil": 184,
+        "ordm": 186,
+        "raquo": 187,
+        "frac14": 188,
+        "frac12": 189,
+        "frac34": 190,
+        "iquest": 191,
+        "times": 215,
+        "divide": 247,
+        "OElig": 338,
+        "oelig": 339,
+        "Scaron": 352,
+        "scaron": 353,
+        "Yuml": 376,
+        "fnof": 402,
+        "circ": 710,
+        "tilde": 732,
+        "Alpha": 913,
+        "Beta": 914,
+        "Gamma": 915,
+        "Delta": 916,
+        "Epsilon": 917,
+        "Zeta": 918,
+        "Eta": 919,
+        "Theta": 920,
+        "Iota": 921,
+        "Kappa": 922,
+        "Lambda": 923,
+        "Mu": 924,
+        "Nu": 925,
+        "Xi": 926,
+        "Omicron": 927,
+        "Pi": 928,
+        "Rho": 929,
+        "Sigma": 931,
+        "Tau": 932,
+        "Upsilon": 933,
+        "Phi": 934,
+        "Chi": 935,
+        "Psi": 936,
+        "Omega": 937,
+        "alpha": 945,
+        "beta": 946,
+        "gamma": 947,
+        "delta": 948,
+        "epsilon": 949,
+        "zeta": 950,
+        "eta": 951,
+        "theta": 952,
+        "iota": 953,
+        "kappa": 954,
+        "lambda": 955,
+        "mu": 956,
+        "nu": 957,
+        "xi": 958,
+        "omicron": 959,
+        "pi": 960,
+        "rho": 961,
+        "sigmaf": 962,
+        "sigma": 963,
+        "tau": 964,
+        "upsilon": 965,
+        "phi": 966,
+        "chi": 967,
+        "psi": 968,
+        "omega": 969,
+        "thetasym": 977,
+        "upsih": 978,
+        "piv": 982,
+        "ensp": 8194,
+        "emsp": 8195,
+        "thinsp": 8201,
+        "zwnj": 8204,
+        "zwj": 8205,
+        "lrm": 8206,
+        "rlm": 8207,
+        "ndash": 8211,
+        "mdash": 8212,
+        "lsquo": 8216,
+        "rsquo": 8217,
+        "sbquo": 8218,
+        "ldquo": 8220,
+        "rdquo": 8221,
+        "bdquo": 8222,
+        "dagger": 8224,
+        "Dagger": 8225,
+        "bull": 8226,
+        "hellip": 8230,
+        "permil": 8240,
+        "prime": 8242,
+        "Prime": 8243,
+        "lsaquo": 8249,
+        "rsaquo": 8250,
+        "oline": 8254,
+        "frasl": 8260,
+        "euro": 8364,
+        "image": 8465,
+        "weierp": 8472,
+        "real": 8476,
+        "trade": 8482,
+        "alefsym": 8501,
+        "larr": 8592,
+        "uarr": 8593,
+        "rarr": 8594,
+        "darr": 8595,
+        "harr": 8596,
+        "crarr": 8629,
+        "lArr": 8656,
+        "uArr": 8657,
+        "rArr": 8658,
+        "dArr": 8659,
+        "hArr": 8660,
+        "forall": 8704,
+        "part": 8706,
+        "exist": 8707,
+        "empty": 8709,
+        "nabla": 8711,
+        "isin": 8712,
+        "notin": 8713,
+        "ni": 8715,
+        "prod": 8719,
+        "sum": 8721,
+        "minus": 8722,
+        "lowast": 8727,
+        "radic": 8730,
+        "prop": 8733,
+        "infin": 8734,
+        "ang": 8736,
+        "and": 8743,
+        "or": 8744,
+        "cap": 8745,
+        "cup": 8746,
+        "int": 8747,
+        "there4": 8756,
+        "sim": 8764,
+        "cong": 8773,
+        "asymp": 8776,
+        "ne": 8800,
+        "equiv": 8801,
+        "le": 8804,
+        "ge": 8805,
+        "sub": 8834,
+        "sup": 8835,
+        "nsub": 8836,
+        "sube": 8838,
+        "supe": 8839,
+        "oplus": 8853,
+        "otimes": 8855,
+        "perp": 8869,
+        "sdot": 8901,
+        "lceil": 8968,
+        "rceil": 8969,
+        "lfloor": 8970,
+        "rfloor": 8971,
+        "lang": 9001,
+        "rang": 9002,
+        "loz": 9674,
+        "spades": 9824,
+        "clubs": 9827,
+        "hearts": 9829,
+        "diams": 9830
+      };
+      Object.keys(sax.ENTITIES).forEach(function(key) {
+        var e2 = sax.ENTITIES[key];
+        var s4 = typeof e2 === "number" ? String.fromCharCode(e2) : e2;
+        sax.ENTITIES[key] = s4;
+      });
+      for (var s3 in sax.STATE) {
+        sax.STATE[sax.STATE[s3]] = s3;
+      }
+      S2 = sax.STATE;
+      function emit(parser2, event, data2) {
+        parser2[event] && parser2[event](data2);
+      }
+      function emitNode(parser2, nodeType, data2) {
+        if (parser2.textNode)
+          closeText(parser2);
+        emit(parser2, nodeType, data2);
+      }
+      function closeText(parser2) {
+        parser2.textNode = textopts(parser2.opt, parser2.textNode);
+        if (parser2.textNode)
+          emit(parser2, "ontext", parser2.textNode);
+        parser2.textNode = "";
+      }
+      function textopts(opt, text3) {
+        if (opt.trim)
+          text3 = text3.trim();
+        if (opt.normalize)
+          text3 = text3.replace(/\s+/g, " ");
+        return text3;
+      }
+      function error(parser2, er) {
+        closeText(parser2);
+        if (parser2.trackPosition) {
+          er += "\nLine: " + parser2.line + "\nColumn: " + parser2.column + "\nChar: " + parser2.c;
+        }
+        er = new Error(er);
+        parser2.error = er;
+        emit(parser2, "onerror", er);
+        return parser2;
+      }
+      function end(parser2) {
+        if (parser2.sawRoot && !parser2.closedRoot)
+          strictFail(parser2, "Unclosed root tag");
+        if (parser2.state !== S2.BEGIN && parser2.state !== S2.BEGIN_WHITESPACE && parser2.state !== S2.TEXT) {
+          error(parser2, "Unexpected end");
+        }
+        closeText(parser2);
+        parser2.c = "";
+        parser2.closed = true;
+        emit(parser2, "onend");
+        SAXParser.call(parser2, parser2.strict, parser2.opt);
+        return parser2;
+      }
+      function strictFail(parser2, message) {
+        if (typeof parser2 !== "object" || !(parser2 instanceof SAXParser)) {
+          throw new Error("bad call to strictFail");
+        }
+        if (parser2.strict) {
+          error(parser2, message);
+        }
+      }
+      function newTag(parser2) {
+        if (!parser2.strict)
+          parser2.tagName = parser2.tagName[parser2.looseCase]();
+        var parent = parser2.tags[parser2.tags.length - 1] || parser2;
+        var tag = parser2.tag = { name: parser2.tagName, attributes: {} };
+        if (parser2.opt.xmlns) {
+          tag.ns = parent.ns;
+        }
+        parser2.attribList.length = 0;
+        emitNode(parser2, "onopentagstart", tag);
+      }
+      function qname(name, attribute) {
+        var i3 = name.indexOf(":");
+        var qualName = i3 < 0 ? ["", name] : name.split(":");
+        var prefix = qualName[0];
+        var local = qualName[1];
+        if (attribute && name === "xmlns") {
+          prefix = "xmlns";
+          local = "";
+        }
+        return { prefix, local };
+      }
+      function attrib(parser2) {
+        if (!parser2.strict) {
+          parser2.attribName = parser2.attribName[parser2.looseCase]();
+        }
+        if (parser2.attribList.indexOf(parser2.attribName) !== -1 || parser2.tag.attributes.hasOwnProperty(parser2.attribName)) {
+          parser2.attribName = parser2.attribValue = "";
+          return;
+        }
+        if (parser2.opt.xmlns) {
+          var qn = qname(parser2.attribName, true);
+          var prefix = qn.prefix;
+          var local = qn.local;
+          if (prefix === "xmlns") {
+            if (local === "xml" && parser2.attribValue !== XML_NAMESPACE) {
+              strictFail(
+                parser2,
+                "xml: prefix must be bound to " + XML_NAMESPACE + "\nActual: " + parser2.attribValue
+              );
+            } else if (local === "xmlns" && parser2.attribValue !== XMLNS_NAMESPACE) {
+              strictFail(
+                parser2,
+                "xmlns: prefix must be bound to " + XMLNS_NAMESPACE + "\nActual: " + parser2.attribValue
+              );
+            } else {
+              var tag = parser2.tag;
+              var parent = parser2.tags[parser2.tags.length - 1] || parser2;
+              if (tag.ns === parent.ns) {
+                tag.ns = Object.create(parent.ns);
+              }
+              tag.ns[local] = parser2.attribValue;
+            }
+          }
+          parser2.attribList.push([parser2.attribName, parser2.attribValue]);
+        } else {
+          parser2.tag.attributes[parser2.attribName] = parser2.attribValue;
+          emitNode(parser2, "onattribute", {
+            name: parser2.attribName,
+            value: parser2.attribValue
+          });
+        }
+        parser2.attribName = parser2.attribValue = "";
+      }
+      function openTag(parser2, selfClosing) {
+        if (parser2.opt.xmlns) {
+          var tag = parser2.tag;
+          var qn = qname(parser2.tagName);
+          tag.prefix = qn.prefix;
+          tag.local = qn.local;
+          tag.uri = tag.ns[qn.prefix] || "";
+          if (tag.prefix && !tag.uri) {
+            strictFail(parser2, "Unbound namespace prefix: " + JSON.stringify(parser2.tagName));
+            tag.uri = qn.prefix;
+          }
+          var parent = parser2.tags[parser2.tags.length - 1] || parser2;
+          if (tag.ns && parent.ns !== tag.ns) {
+            Object.keys(tag.ns).forEach(function(p3) {
+              emitNode(parser2, "onopennamespace", {
+                prefix: p3,
+                uri: tag.ns[p3]
+              });
+            });
+          }
+          for (var i3 = 0, l3 = parser2.attribList.length; i3 < l3; i3++) {
+            var nv = parser2.attribList[i3];
+            var name = nv[0];
+            var value = nv[1];
+            var qualName = qname(name, true);
+            var prefix = qualName.prefix;
+            var local = qualName.local;
+            var uri = prefix === "" ? "" : tag.ns[prefix] || "";
+            var a3 = {
+              name,
+              value,
+              prefix,
+              local,
+              uri
+            };
+            if (prefix && prefix !== "xmlns" && !uri) {
+              strictFail(parser2, "Unbound namespace prefix: " + JSON.stringify(prefix));
+              a3.uri = prefix;
+            }
+            parser2.tag.attributes[name] = a3;
+            emitNode(parser2, "onattribute", a3);
+          }
+          parser2.attribList.length = 0;
+        }
+        parser2.tag.isSelfClosing = !!selfClosing;
+        parser2.sawRoot = true;
+        parser2.tags.push(parser2.tag);
+        emitNode(parser2, "onopentag", parser2.tag);
+        if (!selfClosing) {
+          if (!parser2.noscript && parser2.tagName.toLowerCase() === "script") {
+            parser2.state = S2.SCRIPT;
+          } else {
+            parser2.state = S2.TEXT;
+          }
+          parser2.tag = null;
+          parser2.tagName = "";
+        }
+        parser2.attribName = parser2.attribValue = "";
+        parser2.attribList.length = 0;
+      }
+      function closeTag(parser2) {
+        if (!parser2.tagName) {
+          strictFail(parser2, "Weird empty close tag.");
+          parser2.textNode += "</>";
+          parser2.state = S2.TEXT;
+          return;
+        }
+        if (parser2.script) {
+          if (parser2.tagName !== "script") {
+            parser2.script += "</" + parser2.tagName + ">";
+            parser2.tagName = "";
+            parser2.state = S2.SCRIPT;
+            return;
+          }
+          emitNode(parser2, "onscript", parser2.script);
+          parser2.script = "";
+        }
+        var t3 = parser2.tags.length;
+        var tagName = parser2.tagName;
+        if (!parser2.strict) {
+          tagName = tagName[parser2.looseCase]();
+        }
+        var closeTo = tagName;
+        while (t3--) {
+          var close2 = parser2.tags[t3];
+          if (close2.name !== closeTo) {
+            strictFail(parser2, "Unexpected close tag");
+          } else {
+            break;
+          }
+        }
+        if (t3 < 0) {
+          strictFail(parser2, "Unmatched closing tag: " + parser2.tagName);
+          parser2.textNode += "</" + parser2.tagName + ">";
+          parser2.state = S2.TEXT;
+          return;
+        }
+        parser2.tagName = tagName;
+        var s4 = parser2.tags.length;
+        while (s4-- > t3) {
+          var tag = parser2.tag = parser2.tags.pop();
+          parser2.tagName = parser2.tag.name;
+          emitNode(parser2, "onclosetag", parser2.tagName);
+          var x3 = {};
+          for (var i3 in tag.ns) {
+            x3[i3] = tag.ns[i3];
+          }
+          var parent = parser2.tags[parser2.tags.length - 1] || parser2;
+          if (parser2.opt.xmlns && tag.ns !== parent.ns) {
+            Object.keys(tag.ns).forEach(function(p3) {
+              var n3 = tag.ns[p3];
+              emitNode(parser2, "onclosenamespace", { prefix: p3, uri: n3 });
+            });
+          }
+        }
+        if (t3 === 0)
+          parser2.closedRoot = true;
+        parser2.tagName = parser2.attribValue = parser2.attribName = "";
+        parser2.attribList.length = 0;
+        parser2.state = S2.TEXT;
+      }
+      function parseEntity(parser2) {
+        var entity = parser2.entity;
+        var entityLC = entity.toLowerCase();
+        var num;
+        var numStr = "";
+        if (parser2.ENTITIES[entity]) {
+          return parser2.ENTITIES[entity];
+        }
+        if (parser2.ENTITIES[entityLC]) {
+          return parser2.ENTITIES[entityLC];
+        }
+        entity = entityLC;
+        if (entity.charAt(0) === "#") {
+          if (entity.charAt(1) === "x") {
+            entity = entity.slice(2);
+            num = parseInt(entity, 16);
+            numStr = num.toString(16);
+          } else {
+            entity = entity.slice(1);
+            num = parseInt(entity, 10);
+            numStr = num.toString(10);
+          }
+        }
+        entity = entity.replace(/^0+/, "");
+        if (isNaN(num) || numStr.toLowerCase() !== entity) {
+          strictFail(parser2, "Invalid character entity");
+          return "&" + parser2.entity + ";";
+        }
+        return String.fromCodePoint(num);
+      }
+      function beginWhiteSpace(parser2, c4) {
+        if (c4 === "<") {
+          parser2.state = S2.OPEN_WAKA;
+          parser2.startTagPosition = parser2.position;
+        } else if (!isWhitespace(c4)) {
+          strictFail(parser2, "Non-whitespace before first tag.");
+          parser2.textNode = c4;
+          parser2.state = S2.TEXT;
+        }
+      }
+      function charAt(chunk, i3) {
+        var result = "";
+        if (i3 < chunk.length) {
+          result = chunk.charAt(i3);
+        }
+        return result;
+      }
+      function write(chunk) {
+        var parser2 = this;
+        if (this.error) {
+          throw this.error;
+        }
+        if (parser2.closed) {
+          return error(
+            parser2,
+            "Cannot write after close. Assign an onready handler."
+          );
+        }
+        if (chunk === null) {
+          return end(parser2);
+        }
+        if (typeof chunk === "object") {
+          chunk = chunk.toString();
+        }
+        var i3 = 0;
+        var c4 = "";
+        while (true) {
+          c4 = charAt(chunk, i3++);
+          parser2.c = c4;
+          if (!c4) {
+            break;
+          }
+          if (parser2.trackPosition) {
+            parser2.position++;
+            if (c4 === "\n") {
+              parser2.line++;
+              parser2.column = 0;
+            } else {
+              parser2.column++;
+            }
+          }
+          switch (parser2.state) {
+            case S2.BEGIN:
+              parser2.state = S2.BEGIN_WHITESPACE;
+              if (c4 === "\uFEFF") {
+                continue;
+              }
+              beginWhiteSpace(parser2, c4);
+              continue;
+            case S2.BEGIN_WHITESPACE:
+              beginWhiteSpace(parser2, c4);
+              continue;
+            case S2.TEXT:
+              if (parser2.sawRoot && !parser2.closedRoot) {
+                var starti = i3 - 1;
+                while (c4 && c4 !== "<" && c4 !== "&") {
+                  c4 = charAt(chunk, i3++);
+                  if (c4 && parser2.trackPosition) {
+                    parser2.position++;
+                    if (c4 === "\n") {
+                      parser2.line++;
+                      parser2.column = 0;
+                    } else {
+                      parser2.column++;
+                    }
+                  }
+                }
+                parser2.textNode += chunk.substring(starti, i3 - 1);
+              }
+              if (c4 === "<" && !(parser2.sawRoot && parser2.closedRoot && !parser2.strict)) {
+                parser2.state = S2.OPEN_WAKA;
+                parser2.startTagPosition = parser2.position;
+              } else {
+                if (!isWhitespace(c4) && (!parser2.sawRoot || parser2.closedRoot)) {
+                  strictFail(parser2, "Text data outside of root node.");
+                }
+                if (c4 === "&") {
+                  parser2.state = S2.TEXT_ENTITY;
+                } else {
+                  parser2.textNode += c4;
+                }
+              }
+              continue;
+            case S2.SCRIPT:
+              if (c4 === "<") {
+                parser2.state = S2.SCRIPT_ENDING;
+              } else {
+                parser2.script += c4;
+              }
+              continue;
+            case S2.SCRIPT_ENDING:
+              if (c4 === "/") {
+                parser2.state = S2.CLOSE_TAG;
+              } else {
+                parser2.script += "<" + c4;
+                parser2.state = S2.SCRIPT;
+              }
+              continue;
+            case S2.OPEN_WAKA:
+              if (c4 === "!") {
+                parser2.state = S2.SGML_DECL;
+                parser2.sgmlDecl = "";
+              } else if (isWhitespace(c4)) {
+              } else if (isMatch(nameStart, c4)) {
+                parser2.state = S2.OPEN_TAG;
+                parser2.tagName = c4;
+              } else if (c4 === "/") {
+                parser2.state = S2.CLOSE_TAG;
+                parser2.tagName = "";
+              } else if (c4 === "?") {
+                parser2.state = S2.PROC_INST;
+                parser2.procInstName = parser2.procInstBody = "";
+              } else {
+                strictFail(parser2, "Unencoded <");
+                if (parser2.startTagPosition + 1 < parser2.position) {
+                  var pad = parser2.position - parser2.startTagPosition;
+                  c4 = new Array(pad).join(" ") + c4;
+                }
+                parser2.textNode += "<" + c4;
+                parser2.state = S2.TEXT;
+              }
+              continue;
+            case S2.SGML_DECL:
+              if ((parser2.sgmlDecl + c4).toUpperCase() === CDATA) {
+                emitNode(parser2, "onopencdata");
+                parser2.state = S2.CDATA;
+                parser2.sgmlDecl = "";
+                parser2.cdata = "";
+              } else if (parser2.sgmlDecl + c4 === "--") {
+                parser2.state = S2.COMMENT;
+                parser2.comment = "";
+                parser2.sgmlDecl = "";
+              } else if ((parser2.sgmlDecl + c4).toUpperCase() === DOCTYPE) {
+                parser2.state = S2.DOCTYPE;
+                if (parser2.doctype || parser2.sawRoot) {
+                  strictFail(
+                    parser2,
+                    "Inappropriately located doctype declaration"
+                  );
+                }
+                parser2.doctype = "";
+                parser2.sgmlDecl = "";
+              } else if (c4 === ">") {
+                emitNode(parser2, "onsgmldeclaration", parser2.sgmlDecl);
+                parser2.sgmlDecl = "";
+                parser2.state = S2.TEXT;
+              } else if (isQuote(c4)) {
+                parser2.state = S2.SGML_DECL_QUOTED;
+                parser2.sgmlDecl += c4;
+              } else {
+                parser2.sgmlDecl += c4;
+              }
+              continue;
+            case S2.SGML_DECL_QUOTED:
+              if (c4 === parser2.q) {
+                parser2.state = S2.SGML_DECL;
+                parser2.q = "";
+              }
+              parser2.sgmlDecl += c4;
+              continue;
+            case S2.DOCTYPE:
+              if (c4 === ">") {
+                parser2.state = S2.TEXT;
+                emitNode(parser2, "ondoctype", parser2.doctype);
+                parser2.doctype = true;
+              } else {
+                parser2.doctype += c4;
+                if (c4 === "[") {
+                  parser2.state = S2.DOCTYPE_DTD;
+                } else if (isQuote(c4)) {
+                  parser2.state = S2.DOCTYPE_QUOTED;
+                  parser2.q = c4;
+                }
+              }
+              continue;
+            case S2.DOCTYPE_QUOTED:
+              parser2.doctype += c4;
+              if (c4 === parser2.q) {
+                parser2.q = "";
+                parser2.state = S2.DOCTYPE;
+              }
+              continue;
+            case S2.DOCTYPE_DTD:
+              parser2.doctype += c4;
+              if (c4 === "]") {
+                parser2.state = S2.DOCTYPE;
+              } else if (isQuote(c4)) {
+                parser2.state = S2.DOCTYPE_DTD_QUOTED;
+                parser2.q = c4;
+              }
+              continue;
+            case S2.DOCTYPE_DTD_QUOTED:
+              parser2.doctype += c4;
+              if (c4 === parser2.q) {
+                parser2.state = S2.DOCTYPE_DTD;
+                parser2.q = "";
+              }
+              continue;
+            case S2.COMMENT:
+              if (c4 === "-") {
+                parser2.state = S2.COMMENT_ENDING;
+              } else {
+                parser2.comment += c4;
+              }
+              continue;
+            case S2.COMMENT_ENDING:
+              if (c4 === "-") {
+                parser2.state = S2.COMMENT_ENDED;
+                parser2.comment = textopts(parser2.opt, parser2.comment);
+                if (parser2.comment) {
+                  emitNode(parser2, "oncomment", parser2.comment);
+                }
+                parser2.comment = "";
+              } else {
+                parser2.comment += "-" + c4;
+                parser2.state = S2.COMMENT;
+              }
+              continue;
+            case S2.COMMENT_ENDED:
+              if (c4 !== ">") {
+                strictFail(parser2, "Malformed comment");
+                parser2.comment += "--" + c4;
+                parser2.state = S2.COMMENT;
+              } else {
+                parser2.state = S2.TEXT;
+              }
+              continue;
+            case S2.CDATA:
+              if (c4 === "]") {
+                parser2.state = S2.CDATA_ENDING;
+              } else {
+                parser2.cdata += c4;
+              }
+              continue;
+            case S2.CDATA_ENDING:
+              if (c4 === "]") {
+                parser2.state = S2.CDATA_ENDING_2;
+              } else {
+                parser2.cdata += "]" + c4;
+                parser2.state = S2.CDATA;
+              }
+              continue;
+            case S2.CDATA_ENDING_2:
+              if (c4 === ">") {
+                if (parser2.cdata) {
+                  emitNode(parser2, "oncdata", parser2.cdata);
+                }
+                emitNode(parser2, "onclosecdata");
+                parser2.cdata = "";
+                parser2.state = S2.TEXT;
+              } else if (c4 === "]") {
+                parser2.cdata += "]";
+              } else {
+                parser2.cdata += "]]" + c4;
+                parser2.state = S2.CDATA;
+              }
+              continue;
+            case S2.PROC_INST:
+              if (c4 === "?") {
+                parser2.state = S2.PROC_INST_ENDING;
+              } else if (isWhitespace(c4)) {
+                parser2.state = S2.PROC_INST_BODY;
+              } else {
+                parser2.procInstName += c4;
+              }
+              continue;
+            case S2.PROC_INST_BODY:
+              if (!parser2.procInstBody && isWhitespace(c4)) {
+                continue;
+              } else if (c4 === "?") {
+                parser2.state = S2.PROC_INST_ENDING;
+              } else {
+                parser2.procInstBody += c4;
+              }
+              continue;
+            case S2.PROC_INST_ENDING:
+              if (c4 === ">") {
+                emitNode(parser2, "onprocessinginstruction", {
+                  name: parser2.procInstName,
+                  body: parser2.procInstBody
+                });
+                parser2.procInstName = parser2.procInstBody = "";
+                parser2.state = S2.TEXT;
+              } else {
+                parser2.procInstBody += "?" + c4;
+                parser2.state = S2.PROC_INST_BODY;
+              }
+              continue;
+            case S2.OPEN_TAG:
+              if (isMatch(nameBody, c4)) {
+                parser2.tagName += c4;
+              } else {
+                newTag(parser2);
+                if (c4 === ">") {
+                  openTag(parser2);
+                } else if (c4 === "/") {
+                  parser2.state = S2.OPEN_TAG_SLASH;
+                } else {
+                  if (!isWhitespace(c4)) {
+                    strictFail(parser2, "Invalid character in tag name");
+                  }
+                  parser2.state = S2.ATTRIB;
+                }
+              }
+              continue;
+            case S2.OPEN_TAG_SLASH:
+              if (c4 === ">") {
+                openTag(parser2, true);
+                closeTag(parser2);
+              } else {
+                strictFail(parser2, "Forward-slash in opening tag not followed by >");
+                parser2.state = S2.ATTRIB;
+              }
+              continue;
+            case S2.ATTRIB:
+              if (isWhitespace(c4)) {
+                continue;
+              } else if (c4 === ">") {
+                openTag(parser2);
+              } else if (c4 === "/") {
+                parser2.state = S2.OPEN_TAG_SLASH;
+              } else if (isMatch(nameStart, c4)) {
+                parser2.attribName = c4;
+                parser2.attribValue = "";
+                parser2.state = S2.ATTRIB_NAME;
+              } else {
+                strictFail(parser2, "Invalid attribute name");
+              }
+              continue;
+            case S2.ATTRIB_NAME:
+              if (c4 === "=") {
+                parser2.state = S2.ATTRIB_VALUE;
+              } else if (c4 === ">") {
+                strictFail(parser2, "Attribute without value");
+                parser2.attribValue = parser2.attribName;
+                attrib(parser2);
+                openTag(parser2);
+              } else if (isWhitespace(c4)) {
+                parser2.state = S2.ATTRIB_NAME_SAW_WHITE;
+              } else if (isMatch(nameBody, c4)) {
+                parser2.attribName += c4;
+              } else {
+                strictFail(parser2, "Invalid attribute name");
+              }
+              continue;
+            case S2.ATTRIB_NAME_SAW_WHITE:
+              if (c4 === "=") {
+                parser2.state = S2.ATTRIB_VALUE;
+              } else if (isWhitespace(c4)) {
+                continue;
+              } else {
+                strictFail(parser2, "Attribute without value");
+                parser2.tag.attributes[parser2.attribName] = "";
+                parser2.attribValue = "";
+                emitNode(parser2, "onattribute", {
+                  name: parser2.attribName,
+                  value: ""
+                });
+                parser2.attribName = "";
+                if (c4 === ">") {
+                  openTag(parser2);
+                } else if (isMatch(nameStart, c4)) {
+                  parser2.attribName = c4;
+                  parser2.state = S2.ATTRIB_NAME;
+                } else {
+                  strictFail(parser2, "Invalid attribute name");
+                  parser2.state = S2.ATTRIB;
+                }
+              }
+              continue;
+            case S2.ATTRIB_VALUE:
+              if (isWhitespace(c4)) {
+                continue;
+              } else if (isQuote(c4)) {
+                parser2.q = c4;
+                parser2.state = S2.ATTRIB_VALUE_QUOTED;
+              } else {
+                strictFail(parser2, "Unquoted attribute value");
+                parser2.state = S2.ATTRIB_VALUE_UNQUOTED;
+                parser2.attribValue = c4;
+              }
+              continue;
+            case S2.ATTRIB_VALUE_QUOTED:
+              if (c4 !== parser2.q) {
+                if (c4 === "&") {
+                  parser2.state = S2.ATTRIB_VALUE_ENTITY_Q;
+                } else {
+                  parser2.attribValue += c4;
+                }
+                continue;
+              }
+              attrib(parser2);
+              parser2.q = "";
+              parser2.state = S2.ATTRIB_VALUE_CLOSED;
+              continue;
+            case S2.ATTRIB_VALUE_CLOSED:
+              if (isWhitespace(c4)) {
+                parser2.state = S2.ATTRIB;
+              } else if (c4 === ">") {
+                openTag(parser2);
+              } else if (c4 === "/") {
+                parser2.state = S2.OPEN_TAG_SLASH;
+              } else if (isMatch(nameStart, c4)) {
+                strictFail(parser2, "No whitespace between attributes");
+                parser2.attribName = c4;
+                parser2.attribValue = "";
+                parser2.state = S2.ATTRIB_NAME;
+              } else {
+                strictFail(parser2, "Invalid attribute name");
+              }
+              continue;
+            case S2.ATTRIB_VALUE_UNQUOTED:
+              if (!isAttribEnd(c4)) {
+                if (c4 === "&") {
+                  parser2.state = S2.ATTRIB_VALUE_ENTITY_U;
+                } else {
+                  parser2.attribValue += c4;
+                }
+                continue;
+              }
+              attrib(parser2);
+              if (c4 === ">") {
+                openTag(parser2);
+              } else {
+                parser2.state = S2.ATTRIB;
+              }
+              continue;
+            case S2.CLOSE_TAG:
+              if (!parser2.tagName) {
+                if (isWhitespace(c4)) {
+                  continue;
+                } else if (notMatch(nameStart, c4)) {
+                  if (parser2.script) {
+                    parser2.script += "</" + c4;
+                    parser2.state = S2.SCRIPT;
+                  } else {
+                    strictFail(parser2, "Invalid tagname in closing tag.");
+                  }
+                } else {
+                  parser2.tagName = c4;
+                }
+              } else if (c4 === ">") {
+                closeTag(parser2);
+              } else if (isMatch(nameBody, c4)) {
+                parser2.tagName += c4;
+              } else if (parser2.script) {
+                parser2.script += "</" + parser2.tagName;
+                parser2.tagName = "";
+                parser2.state = S2.SCRIPT;
+              } else {
+                if (!isWhitespace(c4)) {
+                  strictFail(parser2, "Invalid tagname in closing tag");
+                }
+                parser2.state = S2.CLOSE_TAG_SAW_WHITE;
+              }
+              continue;
+            case S2.CLOSE_TAG_SAW_WHITE:
+              if (isWhitespace(c4)) {
+                continue;
+              }
+              if (c4 === ">") {
+                closeTag(parser2);
+              } else {
+                strictFail(parser2, "Invalid characters in closing tag");
+              }
+              continue;
+            case S2.TEXT_ENTITY:
+            case S2.ATTRIB_VALUE_ENTITY_Q:
+            case S2.ATTRIB_VALUE_ENTITY_U:
+              var returnState;
+              var buffer;
+              switch (parser2.state) {
+                case S2.TEXT_ENTITY:
+                  returnState = S2.TEXT;
+                  buffer = "textNode";
+                  break;
+                case S2.ATTRIB_VALUE_ENTITY_Q:
+                  returnState = S2.ATTRIB_VALUE_QUOTED;
+                  buffer = "attribValue";
+                  break;
+                case S2.ATTRIB_VALUE_ENTITY_U:
+                  returnState = S2.ATTRIB_VALUE_UNQUOTED;
+                  buffer = "attribValue";
+                  break;
+              }
+              if (c4 === ";") {
+                parser2[buffer] += parseEntity(parser2);
+                parser2.entity = "";
+                parser2.state = returnState;
+              } else if (isMatch(parser2.entity.length ? entityBody : entityStart, c4)) {
+                parser2.entity += c4;
+              } else {
+                strictFail(parser2, "Invalid character in entity name");
+                parser2[buffer] += "&" + parser2.entity + c4;
+                parser2.entity = "";
+                parser2.state = returnState;
+              }
+              continue;
+            default:
+              throw new Error(parser2, "Unknown state: " + parser2.state);
+          }
+        }
+        if (parser2.position >= parser2.bufferCheckPosition) {
+          checkBufferLength(parser2);
+        }
+        return parser2;
+      }
+      if (!String.fromCodePoint) {
+        (function() {
+          var stringFromCharCode = String.fromCharCode;
+          var floor = Math.floor;
+          var fromCodePoint = function() {
+            var MAX_SIZE = 16384;
+            var codeUnits = [];
+            var highSurrogate;
+            var lowSurrogate;
+            var index3 = -1;
+            var length2 = arguments.length;
+            if (!length2) {
+              return "";
+            }
+            var result = "";
+            while (++index3 < length2) {
+              var codePoint = Number(arguments[index3]);
+              if (!isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
+              codePoint < 0 || // not a valid Unicode code point
+              codePoint > 1114111 || // not a valid Unicode code point
+              floor(codePoint) !== codePoint) {
+                throw RangeError("Invalid code point: " + codePoint);
+              }
+              if (codePoint <= 65535) {
+                codeUnits.push(codePoint);
+              } else {
+                codePoint -= 65536;
+                highSurrogate = (codePoint >> 10) + 55296;
+                lowSurrogate = codePoint % 1024 + 56320;
+                codeUnits.push(highSurrogate, lowSurrogate);
+              }
+              if (index3 + 1 === length2 || codeUnits.length > MAX_SIZE) {
+                result += stringFromCharCode.apply(null, codeUnits);
+                codeUnits.length = 0;
+              }
+            }
+            return result;
+          };
+          if (Object.defineProperty) {
+            Object.defineProperty(String, "fromCodePoint", {
+              value: fromCodePoint,
+              configurable: true,
+              writable: true
+            });
+          } else {
+            String.fromCodePoint = fromCodePoint;
+          }
+        })();
+      }
+    })(typeof exports === "undefined" ? exports.sax = {} : exports);
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/array-helper.js
+var require_array_helper = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/array-helper.js"(exports, module) {
+    module.exports = {
+      isArray: function(value) {
+        if (Array.isArray) {
+          return Array.isArray(value);
+        }
+        return Object.prototype.toString.call(value) === "[object Array]";
+      }
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/options-helper.js
+var require_options_helper = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/options-helper.js"(exports, module) {
+    var isArray2 = require_array_helper().isArray;
+    module.exports = {
+      copyOptions: function(options) {
+        var key, copy = {};
+        for (key in options) {
+          if (options.hasOwnProperty(key)) {
+            copy[key] = options[key];
+          }
+        }
+        return copy;
+      },
+      ensureFlagExists: function(item, options) {
+        if (!(item in options) || typeof options[item] !== "boolean") {
+          options[item] = false;
+        }
+      },
+      ensureSpacesExists: function(options) {
+        if (!("spaces" in options) || typeof options.spaces !== "number" && typeof options.spaces !== "string") {
+          options.spaces = 0;
+        }
+      },
+      ensureAlwaysArrayExists: function(options) {
+        if (!("alwaysArray" in options) || typeof options.alwaysArray !== "boolean" && !isArray2(options.alwaysArray)) {
+          options.alwaysArray = false;
+        }
+      },
+      ensureKeyExists: function(key, options) {
+        if (!(key + "Key" in options) || typeof options[key + "Key"] !== "string") {
+          options[key + "Key"] = options.compact ? "_" + key : key;
+        }
+      },
+      checkFnExists: function(key, options) {
+        return key + "Fn" in options;
+      }
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/xml2js.js
+var require_xml2js = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/xml2js.js"(exports, module) {
+    var sax = require_sax();
+    var expat = { on: function() {
+    }, parse: function() {
+    } };
+    var helper = require_options_helper();
+    var isArray2 = require_array_helper().isArray;
+    var options;
+    var pureJsParser = true;
+    var currentElement;
+    function validateOptions(userOptions) {
+      options = helper.copyOptions(userOptions);
+      helper.ensureFlagExists("ignoreDeclaration", options);
+      helper.ensureFlagExists("ignoreInstruction", options);
+      helper.ensureFlagExists("ignoreAttributes", options);
+      helper.ensureFlagExists("ignoreText", options);
+      helper.ensureFlagExists("ignoreComment", options);
+      helper.ensureFlagExists("ignoreCdata", options);
+      helper.ensureFlagExists("ignoreDoctype", options);
+      helper.ensureFlagExists("compact", options);
+      helper.ensureFlagExists("alwaysChildren", options);
+      helper.ensureFlagExists("addParent", options);
+      helper.ensureFlagExists("trim", options);
+      helper.ensureFlagExists("nativeType", options);
+      helper.ensureFlagExists("nativeTypeAttributes", options);
+      helper.ensureFlagExists("sanitize", options);
+      helper.ensureFlagExists("instructionHasAttributes", options);
+      helper.ensureFlagExists("captureSpacesBetweenElements", options);
+      helper.ensureAlwaysArrayExists(options);
+      helper.ensureKeyExists("declaration", options);
+      helper.ensureKeyExists("instruction", options);
+      helper.ensureKeyExists("attributes", options);
+      helper.ensureKeyExists("text", options);
+      helper.ensureKeyExists("comment", options);
+      helper.ensureKeyExists("cdata", options);
+      helper.ensureKeyExists("doctype", options);
+      helper.ensureKeyExists("type", options);
+      helper.ensureKeyExists("name", options);
+      helper.ensureKeyExists("elements", options);
+      helper.ensureKeyExists("parent", options);
+      helper.checkFnExists("doctype", options);
+      helper.checkFnExists("instruction", options);
+      helper.checkFnExists("cdata", options);
+      helper.checkFnExists("comment", options);
+      helper.checkFnExists("text", options);
+      helper.checkFnExists("instructionName", options);
+      helper.checkFnExists("elementName", options);
+      helper.checkFnExists("attributeName", options);
+      helper.checkFnExists("attributeValue", options);
+      helper.checkFnExists("attributes", options);
+      return options;
+    }
+    function nativeType(value) {
+      var nValue = Number(value);
+      if (!isNaN(nValue)) {
+        return nValue;
+      }
+      var bValue = value.toLowerCase();
+      if (bValue === "true") {
+        return true;
+      } else if (bValue === "false") {
+        return false;
+      }
+      return value;
+    }
+    function addField(type, value) {
+      var key;
+      if (options.compact) {
+        if (!currentElement[options[type + "Key"]] && (isArray2(options.alwaysArray) ? options.alwaysArray.indexOf(options[type + "Key"]) !== -1 : options.alwaysArray)) {
+          currentElement[options[type + "Key"]] = [];
+        }
+        if (currentElement[options[type + "Key"]] && !isArray2(currentElement[options[type + "Key"]])) {
+          currentElement[options[type + "Key"]] = [currentElement[options[type + "Key"]]];
+        }
+        if (type + "Fn" in options && typeof value === "string") {
+          value = options[type + "Fn"](value, currentElement);
+        }
+        if (type === "instruction" && ("instructionFn" in options || "instructionNameFn" in options)) {
+          for (key in value) {
+            if (value.hasOwnProperty(key)) {
+              if ("instructionFn" in options) {
+                value[key] = options.instructionFn(value[key], key, currentElement);
+              } else {
+                var temp = value[key];
+                delete value[key];
+                value[options.instructionNameFn(key, temp, currentElement)] = temp;
+              }
+            }
+          }
+        }
+        if (isArray2(currentElement[options[type + "Key"]])) {
+          currentElement[options[type + "Key"]].push(value);
+        } else {
+          currentElement[options[type + "Key"]] = value;
+        }
+      } else {
+        if (!currentElement[options.elementsKey]) {
+          currentElement[options.elementsKey] = [];
+        }
+        var element2 = {};
+        element2[options.typeKey] = type;
+        if (type === "instruction") {
+          for (key in value) {
+            if (value.hasOwnProperty(key)) {
+              break;
+            }
+          }
+          element2[options.nameKey] = "instructionNameFn" in options ? options.instructionNameFn(key, value, currentElement) : key;
+          if (options.instructionHasAttributes) {
+            element2[options.attributesKey] = value[key][options.attributesKey];
+            if ("instructionFn" in options) {
+              element2[options.attributesKey] = options.instructionFn(element2[options.attributesKey], key, currentElement);
+            }
+          } else {
+            if ("instructionFn" in options) {
+              value[key] = options.instructionFn(value[key], key, currentElement);
+            }
+            element2[options.instructionKey] = value[key];
+          }
+        } else {
+          if (type + "Fn" in options) {
+            value = options[type + "Fn"](value, currentElement);
+          }
+          element2[options[type + "Key"]] = value;
+        }
+        if (options.addParent) {
+          element2[options.parentKey] = currentElement;
+        }
+        currentElement[options.elementsKey].push(element2);
+      }
+    }
+    function manipulateAttributes(attributes) {
+      if ("attributesFn" in options && attributes) {
+        attributes = options.attributesFn(attributes, currentElement);
+      }
+      if ((options.trim || "attributeValueFn" in options || "attributeNameFn" in options || options.nativeTypeAttributes) && attributes) {
+        var key;
+        for (key in attributes) {
+          if (attributes.hasOwnProperty(key)) {
+            if (options.trim)
+              attributes[key] = attributes[key].trim();
+            if (options.nativeTypeAttributes) {
+              attributes[key] = nativeType(attributes[key]);
+            }
+            if ("attributeValueFn" in options)
+              attributes[key] = options.attributeValueFn(attributes[key], key, currentElement);
+            if ("attributeNameFn" in options) {
+              var temp = attributes[key];
+              delete attributes[key];
+              attributes[options.attributeNameFn(key, attributes[key], currentElement)] = temp;
+            }
+          }
+        }
+      }
+      return attributes;
+    }
+    function onInstruction(instruction) {
+      var attributes = {};
+      if (instruction.body && (instruction.name.toLowerCase() === "xml" || options.instructionHasAttributes)) {
+        var attrsRegExp = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|(\w+))\s*/g;
+        var match;
+        while ((match = attrsRegExp.exec(instruction.body)) !== null) {
+          attributes[match[1]] = match[2] || match[3] || match[4];
+        }
+        attributes = manipulateAttributes(attributes);
+      }
+      if (instruction.name.toLowerCase() === "xml") {
+        if (options.ignoreDeclaration) {
+          return;
+        }
+        currentElement[options.declarationKey] = {};
+        if (Object.keys(attributes).length) {
+          currentElement[options.declarationKey][options.attributesKey] = attributes;
+        }
+        if (options.addParent) {
+          currentElement[options.declarationKey][options.parentKey] = currentElement;
+        }
+      } else {
+        if (options.ignoreInstruction) {
+          return;
+        }
+        if (options.trim) {
+          instruction.body = instruction.body.trim();
+        }
+        var value = {};
+        if (options.instructionHasAttributes && Object.keys(attributes).length) {
+          value[instruction.name] = {};
+          value[instruction.name][options.attributesKey] = attributes;
+        } else {
+          value[instruction.name] = instruction.body;
+        }
+        addField("instruction", value);
+      }
+    }
+    function onStartElement(name, attributes) {
+      var element2;
+      if (typeof name === "object") {
+        attributes = name.attributes;
+        name = name.name;
+      }
+      attributes = manipulateAttributes(attributes);
+      if ("elementNameFn" in options) {
+        name = options.elementNameFn(name, currentElement);
+      }
+      if (options.compact) {
+        element2 = {};
+        if (!options.ignoreAttributes && attributes && Object.keys(attributes).length) {
+          element2[options.attributesKey] = {};
+          var key;
+          for (key in attributes) {
+            if (attributes.hasOwnProperty(key)) {
+              element2[options.attributesKey][key] = attributes[key];
+            }
+          }
+        }
+        if (!(name in currentElement) && (isArray2(options.alwaysArray) ? options.alwaysArray.indexOf(name) !== -1 : options.alwaysArray)) {
+          currentElement[name] = [];
+        }
+        if (currentElement[name] && !isArray2(currentElement[name])) {
+          currentElement[name] = [currentElement[name]];
+        }
+        if (isArray2(currentElement[name])) {
+          currentElement[name].push(element2);
+        } else {
+          currentElement[name] = element2;
+        }
+      } else {
+        if (!currentElement[options.elementsKey]) {
+          currentElement[options.elementsKey] = [];
+        }
+        element2 = {};
+        element2[options.typeKey] = "element";
+        element2[options.nameKey] = name;
+        if (!options.ignoreAttributes && attributes && Object.keys(attributes).length) {
+          element2[options.attributesKey] = attributes;
+        }
+        if (options.alwaysChildren) {
+          element2[options.elementsKey] = [];
+        }
+        currentElement[options.elementsKey].push(element2);
+      }
+      element2[options.parentKey] = currentElement;
+      currentElement = element2;
+    }
+    function onText(text3) {
+      if (options.ignoreText) {
+        return;
+      }
+      if (!text3.trim() && !options.captureSpacesBetweenElements) {
+        return;
+      }
+      if (options.trim) {
+        text3 = text3.trim();
+      }
+      if (options.nativeType) {
+        text3 = nativeType(text3);
+      }
+      if (options.sanitize) {
+        text3 = text3.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+      addField("text", text3);
+    }
+    function onComment(comment) {
+      if (options.ignoreComment) {
+        return;
+      }
+      if (options.trim) {
+        comment = comment.trim();
+      }
+      addField("comment", comment);
+    }
+    function onEndElement(name) {
+      var parentElement = currentElement[options.parentKey];
+      if (!options.addParent) {
+        delete currentElement[options.parentKey];
+      }
+      currentElement = parentElement;
+    }
+    function onCdata(cdata) {
+      if (options.ignoreCdata) {
+        return;
+      }
+      if (options.trim) {
+        cdata = cdata.trim();
+      }
+      addField("cdata", cdata);
+    }
+    function onDoctype(doctype) {
+      if (options.ignoreDoctype) {
+        return;
+      }
+      doctype = doctype.replace(/^ /, "");
+      if (options.trim) {
+        doctype = doctype.trim();
+      }
+      addField("doctype", doctype);
+    }
+    function onError(error) {
+      error.note = error;
+    }
+    module.exports = function(xml, userOptions) {
+      var parser2 = pureJsParser ? sax.parser(true, {}) : parser2 = new expat.Parser("UTF-8");
+      var result = {};
+      currentElement = result;
+      options = validateOptions(userOptions);
+      if (pureJsParser) {
+        parser2.opt = { strictEntities: true };
+        parser2.onopentag = onStartElement;
+        parser2.ontext = onText;
+        parser2.oncomment = onComment;
+        parser2.onclosetag = onEndElement;
+        parser2.onerror = onError;
+        parser2.oncdata = onCdata;
+        parser2.ondoctype = onDoctype;
+        parser2.onprocessinginstruction = onInstruction;
+      } else {
+        parser2.on("startElement", onStartElement);
+        parser2.on("text", onText);
+        parser2.on("comment", onComment);
+        parser2.on("endElement", onEndElement);
+        parser2.on("error", onError);
+      }
+      if (pureJsParser) {
+        parser2.write(xml).close();
+      } else {
+        if (!parser2.parse(xml)) {
+          throw new Error("XML parsing error: " + parser2.getError());
+        }
+      }
+      if (result[options.elementsKey]) {
+        var temp = result[options.elementsKey];
+        delete result[options.elementsKey];
+        result[options.elementsKey] = temp;
+        delete result.text;
+      }
+      return result;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/xml2json.js
+var require_xml2json = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/xml2json.js"(exports, module) {
+    var helper = require_options_helper();
+    var xml2js = require_xml2js();
+    function validateOptions(userOptions) {
+      var options = helper.copyOptions(userOptions);
+      helper.ensureSpacesExists(options);
+      return options;
+    }
+    module.exports = function(xml, userOptions) {
+      var options, js, json, parentKey;
+      options = validateOptions(userOptions);
+      js = xml2js(xml, options);
+      parentKey = "compact" in options && options.compact ? "_parent" : "parent";
+      if ("addParent" in options && options.addParent) {
+        json = JSON.stringify(js, function(k2, v3) {
+          return k2 === parentKey ? "_" : v3;
+        }, options.spaces);
+      } else {
+        json = JSON.stringify(js, null, options.spaces);
+      }
+      return json.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/js2xml.js
+var require_js2xml = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/js2xml.js"(exports, module) {
+    var helper = require_options_helper();
+    var isArray2 = require_array_helper().isArray;
+    var currentElement;
+    var currentElementName;
+    function validateOptions(userOptions) {
+      var options = helper.copyOptions(userOptions);
+      helper.ensureFlagExists("ignoreDeclaration", options);
+      helper.ensureFlagExists("ignoreInstruction", options);
+      helper.ensureFlagExists("ignoreAttributes", options);
+      helper.ensureFlagExists("ignoreText", options);
+      helper.ensureFlagExists("ignoreComment", options);
+      helper.ensureFlagExists("ignoreCdata", options);
+      helper.ensureFlagExists("ignoreDoctype", options);
+      helper.ensureFlagExists("compact", options);
+      helper.ensureFlagExists("indentText", options);
+      helper.ensureFlagExists("indentCdata", options);
+      helper.ensureFlagExists("indentAttributes", options);
+      helper.ensureFlagExists("indentInstruction", options);
+      helper.ensureFlagExists("fullTagEmptyElement", options);
+      helper.ensureFlagExists("noQuotesForNativeAttributes", options);
+      helper.ensureSpacesExists(options);
+      if (typeof options.spaces === "number") {
+        options.spaces = Array(options.spaces + 1).join(" ");
+      }
+      helper.ensureKeyExists("declaration", options);
+      helper.ensureKeyExists("instruction", options);
+      helper.ensureKeyExists("attributes", options);
+      helper.ensureKeyExists("text", options);
+      helper.ensureKeyExists("comment", options);
+      helper.ensureKeyExists("cdata", options);
+      helper.ensureKeyExists("doctype", options);
+      helper.ensureKeyExists("type", options);
+      helper.ensureKeyExists("name", options);
+      helper.ensureKeyExists("elements", options);
+      helper.checkFnExists("doctype", options);
+      helper.checkFnExists("instruction", options);
+      helper.checkFnExists("cdata", options);
+      helper.checkFnExists("comment", options);
+      helper.checkFnExists("text", options);
+      helper.checkFnExists("instructionName", options);
+      helper.checkFnExists("elementName", options);
+      helper.checkFnExists("attributeName", options);
+      helper.checkFnExists("attributeValue", options);
+      helper.checkFnExists("attributes", options);
+      helper.checkFnExists("fullTagEmptyElement", options);
+      return options;
+    }
+    function writeIndentation(options, depth, firstLine) {
+      return (!firstLine && options.spaces ? "\n" : "") + Array(depth + 1).join(options.spaces);
+    }
+    function writeAttributes(attributes, options, depth) {
+      if (options.ignoreAttributes) {
+        return "";
+      }
+      if ("attributesFn" in options) {
+        attributes = options.attributesFn(attributes, currentElementName, currentElement);
+      }
+      var key, attr2, attrName, quote, result = [];
+      for (key in attributes) {
+        if (attributes.hasOwnProperty(key) && attributes[key] !== null && attributes[key] !== void 0) {
+          quote = options.noQuotesForNativeAttributes && typeof attributes[key] !== "string" ? "" : '"';
+          attr2 = "" + attributes[key];
+          attr2 = attr2.replace(/"/g, "&quot;");
+          attrName = "attributeNameFn" in options ? options.attributeNameFn(key, attr2, currentElementName, currentElement) : key;
+          result.push(options.spaces && options.indentAttributes ? writeIndentation(options, depth + 1, false) : " ");
+          result.push(attrName + "=" + quote + ("attributeValueFn" in options ? options.attributeValueFn(attr2, key, currentElementName, currentElement) : attr2) + quote);
+        }
+      }
+      if (attributes && Object.keys(attributes).length && options.spaces && options.indentAttributes) {
+        result.push(writeIndentation(options, depth, false));
+      }
+      return result.join("");
+    }
+    function writeDeclaration(declaration, options, depth) {
+      currentElement = declaration;
+      currentElementName = "xml";
+      return options.ignoreDeclaration ? "" : "<?xml" + writeAttributes(declaration[options.attributesKey], options, depth) + "?>";
+    }
+    function writeInstruction(instruction, options, depth) {
+      if (options.ignoreInstruction) {
+        return "";
+      }
+      var key;
+      for (key in instruction) {
+        if (instruction.hasOwnProperty(key)) {
+          break;
+        }
+      }
+      var instructionName = "instructionNameFn" in options ? options.instructionNameFn(key, instruction[key], currentElementName, currentElement) : key;
+      if (typeof instruction[key] === "object") {
+        currentElement = instruction;
+        currentElementName = instructionName;
+        return "<?" + instructionName + writeAttributes(instruction[key][options.attributesKey], options, depth) + "?>";
+      } else {
+        var instructionValue = instruction[key] ? instruction[key] : "";
+        if ("instructionFn" in options)
+          instructionValue = options.instructionFn(instructionValue, key, currentElementName, currentElement);
+        return "<?" + instructionName + (instructionValue ? " " + instructionValue : "") + "?>";
+      }
+    }
+    function writeComment(comment, options) {
+      return options.ignoreComment ? "" : "<!--" + ("commentFn" in options ? options.commentFn(comment, currentElementName, currentElement) : comment) + "-->";
+    }
+    function writeCdata(cdata, options) {
+      return options.ignoreCdata ? "" : "<![CDATA[" + ("cdataFn" in options ? options.cdataFn(cdata, currentElementName, currentElement) : cdata.replace("]]>", "]]]]><![CDATA[>")) + "]]>";
+    }
+    function writeDoctype(doctype, options) {
+      return options.ignoreDoctype ? "" : "<!DOCTYPE " + ("doctypeFn" in options ? options.doctypeFn(doctype, currentElementName, currentElement) : doctype) + ">";
+    }
+    function writeText(text3, options) {
+      if (options.ignoreText)
+        return "";
+      text3 = "" + text3;
+      text3 = text3.replace(/&amp;/g, "&");
+      text3 = text3.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return "textFn" in options ? options.textFn(text3, currentElementName, currentElement) : text3;
+    }
+    function hasContent(element2, options) {
+      var i3;
+      if (element2.elements && element2.elements.length) {
+        for (i3 = 0; i3 < element2.elements.length; ++i3) {
+          switch (element2.elements[i3][options.typeKey]) {
+            case "text":
+              if (options.indentText) {
+                return true;
+              }
+              break;
+            case "cdata":
+              if (options.indentCdata) {
+                return true;
+              }
+              break;
+            case "instruction":
+              if (options.indentInstruction) {
+                return true;
+              }
+              break;
+            case "doctype":
+            case "comment":
+            case "element":
+              return true;
+            default:
+              return true;
+          }
+        }
+      }
+      return false;
+    }
+    function writeElement(element2, options, depth) {
+      currentElement = element2;
+      currentElementName = element2.name;
+      var xml = [], elementName = "elementNameFn" in options ? options.elementNameFn(element2.name, element2) : element2.name;
+      xml.push("<" + elementName);
+      if (element2[options.attributesKey]) {
+        xml.push(writeAttributes(element2[options.attributesKey], options, depth));
+      }
+      var withClosingTag = element2[options.elementsKey] && element2[options.elementsKey].length || element2[options.attributesKey] && element2[options.attributesKey]["xml:space"] === "preserve";
+      if (!withClosingTag) {
+        if ("fullTagEmptyElementFn" in options) {
+          withClosingTag = options.fullTagEmptyElementFn(element2.name, element2);
+        } else {
+          withClosingTag = options.fullTagEmptyElement;
+        }
+      }
+      if (withClosingTag) {
+        xml.push(">");
+        if (element2[options.elementsKey] && element2[options.elementsKey].length) {
+          xml.push(writeElements(element2[options.elementsKey], options, depth + 1));
+          currentElement = element2;
+          currentElementName = element2.name;
+        }
+        xml.push(options.spaces && hasContent(element2, options) ? "\n" + Array(depth + 1).join(options.spaces) : "");
+        xml.push("</" + elementName + ">");
+      } else {
+        xml.push("/>");
+      }
+      return xml.join("");
+    }
+    function writeElements(elements3, options, depth, firstLine) {
+      return elements3.reduce(function(xml, element2) {
+        var indent = writeIndentation(options, depth, firstLine && !xml);
+        switch (element2.type) {
+          case "element":
+            return xml + indent + writeElement(element2, options, depth);
+          case "comment":
+            return xml + indent + writeComment(element2[options.commentKey], options);
+          case "doctype":
+            return xml + indent + writeDoctype(element2[options.doctypeKey], options);
+          case "cdata":
+            return xml + (options.indentCdata ? indent : "") + writeCdata(element2[options.cdataKey], options);
+          case "text":
+            return xml + (options.indentText ? indent : "") + writeText(element2[options.textKey], options);
+          case "instruction":
+            var instruction = {};
+            instruction[element2[options.nameKey]] = element2[options.attributesKey] ? element2 : element2[options.instructionKey];
+            return xml + (options.indentInstruction ? indent : "") + writeInstruction(instruction, options, depth);
+        }
+      }, "");
+    }
+    function hasContentCompact(element2, options, anyContent) {
+      var key;
+      for (key in element2) {
+        if (element2.hasOwnProperty(key)) {
+          switch (key) {
+            case options.parentKey:
+            case options.attributesKey:
+              break;
+            case options.textKey:
+              if (options.indentText || anyContent) {
+                return true;
+              }
+              break;
+            case options.cdataKey:
+              if (options.indentCdata || anyContent) {
+                return true;
+              }
+              break;
+            case options.instructionKey:
+              if (options.indentInstruction || anyContent) {
+                return true;
+              }
+              break;
+            case options.doctypeKey:
+            case options.commentKey:
+              return true;
+            default:
+              return true;
+          }
+        }
+      }
+      return false;
+    }
+    function writeElementCompact(element2, name, options, depth, indent) {
+      currentElement = element2;
+      currentElementName = name;
+      var elementName = "elementNameFn" in options ? options.elementNameFn(name, element2) : name;
+      if (typeof element2 === "undefined" || element2 === null || element2 === "") {
+        return "fullTagEmptyElementFn" in options && options.fullTagEmptyElementFn(name, element2) || options.fullTagEmptyElement ? "<" + elementName + "></" + elementName + ">" : "<" + elementName + "/>";
+      }
+      var xml = [];
+      if (name) {
+        xml.push("<" + elementName);
+        if (typeof element2 !== "object") {
+          xml.push(">" + writeText(element2, options) + "</" + elementName + ">");
+          return xml.join("");
+        }
+        if (element2[options.attributesKey]) {
+          xml.push(writeAttributes(element2[options.attributesKey], options, depth));
+        }
+        var withClosingTag = hasContentCompact(element2, options, true) || element2[options.attributesKey] && element2[options.attributesKey]["xml:space"] === "preserve";
+        if (!withClosingTag) {
+          if ("fullTagEmptyElementFn" in options) {
+            withClosingTag = options.fullTagEmptyElementFn(name, element2);
+          } else {
+            withClosingTag = options.fullTagEmptyElement;
+          }
+        }
+        if (withClosingTag) {
+          xml.push(">");
+        } else {
+          xml.push("/>");
+          return xml.join("");
+        }
+      }
+      xml.push(writeElementsCompact(element2, options, depth + 1, false));
+      currentElement = element2;
+      currentElementName = name;
+      if (name) {
+        xml.push((indent ? writeIndentation(options, depth, false) : "") + "</" + elementName + ">");
+      }
+      return xml.join("");
+    }
+    function writeElementsCompact(element2, options, depth, firstLine) {
+      var i3, key, nodes, xml = [];
+      for (key in element2) {
+        if (element2.hasOwnProperty(key)) {
+          nodes = isArray2(element2[key]) ? element2[key] : [element2[key]];
+          for (i3 = 0; i3 < nodes.length; ++i3) {
+            switch (key) {
+              case options.declarationKey:
+                xml.push(writeDeclaration(nodes[i3], options, depth));
+                break;
+              case options.instructionKey:
+                xml.push((options.indentInstruction ? writeIndentation(options, depth, firstLine) : "") + writeInstruction(nodes[i3], options, depth));
+                break;
+              case options.attributesKey:
+              case options.parentKey:
+                break;
+              case options.textKey:
+                xml.push((options.indentText ? writeIndentation(options, depth, firstLine) : "") + writeText(nodes[i3], options));
+                break;
+              case options.cdataKey:
+                xml.push((options.indentCdata ? writeIndentation(options, depth, firstLine) : "") + writeCdata(nodes[i3], options));
+                break;
+              case options.doctypeKey:
+                xml.push(writeIndentation(options, depth, firstLine) + writeDoctype(nodes[i3], options));
+                break;
+              case options.commentKey:
+                xml.push(writeIndentation(options, depth, firstLine) + writeComment(nodes[i3], options));
+                break;
+              default:
+                xml.push(writeIndentation(options, depth, firstLine) + writeElementCompact(nodes[i3], key, options, depth, hasContentCompact(nodes[i3], options)));
+            }
+            firstLine = firstLine && !xml.length;
+          }
+        }
+      }
+      return xml.join("");
+    }
+    module.exports = function(js, options) {
+      options = validateOptions(options);
+      var xml = [];
+      currentElement = js;
+      currentElementName = "_root_";
+      if (options.compact) {
+        xml.push(writeElementsCompact(js, options, 0, true));
+      } else {
+        if (js[options.declarationKey]) {
+          xml.push(writeDeclaration(js[options.declarationKey], options, 0));
+        }
+        if (js[options.elementsKey] && js[options.elementsKey].length) {
+          xml.push(writeElements(js[options.elementsKey], options, 0, !xml.length));
+        }
+      }
+      return xml.join("");
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/json2xml.js
+var require_json2xml = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/json2xml.js"(exports, module) {
+    var js2xml = require_js2xml();
+    module.exports = function(json, options) {
+      if (json instanceof Buffer) {
+        json = json.toString();
+      }
+      var js = null;
+      if (typeof json === "string") {
+        try {
+          js = JSON.parse(json);
+        } catch (e2) {
+          throw new Error("The JSON structure is invalid");
+        }
+      } else {
+        js = json;
+      }
+      return js2xml(js, options);
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/xml-js/lib/index.js
+var require_lib = __commonJS({
+  "../simple-mind-map/node_modules/xml-js/lib/index.js"(exports, module) {
+    var xml2js = require_xml2js();
+    var xml2json = require_xml2json();
+    var js2xml = require_js2xml();
+    var json2xml = require_json2xml();
+    module.exports = {
+      xml2js,
+      xml2json,
+      js2xml,
+      json2xml
+    };
+  }
+});
+
 // ../simple-mind-map/node_modules/@babel/runtime/helpers/esm/typeof.js
 function _typeof(obj) {
   "@babel/helpers - typeof";
@@ -2042,7 +7291,7 @@ var require_html2canvas = __commonJS({
           return COLORS.TRANSPARENT;
         }
       };
-      var isTransparent = function(color2) {
+      var isTransparent2 = function(color2) {
         return (255 & color2) === 0;
       };
       var asString = function(color2) {
@@ -3950,7 +9199,7 @@ var require_html2canvas = __commonJS({
             return this.display > 0 && this.opacity > 0 && this.visibility === 0;
           };
           CSSParsedDeclaration2.prototype.isTransparent = function() {
-            return isTransparent(this.backgroundColor);
+            return isTransparent2(this.backgroundColor);
           };
           CSSParsedDeclaration2.prototype.isTransformed = function() {
             return this.transform !== null;
@@ -4898,7 +10147,7 @@ var require_html2canvas = __commonJS({
                 _this.tree = parseTree(context, iframe.contentWindow.document.documentElement);
                 var documentBackgroundColor = iframe.contentWindow.document.documentElement ? parseColor(context, getComputedStyle(iframe.contentWindow.document.documentElement).backgroundColor) : COLORS.TRANSPARENT;
                 var bodyBackgroundColor = iframe.contentWindow.document.body ? parseColor(context, getComputedStyle(iframe.contentWindow.document.body).backgroundColor) : COLORS.TRANSPARENT;
-                _this.backgroundColor = isTransparent(documentBackgroundColor) ? isTransparent(bodyBackgroundColor) ? _this.styles.backgroundColor : bodyBackgroundColor : documentBackgroundColor;
+                _this.backgroundColor = isTransparent2(documentBackgroundColor) ? isTransparent2(bodyBackgroundColor) ? _this.styles.backgroundColor : bodyBackgroundColor : documentBackgroundColor;
               }
             } catch (e3) {
             }
@@ -7633,7 +12882,7 @@ var require_html2canvas = __commonJS({
                       /* BACKGROUND_BORDERS */
                     ));
                     styles = paint.container.styles;
-                    hasBackground = !isTransparent(styles.backgroundColor) || styles.backgroundImage.length;
+                    hasBackground = !isTransparent2(styles.backgroundColor) || styles.backgroundImage.length;
                     borders = [
                       { style: styles.borderTopStyle, color: styles.borderTopColor, width: styles.borderTopWidth },
                       { style: styles.borderRightStyle, color: styles.borderRightColor, width: styles.borderRightWidth },
@@ -7646,7 +12895,7 @@ var require_html2canvas = __commonJS({
                     this.ctx.save();
                     this.path(backgroundPaintingArea);
                     this.ctx.clip();
-                    if (!isTransparent(styles.backgroundColor)) {
+                    if (!isTransparent2(styles.backgroundColor)) {
                       this.ctx.fillStyle = asString(styles.backgroundColor);
                       this.ctx.fill();
                     }
@@ -7685,7 +12934,7 @@ var require_html2canvas = __commonJS({
                     if (!(_i < borders_1.length))
                       return [3, 13];
                     border = borders_1[_i];
-                    if (!(border.style !== 0 && !isTransparent(border.color) && border.width > 0))
+                    if (!(border.style !== 0 && !isTransparent2(border.color) && border.width > 0))
                       return [3, 11];
                     if (!(border.style === 2))
                       return [3, 5];
@@ -8028,7 +13277,7 @@ var require_html2canvas = __commonJS({
           return Context2;
         }()
       );
-      var html2canvas2 = function(element2, options) {
+      var html2canvas = function(element2, options) {
         if (options === void 0) {
           options = {};
         }
@@ -8136,9 +13385,9 @@ var require_html2canvas = __commonJS({
         var documentBackgroundColor = ownerDocument.documentElement ? parseColor(context, getComputedStyle(ownerDocument.documentElement).backgroundColor) : COLORS.TRANSPARENT;
         var bodyBackgroundColor = ownerDocument.body ? parseColor(context, getComputedStyle(ownerDocument.body).backgroundColor) : COLORS.TRANSPARENT;
         var defaultBackgroundColor = typeof backgroundColorOverride === "string" ? parseColor(context, backgroundColorOverride) : backgroundColorOverride === null ? COLORS.TRANSPARENT : 4294967295;
-        return element2 === ownerDocument.documentElement ? isTransparent(documentBackgroundColor) ? isTransparent(bodyBackgroundColor) ? defaultBackgroundColor : bodyBackgroundColor : documentBackgroundColor : defaultBackgroundColor;
+        return element2 === ownerDocument.documentElement ? isTransparent2(documentBackgroundColor) ? isTransparent2(bodyBackgroundColor) ? defaultBackgroundColor : bodyBackgroundColor : documentBackgroundColor : defaultBackgroundColor;
       };
-      return html2canvas2;
+      return html2canvas;
     });
   }
 });
@@ -9824,8 +15073,8 @@ var require_weak_map_basic_detection = __commonJS({
   "../simple-mind-map/node_modules/core-js/internals/weak-map-basic-detection.js"(exports, module) {
     var global3 = require_global();
     var isCallable2 = require_is_callable();
-    var WeakMap = global3.WeakMap;
-    module.exports = isCallable2(WeakMap) && /native code/.test(String(WeakMap));
+    var WeakMap2 = global3.WeakMap;
+    module.exports = isCallable2(WeakMap2) && /native code/.test(String(WeakMap2));
   }
 });
 
@@ -9861,7 +15110,7 @@ var require_internal_state = __commonJS({
     var hiddenKeys = require_hidden_keys();
     var OBJECT_ALREADY_INITIALIZED = "Object already initialized";
     var TypeError2 = global3.TypeError;
-    var WeakMap = global3.WeakMap;
+    var WeakMap2 = global3.WeakMap;
     var set;
     var get;
     var has;
@@ -9878,7 +15127,7 @@ var require_internal_state = __commonJS({
       };
     };
     if (NATIVE_WEAK_MAP || shared.state) {
-      store = shared.state || (shared.state = new WeakMap());
+      store = shared.state || (shared.state = new WeakMap2());
       store.get = store.get;
       store.has = store.has;
       store.set = store.set;
@@ -19990,7 +25239,7 @@ var require_quill = __commonJS({
             var extend2 = __webpack_require__(3);
             var op = __webpack_require__(20);
             var NULL_CHARACTER = String.fromCharCode(0);
-            var Delta = function(ops) {
+            var Delta2 = function(ops) {
               if (Array.isArray(ops)) {
                 this.ops = ops;
               } else if (ops != null && Array.isArray(ops.ops)) {
@@ -19999,7 +25248,7 @@ var require_quill = __commonJS({
                 this.ops = [];
               }
             };
-            Delta.prototype.insert = function(text3, attributes) {
+            Delta2.prototype.insert = function(text3, attributes) {
               var newOp = {};
               if (text3.length === 0)
                 return this;
@@ -20009,12 +25258,12 @@ var require_quill = __commonJS({
               }
               return this.push(newOp);
             };
-            Delta.prototype["delete"] = function(length2) {
+            Delta2.prototype["delete"] = function(length2) {
               if (length2 <= 0)
                 return this;
               return this.push({ "delete": length2 });
             };
-            Delta.prototype.retain = function(length2, attributes) {
+            Delta2.prototype.retain = function(length2, attributes) {
               if (length2 <= 0)
                 return this;
               var newOp = { retain: length2 };
@@ -20023,7 +25272,7 @@ var require_quill = __commonJS({
               }
               return this.push(newOp);
             };
-            Delta.prototype.push = function(newOp) {
+            Delta2.prototype.push = function(newOp) {
               var index3 = this.ops.length;
               var lastOp = this.ops[index3 - 1];
               newOp = extend2(true, {}, newOp);
@@ -20061,23 +25310,23 @@ var require_quill = __commonJS({
               }
               return this;
             };
-            Delta.prototype.chop = function() {
+            Delta2.prototype.chop = function() {
               var lastOp = this.ops[this.ops.length - 1];
               if (lastOp && lastOp.retain && !lastOp.attributes) {
                 this.ops.pop();
               }
               return this;
             };
-            Delta.prototype.filter = function(predicate) {
+            Delta2.prototype.filter = function(predicate) {
               return this.ops.filter(predicate);
             };
-            Delta.prototype.forEach = function(predicate) {
+            Delta2.prototype.forEach = function(predicate) {
               this.ops.forEach(predicate);
             };
-            Delta.prototype.map = function(predicate) {
+            Delta2.prototype.map = function(predicate) {
               return this.ops.map(predicate);
             };
-            Delta.prototype.partition = function(predicate) {
+            Delta2.prototype.partition = function(predicate) {
               var passed = [], failed = [];
               this.forEach(function(op2) {
                 var target = predicate(op2) ? passed : failed;
@@ -20085,10 +25334,10 @@ var require_quill = __commonJS({
               });
               return [passed, failed];
             };
-            Delta.prototype.reduce = function(predicate, initial) {
+            Delta2.prototype.reduce = function(predicate, initial) {
               return this.ops.reduce(predicate, initial);
             };
-            Delta.prototype.changeLength = function() {
+            Delta2.prototype.changeLength = function() {
               return this.reduce(function(length2, elem) {
                 if (elem.insert) {
                   return length2 + op.length(elem);
@@ -20098,12 +25347,12 @@ var require_quill = __commonJS({
                 return length2;
               }, 0);
             };
-            Delta.prototype.length = function() {
+            Delta2.prototype.length = function() {
               return this.reduce(function(length2, elem) {
                 return length2 + op.length(elem);
               }, 0);
             };
-            Delta.prototype.slice = function(start, end) {
+            Delta2.prototype.slice = function(start, end) {
               start = start || 0;
               if (typeof end !== "number")
                 end = Infinity;
@@ -20120,12 +25369,12 @@ var require_quill = __commonJS({
                 }
                 index3 += op.length(nextOp);
               }
-              return new Delta(ops);
+              return new Delta2(ops);
             };
-            Delta.prototype.compose = function(other) {
+            Delta2.prototype.compose = function(other) {
               var thisIter = op.iterator(this.ops);
               var otherIter = op.iterator(other.ops);
-              var delta = new Delta();
+              var delta = new Delta2();
               while (thisIter.hasNext() || otherIter.hasNext()) {
                 if (otherIter.peekType() === "insert") {
                   delta.push(otherIter.next());
@@ -20153,17 +25402,17 @@ var require_quill = __commonJS({
               }
               return delta.chop();
             };
-            Delta.prototype.concat = function(other) {
-              var delta = new Delta(this.ops.slice());
+            Delta2.prototype.concat = function(other) {
+              var delta = new Delta2(this.ops.slice());
               if (other.ops.length > 0) {
                 delta.push(other.ops[0]);
                 delta.ops = delta.ops.concat(other.ops.slice(1));
               }
               return delta;
             };
-            Delta.prototype.diff = function(other, index3) {
+            Delta2.prototype.diff = function(other, index3) {
               if (this.ops === other.ops) {
-                return new Delta();
+                return new Delta2();
               }
               var strings = [this, other].map(function(delta2) {
                 return delta2.map(function(op2) {
@@ -20174,7 +25423,7 @@ var require_quill = __commonJS({
                   throw new Error("diff() called " + prep + " non-document");
                 }).join("");
               });
-              var delta = new Delta();
+              var delta = new Delta2();
               var diffResult = diff(strings[0], strings[1], index3);
               var thisIter = op.iterator(this.ops);
               var otherIter = op.iterator(other.ops);
@@ -20208,10 +25457,10 @@ var require_quill = __commonJS({
               });
               return delta.chop();
             };
-            Delta.prototype.eachLine = function(predicate, newline) {
+            Delta2.prototype.eachLine = function(predicate, newline) {
               newline = newline || "\n";
               var iter = op.iterator(this.ops);
-              var line = new Delta();
+              var line = new Delta2();
               var i3 = 0;
               while (iter.hasNext()) {
                 if (iter.peekType() !== "insert")
@@ -20228,21 +25477,21 @@ var require_quill = __commonJS({
                     return;
                   }
                   i3 += 1;
-                  line = new Delta();
+                  line = new Delta2();
                 }
               }
               if (line.length() > 0) {
                 predicate(line, {}, i3);
               }
             };
-            Delta.prototype.transform = function(other, priority) {
+            Delta2.prototype.transform = function(other, priority) {
               priority = !!priority;
               if (typeof other === "number") {
                 return this.transformPosition(other, priority);
               }
               var thisIter = op.iterator(this.ops);
               var otherIter = op.iterator(other.ops);
-              var delta = new Delta();
+              var delta = new Delta2();
               while (thisIter.hasNext() || otherIter.hasNext()) {
                 if (thisIter.peekType() === "insert" && (priority || otherIter.peekType() !== "insert")) {
                   delta.retain(op.length(thisIter.next()));
@@ -20263,7 +25512,7 @@ var require_quill = __commonJS({
               }
               return delta.chop();
             };
-            Delta.prototype.transformPosition = function(index3, priority) {
+            Delta2.prototype.transformPosition = function(index3, priority) {
               priority = !!priority;
               var thisIter = op.iterator(this.ops);
               var offset = 0;
@@ -20281,7 +25530,7 @@ var require_quill = __commonJS({
               }
               return index3;
             };
-            module2.exports = Delta;
+            module2.exports = Delta2;
           },
           /* 3 */
           /***/
@@ -24864,7 +30113,7 @@ var require_quill = __commonJS({
                 }
               }, {
                 key: "remove",
-                value: function remove() {
+                value: function remove2() {
                   _get(Cursor2.prototype.__proto__ || Object.getPrototypeOf(Cursor2.prototype), "remove", this).call(this);
                   this.parent = null;
                 }
@@ -30093,7 +35342,7 @@ var require_quill = __commonJS({
                 }
               }, {
                 key: "remove",
-                value: function remove() {
+                value: function remove2() {
                   if (this.prev == null && this.next == null) {
                     this.parent.remove();
                   } else {
@@ -31373,5252 +36622,2265 @@ var require_quill = __commonJS({
   }
 });
 
-// ../simple-mind-map/node_modules/jszip/dist/jszip.min.js
-var require_jszip_min = __commonJS({
-  "../simple-mind-map/node_modules/jszip/dist/jszip.min.js"(exports, module) {
-    !function(e2) {
-      if ("object" == typeof exports && "undefined" != typeof module)
-        module.exports = e2();
-      else if ("function" == typeof define && define.amd)
-        define([], e2);
-      else {
-        ("undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : this).JSZip = e2();
+// ../simple-mind-map/node_modules/fast-diff/diff.js
+var require_diff = __commonJS({
+  "../simple-mind-map/node_modules/fast-diff/diff.js"(exports, module) {
+    var DIFF_DELETE = -1;
+    var DIFF_INSERT = 1;
+    var DIFF_EQUAL = 0;
+    function diff_main(text1, text22, cursor_pos) {
+      if (text1 == text22) {
+        if (text1) {
+          return [[DIFF_EQUAL, text1]];
+        }
+        return [];
       }
-    }(function() {
-      return function s3(a3, o3, h3) {
-        function u3(r2, e3) {
-          if (!o3[r2]) {
-            if (!a3[r2]) {
-              var t3 = "function" == typeof __require && __require;
-              if (!e3 && t3)
-                return t3(r2, true);
-              if (l3)
-                return l3(r2, true);
-              var n3 = new Error("Cannot find module '" + r2 + "'");
-              throw n3.code = "MODULE_NOT_FOUND", n3;
-            }
-            var i3 = o3[r2] = { exports: {} };
-            a3[r2][0].call(i3.exports, function(e4) {
-              var t4 = a3[r2][1][e4];
-              return u3(t4 || e4);
-            }, i3, i3.exports, s3, a3, o3, h3);
-          }
-          return o3[r2].exports;
-        }
-        for (var l3 = "function" == typeof __require && __require, e2 = 0; e2 < h3.length; e2++)
-          u3(h3[e2]);
-        return u3;
-      }({ 1: [function(e2, t3, r2) {
-        "use strict";
-        var d2 = e2("./utils"), c4 = e2("./support"), p3 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-        r2.encode = function(e3) {
-          for (var t4, r3, n3, i3, s3, a3, o3, h3 = [], u3 = 0, l3 = e3.length, f3 = l3, c5 = "string" !== d2.getTypeOf(e3); u3 < e3.length; )
-            f3 = l3 - u3, n3 = c5 ? (t4 = e3[u3++], r3 = u3 < l3 ? e3[u3++] : 0, u3 < l3 ? e3[u3++] : 0) : (t4 = e3.charCodeAt(u3++), r3 = u3 < l3 ? e3.charCodeAt(u3++) : 0, u3 < l3 ? e3.charCodeAt(u3++) : 0), i3 = t4 >> 2, s3 = (3 & t4) << 4 | r3 >> 4, a3 = 1 < f3 ? (15 & r3) << 2 | n3 >> 6 : 64, o3 = 2 < f3 ? 63 & n3 : 64, h3.push(p3.charAt(i3) + p3.charAt(s3) + p3.charAt(a3) + p3.charAt(o3));
-          return h3.join("");
-        }, r2.decode = function(e3) {
-          var t4, r3, n3, i3, s3, a3, o3 = 0, h3 = 0, u3 = "data:";
-          if (e3.substr(0, u3.length) === u3)
-            throw new Error("Invalid base64 input, it looks like a data url.");
-          var l3, f3 = 3 * (e3 = e3.replace(/[^A-Za-z0-9+/=]/g, "")).length / 4;
-          if (e3.charAt(e3.length - 1) === p3.charAt(64) && f3--, e3.charAt(e3.length - 2) === p3.charAt(64) && f3--, f3 % 1 != 0)
-            throw new Error("Invalid base64 input, bad content length.");
-          for (l3 = c4.uint8array ? new Uint8Array(0 | f3) : new Array(0 | f3); o3 < e3.length; )
-            t4 = p3.indexOf(e3.charAt(o3++)) << 2 | (i3 = p3.indexOf(e3.charAt(o3++))) >> 4, r3 = (15 & i3) << 4 | (s3 = p3.indexOf(e3.charAt(o3++))) >> 2, n3 = (3 & s3) << 6 | (a3 = p3.indexOf(e3.charAt(o3++))), l3[h3++] = t4, 64 !== s3 && (l3[h3++] = r3), 64 !== a3 && (l3[h3++] = n3);
-          return l3;
-        };
-      }, { "./support": 30, "./utils": 32 }], 2: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./external"), i3 = e2("./stream/DataWorker"), s3 = e2("./stream/Crc32Probe"), a3 = e2("./stream/DataLengthProbe");
-        function o3(e3, t4, r3, n4, i4) {
-          this.compressedSize = e3, this.uncompressedSize = t4, this.crc32 = r3, this.compression = n4, this.compressedContent = i4;
-        }
-        o3.prototype = { getContentWorker: function() {
-          var e3 = new i3(n3.Promise.resolve(this.compressedContent)).pipe(this.compression.uncompressWorker()).pipe(new a3("data_length")), t4 = this;
-          return e3.on("end", function() {
-            if (this.streamInfo.data_length !== t4.uncompressedSize)
-              throw new Error("Bug : uncompressed data size mismatch");
-          }), e3;
-        }, getCompressedWorker: function() {
-          return new i3(n3.Promise.resolve(this.compressedContent)).withStreamInfo("compressedSize", this.compressedSize).withStreamInfo("uncompressedSize", this.uncompressedSize).withStreamInfo("crc32", this.crc32).withStreamInfo("compression", this.compression);
-        } }, o3.createWorkerFrom = function(e3, t4, r3) {
-          return e3.pipe(new s3()).pipe(new a3("uncompressedSize")).pipe(t4.compressWorker(r3)).pipe(new a3("compressedSize")).withStreamInfo("compression", t4);
-        }, t3.exports = o3;
-      }, { "./external": 6, "./stream/Crc32Probe": 25, "./stream/DataLengthProbe": 26, "./stream/DataWorker": 27 }], 3: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./stream/GenericWorker");
-        r2.STORE = { magic: "\0\0", compressWorker: function() {
-          return new n3("STORE compression");
-        }, uncompressWorker: function() {
-          return new n3("STORE decompression");
-        } }, r2.DEFLATE = e2("./flate");
-      }, { "./flate": 7, "./stream/GenericWorker": 28 }], 4: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./utils");
-        var o3 = function() {
-          for (var e3, t4 = [], r3 = 0; r3 < 256; r3++) {
-            e3 = r3;
-            for (var n4 = 0; n4 < 8; n4++)
-              e3 = 1 & e3 ? 3988292384 ^ e3 >>> 1 : e3 >>> 1;
-            t4[r3] = e3;
-          }
-          return t4;
-        }();
-        t3.exports = function(e3, t4) {
-          return void 0 !== e3 && e3.length ? "string" !== n3.getTypeOf(e3) ? function(e4, t5, r3, n4) {
-            var i3 = o3, s3 = n4 + r3;
-            e4 ^= -1;
-            for (var a3 = n4; a3 < s3; a3++)
-              e4 = e4 >>> 8 ^ i3[255 & (e4 ^ t5[a3])];
-            return -1 ^ e4;
-          }(0 | t4, e3, e3.length, 0) : function(e4, t5, r3, n4) {
-            var i3 = o3, s3 = n4 + r3;
-            e4 ^= -1;
-            for (var a3 = n4; a3 < s3; a3++)
-              e4 = e4 >>> 8 ^ i3[255 & (e4 ^ t5.charCodeAt(a3))];
-            return -1 ^ e4;
-          }(0 | t4, e3, e3.length, 0) : 0;
-        };
-      }, { "./utils": 32 }], 5: [function(e2, t3, r2) {
-        "use strict";
-        r2.base64 = false, r2.binary = false, r2.dir = false, r2.createFolders = true, r2.date = null, r2.compression = null, r2.compressionOptions = null, r2.comment = null, r2.unixPermissions = null, r2.dosPermissions = null;
-      }, {}], 6: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = null;
-        n3 = "undefined" != typeof Promise ? Promise : e2("lie"), t3.exports = { Promise: n3 };
-      }, { lie: 37 }], 7: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Uint32Array, i3 = e2("pako"), s3 = e2("./utils"), a3 = e2("./stream/GenericWorker"), o3 = n3 ? "uint8array" : "array";
-        function h3(e3, t4) {
-          a3.call(this, "FlateWorker/" + e3), this._pako = null, this._pakoAction = e3, this._pakoOptions = t4, this.meta = {};
-        }
-        r2.magic = "\b\0", s3.inherits(h3, a3), h3.prototype.processChunk = function(e3) {
-          this.meta = e3.meta, null === this._pako && this._createPako(), this._pako.push(s3.transformTo(o3, e3.data), false);
-        }, h3.prototype.flush = function() {
-          a3.prototype.flush.call(this), null === this._pako && this._createPako(), this._pako.push([], true);
-        }, h3.prototype.cleanUp = function() {
-          a3.prototype.cleanUp.call(this), this._pako = null;
-        }, h3.prototype._createPako = function() {
-          this._pako = new i3[this._pakoAction]({ raw: true, level: this._pakoOptions.level || -1 });
-          var t4 = this;
-          this._pako.onData = function(e3) {
-            t4.push({ data: e3, meta: t4.meta });
-          };
-        }, r2.compressWorker = function(e3) {
-          return new h3("Deflate", e3);
-        }, r2.uncompressWorker = function() {
-          return new h3("Inflate", {});
-        };
-      }, { "./stream/GenericWorker": 28, "./utils": 32, pako: 38 }], 8: [function(e2, t3, r2) {
-        "use strict";
-        function A3(e3, t4) {
-          var r3, n4 = "";
-          for (r3 = 0; r3 < t4; r3++)
-            n4 += String.fromCharCode(255 & e3), e3 >>>= 8;
-          return n4;
-        }
-        function n3(e3, t4, r3, n4, i4, s4) {
-          var a3, o3, h3 = e3.file, u3 = e3.compression, l3 = s4 !== O3.utf8encode, f3 = I2.transformTo("string", s4(h3.name)), c4 = I2.transformTo("string", O3.utf8encode(h3.name)), d2 = h3.comment, p3 = I2.transformTo("string", s4(d2)), m4 = I2.transformTo("string", O3.utf8encode(d2)), _3 = c4.length !== h3.name.length, g2 = m4.length !== d2.length, b2 = "", v3 = "", y4 = "", w2 = h3.dir, k2 = h3.date, x3 = { crc32: 0, compressedSize: 0, uncompressedSize: 0 };
-          t4 && !r3 || (x3.crc32 = e3.crc32, x3.compressedSize = e3.compressedSize, x3.uncompressedSize = e3.uncompressedSize);
-          var S2 = 0;
-          t4 && (S2 |= 8), l3 || !_3 && !g2 || (S2 |= 2048);
-          var z2 = 0, C2 = 0;
-          w2 && (z2 |= 16), "UNIX" === i4 ? (C2 = 798, z2 |= function(e4, t5) {
-            var r4 = e4;
-            return e4 || (r4 = t5 ? 16893 : 33204), (65535 & r4) << 16;
-          }(h3.unixPermissions, w2)) : (C2 = 20, z2 |= function(e4) {
-            return 63 & (e4 || 0);
-          }(h3.dosPermissions)), a3 = k2.getUTCHours(), a3 <<= 6, a3 |= k2.getUTCMinutes(), a3 <<= 5, a3 |= k2.getUTCSeconds() / 2, o3 = k2.getUTCFullYear() - 1980, o3 <<= 4, o3 |= k2.getUTCMonth() + 1, o3 <<= 5, o3 |= k2.getUTCDate(), _3 && (v3 = A3(1, 1) + A3(B2(f3), 4) + c4, b2 += "up" + A3(v3.length, 2) + v3), g2 && (y4 = A3(1, 1) + A3(B2(p3), 4) + m4, b2 += "uc" + A3(y4.length, 2) + y4);
-          var E2 = "";
-          return E2 += "\n\0", E2 += A3(S2, 2), E2 += u3.magic, E2 += A3(a3, 2), E2 += A3(o3, 2), E2 += A3(x3.crc32, 4), E2 += A3(x3.compressedSize, 4), E2 += A3(x3.uncompressedSize, 4), E2 += A3(f3.length, 2), E2 += A3(b2.length, 2), { fileRecord: R2.LOCAL_FILE_HEADER + E2 + f3 + b2, dirRecord: R2.CENTRAL_FILE_HEADER + A3(C2, 2) + E2 + A3(p3.length, 2) + "\0\0\0\0" + A3(z2, 4) + A3(n4, 4) + f3 + b2 + p3 };
-        }
-        var I2 = e2("../utils"), i3 = e2("../stream/GenericWorker"), O3 = e2("../utf8"), B2 = e2("../crc32"), R2 = e2("../signature");
-        function s3(e3, t4, r3, n4) {
-          i3.call(this, "ZipFileWorker"), this.bytesWritten = 0, this.zipComment = t4, this.zipPlatform = r3, this.encodeFileName = n4, this.streamFiles = e3, this.accumulate = false, this.contentBuffer = [], this.dirRecords = [], this.currentSourceOffset = 0, this.entriesCount = 0, this.currentFile = null, this._sources = [];
-        }
-        I2.inherits(s3, i3), s3.prototype.push = function(e3) {
-          var t4 = e3.meta.percent || 0, r3 = this.entriesCount, n4 = this._sources.length;
-          this.accumulate ? this.contentBuffer.push(e3) : (this.bytesWritten += e3.data.length, i3.prototype.push.call(this, { data: e3.data, meta: { currentFile: this.currentFile, percent: r3 ? (t4 + 100 * (r3 - n4 - 1)) / r3 : 100 } }));
-        }, s3.prototype.openedSource = function(e3) {
-          this.currentSourceOffset = this.bytesWritten, this.currentFile = e3.file.name;
-          var t4 = this.streamFiles && !e3.file.dir;
-          if (t4) {
-            var r3 = n3(e3, t4, false, this.currentSourceOffset, this.zipPlatform, this.encodeFileName);
-            this.push({ data: r3.fileRecord, meta: { percent: 0 } });
-          } else
-            this.accumulate = true;
-        }, s3.prototype.closedSource = function(e3) {
-          this.accumulate = false;
-          var t4 = this.streamFiles && !e3.file.dir, r3 = n3(e3, t4, true, this.currentSourceOffset, this.zipPlatform, this.encodeFileName);
-          if (this.dirRecords.push(r3.dirRecord), t4)
-            this.push({ data: function(e4) {
-              return R2.DATA_DESCRIPTOR + A3(e4.crc32, 4) + A3(e4.compressedSize, 4) + A3(e4.uncompressedSize, 4);
-            }(e3), meta: { percent: 100 } });
-          else
-            for (this.push({ data: r3.fileRecord, meta: { percent: 0 } }); this.contentBuffer.length; )
-              this.push(this.contentBuffer.shift());
-          this.currentFile = null;
-        }, s3.prototype.flush = function() {
-          for (var e3 = this.bytesWritten, t4 = 0; t4 < this.dirRecords.length; t4++)
-            this.push({ data: this.dirRecords[t4], meta: { percent: 100 } });
-          var r3 = this.bytesWritten - e3, n4 = function(e4, t5, r4, n5, i4) {
-            var s4 = I2.transformTo("string", i4(n5));
-            return R2.CENTRAL_DIRECTORY_END + "\0\0\0\0" + A3(e4, 2) + A3(e4, 2) + A3(t5, 4) + A3(r4, 4) + A3(s4.length, 2) + s4;
-          }(this.dirRecords.length, r3, e3, this.zipComment, this.encodeFileName);
-          this.push({ data: n4, meta: { percent: 100 } });
-        }, s3.prototype.prepareNextSource = function() {
-          this.previous = this._sources.shift(), this.openedSource(this.previous.streamInfo), this.isPaused ? this.previous.pause() : this.previous.resume();
-        }, s3.prototype.registerPrevious = function(e3) {
-          this._sources.push(e3);
-          var t4 = this;
-          return e3.on("data", function(e4) {
-            t4.processChunk(e4);
-          }), e3.on("end", function() {
-            t4.closedSource(t4.previous.streamInfo), t4._sources.length ? t4.prepareNextSource() : t4.end();
-          }), e3.on("error", function(e4) {
-            t4.error(e4);
-          }), this;
-        }, s3.prototype.resume = function() {
-          return !!i3.prototype.resume.call(this) && (!this.previous && this._sources.length ? (this.prepareNextSource(), true) : this.previous || this._sources.length || this.generatedError ? void 0 : (this.end(), true));
-        }, s3.prototype.error = function(e3) {
-          var t4 = this._sources;
-          if (!i3.prototype.error.call(this, e3))
-            return false;
-          for (var r3 = 0; r3 < t4.length; r3++)
-            try {
-              t4[r3].error(e3);
-            } catch (e4) {
-            }
-          return true;
-        }, s3.prototype.lock = function() {
-          i3.prototype.lock.call(this);
-          for (var e3 = this._sources, t4 = 0; t4 < e3.length; t4++)
-            e3[t4].lock();
-        }, t3.exports = s3;
-      }, { "../crc32": 4, "../signature": 23, "../stream/GenericWorker": 28, "../utf8": 31, "../utils": 32 }], 9: [function(e2, t3, r2) {
-        "use strict";
-        var u3 = e2("../compressions"), n3 = e2("./ZipFileWorker");
-        r2.generateWorker = function(e3, a3, t4) {
-          var o3 = new n3(a3.streamFiles, t4, a3.platform, a3.encodeFileName), h3 = 0;
-          try {
-            e3.forEach(function(e4, t5) {
-              h3++;
-              var r3 = function(e5, t6) {
-                var r4 = e5 || t6, n5 = u3[r4];
-                if (!n5)
-                  throw new Error(r4 + " is not a valid compression method !");
-                return n5;
-              }(t5.options.compression, a3.compression), n4 = t5.options.compressionOptions || a3.compressionOptions || {}, i3 = t5.dir, s3 = t5.date;
-              t5._compressWorker(r3, n4).withStreamInfo("file", { name: e4, dir: i3, date: s3, comment: t5.comment || "", unixPermissions: t5.unixPermissions, dosPermissions: t5.dosPermissions }).pipe(o3);
-            }), o3.entriesCount = h3;
-          } catch (e4) {
-            o3.error(e4);
-          }
-          return o3;
-        };
-      }, { "../compressions": 3, "./ZipFileWorker": 8 }], 10: [function(e2, t3, r2) {
-        "use strict";
-        function n3() {
-          if (!(this instanceof n3))
-            return new n3();
-          if (arguments.length)
-            throw new Error("The constructor with parameters has been removed in JSZip 3.0, please check the upgrade guide.");
-          this.files = /* @__PURE__ */ Object.create(null), this.comment = null, this.root = "", this.clone = function() {
-            var e3 = new n3();
-            for (var t4 in this)
-              "function" != typeof this[t4] && (e3[t4] = this[t4]);
-            return e3;
-          };
-        }
-        (n3.prototype = e2("./object")).loadAsync = e2("./load"), n3.support = e2("./support"), n3.defaults = e2("./defaults"), n3.version = "3.10.1", n3.loadAsync = function(e3, t4) {
-          return new n3().loadAsync(e3, t4);
-        }, n3.external = e2("./external"), t3.exports = n3;
-      }, { "./defaults": 5, "./external": 6, "./load": 11, "./object": 15, "./support": 30 }], 11: [function(e2, t3, r2) {
-        "use strict";
-        var u3 = e2("./utils"), i3 = e2("./external"), n3 = e2("./utf8"), s3 = e2("./zipEntries"), a3 = e2("./stream/Crc32Probe"), l3 = e2("./nodejsUtils");
-        function f3(n4) {
-          return new i3.Promise(function(e3, t4) {
-            var r3 = n4.decompressed.getContentWorker().pipe(new a3());
-            r3.on("error", function(e4) {
-              t4(e4);
-            }).on("end", function() {
-              r3.streamInfo.crc32 !== n4.decompressed.crc32 ? t4(new Error("Corrupted zip : CRC32 mismatch")) : e3();
-            }).resume();
-          });
-        }
-        t3.exports = function(e3, o3) {
-          var h3 = this;
-          return o3 = u3.extend(o3 || {}, { base64: false, checkCRC32: false, optimizedBinaryString: false, createFolders: false, decodeFileName: n3.utf8decode }), l3.isNode && l3.isStream(e3) ? i3.Promise.reject(new Error("JSZip can't accept a stream when loading a zip file.")) : u3.prepareContent("the loaded zip file", e3, true, o3.optimizedBinaryString, o3.base64).then(function(e4) {
-            var t4 = new s3(o3);
-            return t4.load(e4), t4;
-          }).then(function(e4) {
-            var t4 = [i3.Promise.resolve(e4)], r3 = e4.files;
-            if (o3.checkCRC32)
-              for (var n4 = 0; n4 < r3.length; n4++)
-                t4.push(f3(r3[n4]));
-            return i3.Promise.all(t4);
-          }).then(function(e4) {
-            for (var t4 = e4.shift(), r3 = t4.files, n4 = 0; n4 < r3.length; n4++) {
-              var i4 = r3[n4], s4 = i4.fileNameStr, a4 = u3.resolve(i4.fileNameStr);
-              h3.file(a4, i4.decompressed, { binary: true, optimizedBinaryString: true, date: i4.date, dir: i4.dir, comment: i4.fileCommentStr.length ? i4.fileCommentStr : null, unixPermissions: i4.unixPermissions, dosPermissions: i4.dosPermissions, createFolders: o3.createFolders }), i4.dir || (h3.file(a4).unsafeOriginalName = s4);
-            }
-            return t4.zipComment.length && (h3.comment = t4.zipComment), h3;
-          });
-        };
-      }, { "./external": 6, "./nodejsUtils": 14, "./stream/Crc32Probe": 25, "./utf8": 31, "./utils": 32, "./zipEntries": 33 }], 12: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("../utils"), i3 = e2("../stream/GenericWorker");
-        function s3(e3, t4) {
-          i3.call(this, "Nodejs stream input adapter for " + e3), this._upstreamEnded = false, this._bindStream(t4);
-        }
-        n3.inherits(s3, i3), s3.prototype._bindStream = function(e3) {
-          var t4 = this;
-          (this._stream = e3).pause(), e3.on("data", function(e4) {
-            t4.push({ data: e4, meta: { percent: 0 } });
-          }).on("error", function(e4) {
-            t4.isPaused ? this.generatedError = e4 : t4.error(e4);
-          }).on("end", function() {
-            t4.isPaused ? t4._upstreamEnded = true : t4.end();
-          });
-        }, s3.prototype.pause = function() {
-          return !!i3.prototype.pause.call(this) && (this._stream.pause(), true);
-        }, s3.prototype.resume = function() {
-          return !!i3.prototype.resume.call(this) && (this._upstreamEnded ? this.end() : this._stream.resume(), true);
-        }, t3.exports = s3;
-      }, { "../stream/GenericWorker": 28, "../utils": 32 }], 13: [function(e2, t3, r2) {
-        "use strict";
-        var i3 = e2("readable-stream").Readable;
-        function n3(e3, t4, r3) {
-          i3.call(this, t4), this._helper = e3;
-          var n4 = this;
-          e3.on("data", function(e4, t5) {
-            n4.push(e4) || n4._helper.pause(), r3 && r3(t5);
-          }).on("error", function(e4) {
-            n4.emit("error", e4);
-          }).on("end", function() {
-            n4.push(null);
-          });
-        }
-        e2("../utils").inherits(n3, i3), n3.prototype._read = function() {
-          this._helper.resume();
-        }, t3.exports = n3;
-      }, { "../utils": 32, "readable-stream": 16 }], 14: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = { isNode: "undefined" != typeof Buffer, newBufferFrom: function(e3, t4) {
-          if (Buffer.from && Buffer.from !== Uint8Array.from)
-            return Buffer.from(e3, t4);
-          if ("number" == typeof e3)
-            throw new Error('The "data" argument must not be a number');
-          return new Buffer(e3, t4);
-        }, allocBuffer: function(e3) {
-          if (Buffer.alloc)
-            return Buffer.alloc(e3);
-          var t4 = new Buffer(e3);
-          return t4.fill(0), t4;
-        }, isBuffer: function(e3) {
-          return Buffer.isBuffer(e3);
-        }, isStream: function(e3) {
-          return e3 && "function" == typeof e3.on && "function" == typeof e3.pause && "function" == typeof e3.resume;
-        } };
-      }, {}], 15: [function(e2, t3, r2) {
-        "use strict";
-        function s3(e3, t4, r3) {
-          var n4, i4 = u3.getTypeOf(t4), s4 = u3.extend(r3 || {}, f3);
-          s4.date = s4.date || /* @__PURE__ */ new Date(), null !== s4.compression && (s4.compression = s4.compression.toUpperCase()), "string" == typeof s4.unixPermissions && (s4.unixPermissions = parseInt(s4.unixPermissions, 8)), s4.unixPermissions && 16384 & s4.unixPermissions && (s4.dir = true), s4.dosPermissions && 16 & s4.dosPermissions && (s4.dir = true), s4.dir && (e3 = g2(e3)), s4.createFolders && (n4 = _3(e3)) && b2.call(this, n4, true);
-          var a4 = "string" === i4 && false === s4.binary && false === s4.base64;
-          r3 && void 0 !== r3.binary || (s4.binary = !a4), (t4 instanceof c4 && 0 === t4.uncompressedSize || s4.dir || !t4 || 0 === t4.length) && (s4.base64 = false, s4.binary = true, t4 = "", s4.compression = "STORE", i4 = "string");
-          var o4 = null;
-          o4 = t4 instanceof c4 || t4 instanceof l3 ? t4 : p3.isNode && p3.isStream(t4) ? new m4(e3, t4) : u3.prepareContent(e3, t4, s4.binary, s4.optimizedBinaryString, s4.base64);
-          var h4 = new d2(e3, o4, s4);
-          this.files[e3] = h4;
-        }
-        var i3 = e2("./utf8"), u3 = e2("./utils"), l3 = e2("./stream/GenericWorker"), a3 = e2("./stream/StreamHelper"), f3 = e2("./defaults"), c4 = e2("./compressedObject"), d2 = e2("./zipObject"), o3 = e2("./generate"), p3 = e2("./nodejsUtils"), m4 = e2("./nodejs/NodejsStreamInputAdapter"), _3 = function(e3) {
-          "/" === e3.slice(-1) && (e3 = e3.substring(0, e3.length - 1));
-          var t4 = e3.lastIndexOf("/");
-          return 0 < t4 ? e3.substring(0, t4) : "";
-        }, g2 = function(e3) {
-          return "/" !== e3.slice(-1) && (e3 += "/"), e3;
-        }, b2 = function(e3, t4) {
-          return t4 = void 0 !== t4 ? t4 : f3.createFolders, e3 = g2(e3), this.files[e3] || s3.call(this, e3, null, { dir: true, createFolders: t4 }), this.files[e3];
-        };
-        function h3(e3) {
-          return "[object RegExp]" === Object.prototype.toString.call(e3);
-        }
-        var n3 = { load: function() {
-          throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
-        }, forEach: function(e3) {
-          var t4, r3, n4;
-          for (t4 in this.files)
-            n4 = this.files[t4], (r3 = t4.slice(this.root.length, t4.length)) && t4.slice(0, this.root.length) === this.root && e3(r3, n4);
-        }, filter: function(r3) {
-          var n4 = [];
-          return this.forEach(function(e3, t4) {
-            r3(e3, t4) && n4.push(t4);
-          }), n4;
-        }, file: function(e3, t4, r3) {
-          if (1 !== arguments.length)
-            return e3 = this.root + e3, s3.call(this, e3, t4, r3), this;
-          if (h3(e3)) {
-            var n4 = e3;
-            return this.filter(function(e4, t5) {
-              return !t5.dir && n4.test(e4);
-            });
-          }
-          var i4 = this.files[this.root + e3];
-          return i4 && !i4.dir ? i4 : null;
-        }, folder: function(r3) {
-          if (!r3)
-            return this;
-          if (h3(r3))
-            return this.filter(function(e4, t5) {
-              return t5.dir && r3.test(e4);
-            });
-          var e3 = this.root + r3, t4 = b2.call(this, e3), n4 = this.clone();
-          return n4.root = t4.name, n4;
-        }, remove: function(r3) {
-          r3 = this.root + r3;
-          var e3 = this.files[r3];
-          if (e3 || ("/" !== r3.slice(-1) && (r3 += "/"), e3 = this.files[r3]), e3 && !e3.dir)
-            delete this.files[r3];
-          else
-            for (var t4 = this.filter(function(e4, t5) {
-              return t5.name.slice(0, r3.length) === r3;
-            }), n4 = 0; n4 < t4.length; n4++)
-              delete this.files[t4[n4].name];
-          return this;
-        }, generate: function() {
-          throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
-        }, generateInternalStream: function(e3) {
-          var t4, r3 = {};
-          try {
-            if ((r3 = u3.extend(e3 || {}, { streamFiles: false, compression: "STORE", compressionOptions: null, type: "", platform: "DOS", comment: null, mimeType: "application/zip", encodeFileName: i3.utf8encode })).type = r3.type.toLowerCase(), r3.compression = r3.compression.toUpperCase(), "binarystring" === r3.type && (r3.type = "string"), !r3.type)
-              throw new Error("No output type specified.");
-            u3.checkSupport(r3.type), "darwin" !== r3.platform && "freebsd" !== r3.platform && "linux" !== r3.platform && "sunos" !== r3.platform || (r3.platform = "UNIX"), "win32" === r3.platform && (r3.platform = "DOS");
-            var n4 = r3.comment || this.comment || "";
-            t4 = o3.generateWorker(this, r3, n4);
-          } catch (e4) {
-            (t4 = new l3("error")).error(e4);
-          }
-          return new a3(t4, r3.type || "string", r3.mimeType);
-        }, generateAsync: function(e3, t4) {
-          return this.generateInternalStream(e3).accumulate(t4);
-        }, generateNodeStream: function(e3, t4) {
-          return (e3 = e3 || {}).type || (e3.type = "nodebuffer"), this.generateInternalStream(e3).toNodejsStream(t4);
-        } };
-        t3.exports = n3;
-      }, { "./compressedObject": 2, "./defaults": 5, "./generate": 9, "./nodejs/NodejsStreamInputAdapter": 12, "./nodejsUtils": 14, "./stream/GenericWorker": 28, "./stream/StreamHelper": 29, "./utf8": 31, "./utils": 32, "./zipObject": 35 }], 16: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = e2("stream");
-      }, { stream: void 0 }], 17: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./DataReader");
-        function i3(e3) {
-          n3.call(this, e3);
-          for (var t4 = 0; t4 < this.data.length; t4++)
-            e3[t4] = 255 & e3[t4];
-        }
-        e2("../utils").inherits(i3, n3), i3.prototype.byteAt = function(e3) {
-          return this.data[this.zero + e3];
-        }, i3.prototype.lastIndexOfSignature = function(e3) {
-          for (var t4 = e3.charCodeAt(0), r3 = e3.charCodeAt(1), n4 = e3.charCodeAt(2), i4 = e3.charCodeAt(3), s3 = this.length - 4; 0 <= s3; --s3)
-            if (this.data[s3] === t4 && this.data[s3 + 1] === r3 && this.data[s3 + 2] === n4 && this.data[s3 + 3] === i4)
-              return s3 - this.zero;
-          return -1;
-        }, i3.prototype.readAndCheckSignature = function(e3) {
-          var t4 = e3.charCodeAt(0), r3 = e3.charCodeAt(1), n4 = e3.charCodeAt(2), i4 = e3.charCodeAt(3), s3 = this.readData(4);
-          return t4 === s3[0] && r3 === s3[1] && n4 === s3[2] && i4 === s3[3];
-        }, i3.prototype.readData = function(e3) {
-          if (this.checkOffset(e3), 0 === e3)
-            return [];
-          var t4 = this.data.slice(this.zero + this.index, this.zero + this.index + e3);
-          return this.index += e3, t4;
-        }, t3.exports = i3;
-      }, { "../utils": 32, "./DataReader": 18 }], 18: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("../utils");
-        function i3(e3) {
-          this.data = e3, this.length = e3.length, this.index = 0, this.zero = 0;
-        }
-        i3.prototype = { checkOffset: function(e3) {
-          this.checkIndex(this.index + e3);
-        }, checkIndex: function(e3) {
-          if (this.length < this.zero + e3 || e3 < 0)
-            throw new Error("End of data reached (data length = " + this.length + ", asked index = " + e3 + "). Corrupted zip ?");
-        }, setIndex: function(e3) {
-          this.checkIndex(e3), this.index = e3;
-        }, skip: function(e3) {
-          this.setIndex(this.index + e3);
-        }, byteAt: function() {
-        }, readInt: function(e3) {
-          var t4, r3 = 0;
-          for (this.checkOffset(e3), t4 = this.index + e3 - 1; t4 >= this.index; t4--)
-            r3 = (r3 << 8) + this.byteAt(t4);
-          return this.index += e3, r3;
-        }, readString: function(e3) {
-          return n3.transformTo("string", this.readData(e3));
-        }, readData: function() {
-        }, lastIndexOfSignature: function() {
-        }, readAndCheckSignature: function() {
-        }, readDate: function() {
-          var e3 = this.readInt(4);
-          return new Date(Date.UTC(1980 + (e3 >> 25 & 127), (e3 >> 21 & 15) - 1, e3 >> 16 & 31, e3 >> 11 & 31, e3 >> 5 & 63, (31 & e3) << 1));
-        } }, t3.exports = i3;
-      }, { "../utils": 32 }], 19: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./Uint8ArrayReader");
-        function i3(e3) {
-          n3.call(this, e3);
-        }
-        e2("../utils").inherits(i3, n3), i3.prototype.readData = function(e3) {
-          this.checkOffset(e3);
-          var t4 = this.data.slice(this.zero + this.index, this.zero + this.index + e3);
-          return this.index += e3, t4;
-        }, t3.exports = i3;
-      }, { "../utils": 32, "./Uint8ArrayReader": 21 }], 20: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./DataReader");
-        function i3(e3) {
-          n3.call(this, e3);
-        }
-        e2("../utils").inherits(i3, n3), i3.prototype.byteAt = function(e3) {
-          return this.data.charCodeAt(this.zero + e3);
-        }, i3.prototype.lastIndexOfSignature = function(e3) {
-          return this.data.lastIndexOf(e3) - this.zero;
-        }, i3.prototype.readAndCheckSignature = function(e3) {
-          return e3 === this.readData(4);
-        }, i3.prototype.readData = function(e3) {
-          this.checkOffset(e3);
-          var t4 = this.data.slice(this.zero + this.index, this.zero + this.index + e3);
-          return this.index += e3, t4;
-        }, t3.exports = i3;
-      }, { "../utils": 32, "./DataReader": 18 }], 21: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./ArrayReader");
-        function i3(e3) {
-          n3.call(this, e3);
-        }
-        e2("../utils").inherits(i3, n3), i3.prototype.readData = function(e3) {
-          if (this.checkOffset(e3), 0 === e3)
-            return new Uint8Array(0);
-          var t4 = this.data.subarray(this.zero + this.index, this.zero + this.index + e3);
-          return this.index += e3, t4;
-        }, t3.exports = i3;
-      }, { "../utils": 32, "./ArrayReader": 17 }], 22: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("../utils"), i3 = e2("../support"), s3 = e2("./ArrayReader"), a3 = e2("./StringReader"), o3 = e2("./NodeBufferReader"), h3 = e2("./Uint8ArrayReader");
-        t3.exports = function(e3) {
-          var t4 = n3.getTypeOf(e3);
-          return n3.checkSupport(t4), "string" !== t4 || i3.uint8array ? "nodebuffer" === t4 ? new o3(e3) : i3.uint8array ? new h3(n3.transformTo("uint8array", e3)) : new s3(n3.transformTo("array", e3)) : new a3(e3);
-        };
-      }, { "../support": 30, "../utils": 32, "./ArrayReader": 17, "./NodeBufferReader": 19, "./StringReader": 20, "./Uint8ArrayReader": 21 }], 23: [function(e2, t3, r2) {
-        "use strict";
-        r2.LOCAL_FILE_HEADER = "PK", r2.CENTRAL_FILE_HEADER = "PK", r2.CENTRAL_DIRECTORY_END = "PK", r2.ZIP64_CENTRAL_DIRECTORY_LOCATOR = "PK\x07", r2.ZIP64_CENTRAL_DIRECTORY_END = "PK", r2.DATA_DESCRIPTOR = "PK\x07\b";
-      }, {}], 24: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./GenericWorker"), i3 = e2("../utils");
-        function s3(e3) {
-          n3.call(this, "ConvertWorker to " + e3), this.destType = e3;
-        }
-        i3.inherits(s3, n3), s3.prototype.processChunk = function(e3) {
-          this.push({ data: i3.transformTo(this.destType, e3.data), meta: e3.meta });
-        }, t3.exports = s3;
-      }, { "../utils": 32, "./GenericWorker": 28 }], 25: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./GenericWorker"), i3 = e2("../crc32");
-        function s3() {
-          n3.call(this, "Crc32Probe"), this.withStreamInfo("crc32", 0);
-        }
-        e2("../utils").inherits(s3, n3), s3.prototype.processChunk = function(e3) {
-          this.streamInfo.crc32 = i3(e3.data, this.streamInfo.crc32 || 0), this.push(e3);
-        }, t3.exports = s3;
-      }, { "../crc32": 4, "../utils": 32, "./GenericWorker": 28 }], 26: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("../utils"), i3 = e2("./GenericWorker");
-        function s3(e3) {
-          i3.call(this, "DataLengthProbe for " + e3), this.propName = e3, this.withStreamInfo(e3, 0);
-        }
-        n3.inherits(s3, i3), s3.prototype.processChunk = function(e3) {
-          if (e3) {
-            var t4 = this.streamInfo[this.propName] || 0;
-            this.streamInfo[this.propName] = t4 + e3.data.length;
-          }
-          i3.prototype.processChunk.call(this, e3);
-        }, t3.exports = s3;
-      }, { "../utils": 32, "./GenericWorker": 28 }], 27: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("../utils"), i3 = e2("./GenericWorker");
-        function s3(e3) {
-          i3.call(this, "DataWorker");
-          var t4 = this;
-          this.dataIsReady = false, this.index = 0, this.max = 0, this.data = null, this.type = "", this._tickScheduled = false, e3.then(function(e4) {
-            t4.dataIsReady = true, t4.data = e4, t4.max = e4 && e4.length || 0, t4.type = n3.getTypeOf(e4), t4.isPaused || t4._tickAndRepeat();
-          }, function(e4) {
-            t4.error(e4);
-          });
-        }
-        n3.inherits(s3, i3), s3.prototype.cleanUp = function() {
-          i3.prototype.cleanUp.call(this), this.data = null;
-        }, s3.prototype.resume = function() {
-          return !!i3.prototype.resume.call(this) && (!this._tickScheduled && this.dataIsReady && (this._tickScheduled = true, n3.delay(this._tickAndRepeat, [], this)), true);
-        }, s3.prototype._tickAndRepeat = function() {
-          this._tickScheduled = false, this.isPaused || this.isFinished || (this._tick(), this.isFinished || (n3.delay(this._tickAndRepeat, [], this), this._tickScheduled = true));
-        }, s3.prototype._tick = function() {
-          if (this.isPaused || this.isFinished)
-            return false;
-          var e3 = null, t4 = Math.min(this.max, this.index + 16384);
-          if (this.index >= this.max)
-            return this.end();
-          switch (this.type) {
-            case "string":
-              e3 = this.data.substring(this.index, t4);
-              break;
-            case "uint8array":
-              e3 = this.data.subarray(this.index, t4);
-              break;
-            case "array":
-            case "nodebuffer":
-              e3 = this.data.slice(this.index, t4);
-          }
-          return this.index = t4, this.push({ data: e3, meta: { percent: this.max ? this.index / this.max * 100 : 0 } });
-        }, t3.exports = s3;
-      }, { "../utils": 32, "./GenericWorker": 28 }], 28: [function(e2, t3, r2) {
-        "use strict";
-        function n3(e3) {
-          this.name = e3 || "default", this.streamInfo = {}, this.generatedError = null, this.extraStreamInfo = {}, this.isPaused = true, this.isFinished = false, this.isLocked = false, this._listeners = { data: [], end: [], error: [] }, this.previous = null;
-        }
-        n3.prototype = { push: function(e3) {
-          this.emit("data", e3);
-        }, end: function() {
-          if (this.isFinished)
-            return false;
-          this.flush();
-          try {
-            this.emit("end"), this.cleanUp(), this.isFinished = true;
-          } catch (e3) {
-            this.emit("error", e3);
-          }
-          return true;
-        }, error: function(e3) {
-          return !this.isFinished && (this.isPaused ? this.generatedError = e3 : (this.isFinished = true, this.emit("error", e3), this.previous && this.previous.error(e3), this.cleanUp()), true);
-        }, on: function(e3, t4) {
-          return this._listeners[e3].push(t4), this;
-        }, cleanUp: function() {
-          this.streamInfo = this.generatedError = this.extraStreamInfo = null, this._listeners = [];
-        }, emit: function(e3, t4) {
-          if (this._listeners[e3])
-            for (var r3 = 0; r3 < this._listeners[e3].length; r3++)
-              this._listeners[e3][r3].call(this, t4);
-        }, pipe: function(e3) {
-          return e3.registerPrevious(this);
-        }, registerPrevious: function(e3) {
-          if (this.isLocked)
-            throw new Error("The stream '" + this + "' has already been used.");
-          this.streamInfo = e3.streamInfo, this.mergeStreamInfo(), this.previous = e3;
-          var t4 = this;
-          return e3.on("data", function(e4) {
-            t4.processChunk(e4);
-          }), e3.on("end", function() {
-            t4.end();
-          }), e3.on("error", function(e4) {
-            t4.error(e4);
-          }), this;
-        }, pause: function() {
-          return !this.isPaused && !this.isFinished && (this.isPaused = true, this.previous && this.previous.pause(), true);
-        }, resume: function() {
-          if (!this.isPaused || this.isFinished)
-            return false;
-          var e3 = this.isPaused = false;
-          return this.generatedError && (this.error(this.generatedError), e3 = true), this.previous && this.previous.resume(), !e3;
-        }, flush: function() {
-        }, processChunk: function(e3) {
-          this.push(e3);
-        }, withStreamInfo: function(e3, t4) {
-          return this.extraStreamInfo[e3] = t4, this.mergeStreamInfo(), this;
-        }, mergeStreamInfo: function() {
-          for (var e3 in this.extraStreamInfo)
-            Object.prototype.hasOwnProperty.call(this.extraStreamInfo, e3) && (this.streamInfo[e3] = this.extraStreamInfo[e3]);
-        }, lock: function() {
-          if (this.isLocked)
-            throw new Error("The stream '" + this + "' has already been used.");
-          this.isLocked = true, this.previous && this.previous.lock();
-        }, toString: function() {
-          var e3 = "Worker " + this.name;
-          return this.previous ? this.previous + " -> " + e3 : e3;
-        } }, t3.exports = n3;
-      }, {}], 29: [function(e2, t3, r2) {
-        "use strict";
-        var h3 = e2("../utils"), i3 = e2("./ConvertWorker"), s3 = e2("./GenericWorker"), u3 = e2("../base64"), n3 = e2("../support"), a3 = e2("../external"), o3 = null;
-        if (n3.nodestream)
-          try {
-            o3 = e2("../nodejs/NodejsStreamOutputAdapter");
-          } catch (e3) {
-          }
-        function l3(e3, o4) {
-          return new a3.Promise(function(t4, r3) {
-            var n4 = [], i4 = e3._internalType, s4 = e3._outputType, a4 = e3._mimeType;
-            e3.on("data", function(e4, t5) {
-              n4.push(e4), o4 && o4(t5);
-            }).on("error", function(e4) {
-              n4 = [], r3(e4);
-            }).on("end", function() {
-              try {
-                var e4 = function(e5, t5, r4) {
-                  switch (e5) {
-                    case "blob":
-                      return h3.newBlob(h3.transformTo("arraybuffer", t5), r4);
-                    case "base64":
-                      return u3.encode(t5);
-                    default:
-                      return h3.transformTo(e5, t5);
-                  }
-                }(s4, function(e5, t5) {
-                  var r4, n5 = 0, i5 = null, s5 = 0;
-                  for (r4 = 0; r4 < t5.length; r4++)
-                    s5 += t5[r4].length;
-                  switch (e5) {
-                    case "string":
-                      return t5.join("");
-                    case "array":
-                      return Array.prototype.concat.apply([], t5);
-                    case "uint8array":
-                      for (i5 = new Uint8Array(s5), r4 = 0; r4 < t5.length; r4++)
-                        i5.set(t5[r4], n5), n5 += t5[r4].length;
-                      return i5;
-                    case "nodebuffer":
-                      return Buffer.concat(t5);
-                    default:
-                      throw new Error("concat : unsupported type '" + e5 + "'");
-                  }
-                }(i4, n4), a4);
-                t4(e4);
-              } catch (e5) {
-                r3(e5);
-              }
-              n4 = [];
-            }).resume();
-          });
-        }
-        function f3(e3, t4, r3) {
-          var n4 = t4;
-          switch (t4) {
-            case "blob":
-            case "arraybuffer":
-              n4 = "uint8array";
-              break;
-            case "base64":
-              n4 = "string";
-          }
-          try {
-            this._internalType = n4, this._outputType = t4, this._mimeType = r3, h3.checkSupport(n4), this._worker = e3.pipe(new i3(n4)), e3.lock();
-          } catch (e4) {
-            this._worker = new s3("error"), this._worker.error(e4);
-          }
-        }
-        f3.prototype = { accumulate: function(e3) {
-          return l3(this, e3);
-        }, on: function(e3, t4) {
-          var r3 = this;
-          return "data" === e3 ? this._worker.on(e3, function(e4) {
-            t4.call(r3, e4.data, e4.meta);
-          }) : this._worker.on(e3, function() {
-            h3.delay(t4, arguments, r3);
-          }), this;
-        }, resume: function() {
-          return h3.delay(this._worker.resume, [], this._worker), this;
-        }, pause: function() {
-          return this._worker.pause(), this;
-        }, toNodejsStream: function(e3) {
-          if (h3.checkSupport("nodestream"), "nodebuffer" !== this._outputType)
-            throw new Error(this._outputType + " is not supported by this method");
-          return new o3(this, { objectMode: "nodebuffer" !== this._outputType }, e3);
-        } }, t3.exports = f3;
-      }, { "../base64": 1, "../external": 6, "../nodejs/NodejsStreamOutputAdapter": 13, "../support": 30, "../utils": 32, "./ConvertWorker": 24, "./GenericWorker": 28 }], 30: [function(e2, t3, r2) {
-        "use strict";
-        if (r2.base64 = true, r2.array = true, r2.string = true, r2.arraybuffer = "undefined" != typeof ArrayBuffer && "undefined" != typeof Uint8Array, r2.nodebuffer = "undefined" != typeof Buffer, r2.uint8array = "undefined" != typeof Uint8Array, "undefined" == typeof ArrayBuffer)
-          r2.blob = false;
-        else {
-          var n3 = new ArrayBuffer(0);
-          try {
-            r2.blob = 0 === new Blob([n3], { type: "application/zip" }).size;
-          } catch (e3) {
-            try {
-              var i3 = new (self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder || self.MSBlobBuilder)();
-              i3.append(n3), r2.blob = 0 === i3.getBlob("application/zip").size;
-            } catch (e4) {
-              r2.blob = false;
-            }
-          }
-        }
-        try {
-          r2.nodestream = !!e2("readable-stream").Readable;
-        } catch (e3) {
-          r2.nodestream = false;
-        }
-      }, { "readable-stream": 16 }], 31: [function(e2, t3, s3) {
-        "use strict";
-        for (var o3 = e2("./utils"), h3 = e2("./support"), r2 = e2("./nodejsUtils"), n3 = e2("./stream/GenericWorker"), u3 = new Array(256), i3 = 0; i3 < 256; i3++)
-          u3[i3] = 252 <= i3 ? 6 : 248 <= i3 ? 5 : 240 <= i3 ? 4 : 224 <= i3 ? 3 : 192 <= i3 ? 2 : 1;
-        u3[254] = u3[254] = 1;
-        function a3() {
-          n3.call(this, "utf-8 decode"), this.leftOver = null;
-        }
-        function l3() {
-          n3.call(this, "utf-8 encode");
-        }
-        s3.utf8encode = function(e3) {
-          return h3.nodebuffer ? r2.newBufferFrom(e3, "utf-8") : function(e4) {
-            var t4, r3, n4, i4, s4, a4 = e4.length, o4 = 0;
-            for (i4 = 0; i4 < a4; i4++)
-              55296 == (64512 & (r3 = e4.charCodeAt(i4))) && i4 + 1 < a4 && 56320 == (64512 & (n4 = e4.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), o4 += r3 < 128 ? 1 : r3 < 2048 ? 2 : r3 < 65536 ? 3 : 4;
-            for (t4 = h3.uint8array ? new Uint8Array(o4) : new Array(o4), i4 = s4 = 0; s4 < o4; i4++)
-              55296 == (64512 & (r3 = e4.charCodeAt(i4))) && i4 + 1 < a4 && 56320 == (64512 & (n4 = e4.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), r3 < 128 ? t4[s4++] = r3 : (r3 < 2048 ? t4[s4++] = 192 | r3 >>> 6 : (r3 < 65536 ? t4[s4++] = 224 | r3 >>> 12 : (t4[s4++] = 240 | r3 >>> 18, t4[s4++] = 128 | r3 >>> 12 & 63), t4[s4++] = 128 | r3 >>> 6 & 63), t4[s4++] = 128 | 63 & r3);
-            return t4;
-          }(e3);
-        }, s3.utf8decode = function(e3) {
-          return h3.nodebuffer ? o3.transformTo("nodebuffer", e3).toString("utf-8") : function(e4) {
-            var t4, r3, n4, i4, s4 = e4.length, a4 = new Array(2 * s4);
-            for (t4 = r3 = 0; t4 < s4; )
-              if ((n4 = e4[t4++]) < 128)
-                a4[r3++] = n4;
-              else if (4 < (i4 = u3[n4]))
-                a4[r3++] = 65533, t4 += i4 - 1;
-              else {
-                for (n4 &= 2 === i4 ? 31 : 3 === i4 ? 15 : 7; 1 < i4 && t4 < s4; )
-                  n4 = n4 << 6 | 63 & e4[t4++], i4--;
-                1 < i4 ? a4[r3++] = 65533 : n4 < 65536 ? a4[r3++] = n4 : (n4 -= 65536, a4[r3++] = 55296 | n4 >> 10 & 1023, a4[r3++] = 56320 | 1023 & n4);
-              }
-            return a4.length !== r3 && (a4.subarray ? a4 = a4.subarray(0, r3) : a4.length = r3), o3.applyFromCharCode(a4);
-          }(e3 = o3.transformTo(h3.uint8array ? "uint8array" : "array", e3));
-        }, o3.inherits(a3, n3), a3.prototype.processChunk = function(e3) {
-          var t4 = o3.transformTo(h3.uint8array ? "uint8array" : "array", e3.data);
-          if (this.leftOver && this.leftOver.length) {
-            if (h3.uint8array) {
-              var r3 = t4;
-              (t4 = new Uint8Array(r3.length + this.leftOver.length)).set(this.leftOver, 0), t4.set(r3, this.leftOver.length);
-            } else
-              t4 = this.leftOver.concat(t4);
-            this.leftOver = null;
-          }
-          var n4 = function(e4, t5) {
-            var r4;
-            for ((t5 = t5 || e4.length) > e4.length && (t5 = e4.length), r4 = t5 - 1; 0 <= r4 && 128 == (192 & e4[r4]); )
-              r4--;
-            return r4 < 0 ? t5 : 0 === r4 ? t5 : r4 + u3[e4[r4]] > t5 ? r4 : t5;
-          }(t4), i4 = t4;
-          n4 !== t4.length && (h3.uint8array ? (i4 = t4.subarray(0, n4), this.leftOver = t4.subarray(n4, t4.length)) : (i4 = t4.slice(0, n4), this.leftOver = t4.slice(n4, t4.length))), this.push({ data: s3.utf8decode(i4), meta: e3.meta });
-        }, a3.prototype.flush = function() {
-          this.leftOver && this.leftOver.length && (this.push({ data: s3.utf8decode(this.leftOver), meta: {} }), this.leftOver = null);
-        }, s3.Utf8DecodeWorker = a3, o3.inherits(l3, n3), l3.prototype.processChunk = function(e3) {
-          this.push({ data: s3.utf8encode(e3.data), meta: e3.meta });
-        }, s3.Utf8EncodeWorker = l3;
-      }, { "./nodejsUtils": 14, "./stream/GenericWorker": 28, "./support": 30, "./utils": 32 }], 32: [function(e2, t3, a3) {
-        "use strict";
-        var o3 = e2("./support"), h3 = e2("./base64"), r2 = e2("./nodejsUtils"), u3 = e2("./external");
-        function n3(e3) {
-          return e3;
-        }
-        function l3(e3, t4) {
-          for (var r3 = 0; r3 < e3.length; ++r3)
-            t4[r3] = 255 & e3.charCodeAt(r3);
-          return t4;
-        }
-        e2("setimmediate"), a3.newBlob = function(t4, r3) {
-          a3.checkSupport("blob");
-          try {
-            return new Blob([t4], { type: r3 });
-          } catch (e3) {
-            try {
-              var n4 = new (self.BlobBuilder || self.WebKitBlobBuilder || self.MozBlobBuilder || self.MSBlobBuilder)();
-              return n4.append(t4), n4.getBlob(r3);
-            } catch (e4) {
-              throw new Error("Bug : can't construct the Blob.");
-            }
-          }
-        };
-        var i3 = { stringifyByChunk: function(e3, t4, r3) {
-          var n4 = [], i4 = 0, s4 = e3.length;
-          if (s4 <= r3)
-            return String.fromCharCode.apply(null, e3);
-          for (; i4 < s4; )
-            "array" === t4 || "nodebuffer" === t4 ? n4.push(String.fromCharCode.apply(null, e3.slice(i4, Math.min(i4 + r3, s4)))) : n4.push(String.fromCharCode.apply(null, e3.subarray(i4, Math.min(i4 + r3, s4)))), i4 += r3;
-          return n4.join("");
-        }, stringifyByChar: function(e3) {
-          for (var t4 = "", r3 = 0; r3 < e3.length; r3++)
-            t4 += String.fromCharCode(e3[r3]);
-          return t4;
-        }, applyCanBeUsed: { uint8array: function() {
-          try {
-            return o3.uint8array && 1 === String.fromCharCode.apply(null, new Uint8Array(1)).length;
-          } catch (e3) {
-            return false;
-          }
-        }(), nodebuffer: function() {
-          try {
-            return o3.nodebuffer && 1 === String.fromCharCode.apply(null, r2.allocBuffer(1)).length;
-          } catch (e3) {
-            return false;
-          }
-        }() } };
-        function s3(e3) {
-          var t4 = 65536, r3 = a3.getTypeOf(e3), n4 = true;
-          if ("uint8array" === r3 ? n4 = i3.applyCanBeUsed.uint8array : "nodebuffer" === r3 && (n4 = i3.applyCanBeUsed.nodebuffer), n4)
-            for (; 1 < t4; )
-              try {
-                return i3.stringifyByChunk(e3, r3, t4);
-              } catch (e4) {
-                t4 = Math.floor(t4 / 2);
-              }
-          return i3.stringifyByChar(e3);
-        }
-        function f3(e3, t4) {
-          for (var r3 = 0; r3 < e3.length; r3++)
-            t4[r3] = e3[r3];
-          return t4;
-        }
-        a3.applyFromCharCode = s3;
-        var c4 = {};
-        c4.string = { string: n3, array: function(e3) {
-          return l3(e3, new Array(e3.length));
-        }, arraybuffer: function(e3) {
-          return c4.string.uint8array(e3).buffer;
-        }, uint8array: function(e3) {
-          return l3(e3, new Uint8Array(e3.length));
-        }, nodebuffer: function(e3) {
-          return l3(e3, r2.allocBuffer(e3.length));
-        } }, c4.array = { string: s3, array: n3, arraybuffer: function(e3) {
-          return new Uint8Array(e3).buffer;
-        }, uint8array: function(e3) {
-          return new Uint8Array(e3);
-        }, nodebuffer: function(e3) {
-          return r2.newBufferFrom(e3);
-        } }, c4.arraybuffer = { string: function(e3) {
-          return s3(new Uint8Array(e3));
-        }, array: function(e3) {
-          return f3(new Uint8Array(e3), new Array(e3.byteLength));
-        }, arraybuffer: n3, uint8array: function(e3) {
-          return new Uint8Array(e3);
-        }, nodebuffer: function(e3) {
-          return r2.newBufferFrom(new Uint8Array(e3));
-        } }, c4.uint8array = { string: s3, array: function(e3) {
-          return f3(e3, new Array(e3.length));
-        }, arraybuffer: function(e3) {
-          return e3.buffer;
-        }, uint8array: n3, nodebuffer: function(e3) {
-          return r2.newBufferFrom(e3);
-        } }, c4.nodebuffer = { string: s3, array: function(e3) {
-          return f3(e3, new Array(e3.length));
-        }, arraybuffer: function(e3) {
-          return c4.nodebuffer.uint8array(e3).buffer;
-        }, uint8array: function(e3) {
-          return f3(e3, new Uint8Array(e3.length));
-        }, nodebuffer: n3 }, a3.transformTo = function(e3, t4) {
-          if (t4 = t4 || "", !e3)
-            return t4;
-          a3.checkSupport(e3);
-          var r3 = a3.getTypeOf(t4);
-          return c4[r3][e3](t4);
-        }, a3.resolve = function(e3) {
-          for (var t4 = e3.split("/"), r3 = [], n4 = 0; n4 < t4.length; n4++) {
-            var i4 = t4[n4];
-            "." === i4 || "" === i4 && 0 !== n4 && n4 !== t4.length - 1 || (".." === i4 ? r3.pop() : r3.push(i4));
-          }
-          return r3.join("/");
-        }, a3.getTypeOf = function(e3) {
-          return "string" == typeof e3 ? "string" : "[object Array]" === Object.prototype.toString.call(e3) ? "array" : o3.nodebuffer && r2.isBuffer(e3) ? "nodebuffer" : o3.uint8array && e3 instanceof Uint8Array ? "uint8array" : o3.arraybuffer && e3 instanceof ArrayBuffer ? "arraybuffer" : void 0;
-        }, a3.checkSupport = function(e3) {
-          if (!o3[e3.toLowerCase()])
-            throw new Error(e3 + " is not supported by this platform");
-        }, a3.MAX_VALUE_16BITS = 65535, a3.MAX_VALUE_32BITS = -1, a3.pretty = function(e3) {
-          var t4, r3, n4 = "";
-          for (r3 = 0; r3 < (e3 || "").length; r3++)
-            n4 += "\\x" + ((t4 = e3.charCodeAt(r3)) < 16 ? "0" : "") + t4.toString(16).toUpperCase();
-          return n4;
-        }, a3.delay = function(e3, t4, r3) {
-          setImmediate(function() {
-            e3.apply(r3 || null, t4 || []);
-          });
-        }, a3.inherits = function(e3, t4) {
-          function r3() {
-          }
-          r3.prototype = t4.prototype, e3.prototype = new r3();
-        }, a3.extend = function() {
-          var e3, t4, r3 = {};
-          for (e3 = 0; e3 < arguments.length; e3++)
-            for (t4 in arguments[e3])
-              Object.prototype.hasOwnProperty.call(arguments[e3], t4) && void 0 === r3[t4] && (r3[t4] = arguments[e3][t4]);
-          return r3;
-        }, a3.prepareContent = function(r3, e3, n4, i4, s4) {
-          return u3.Promise.resolve(e3).then(function(n5) {
-            return o3.blob && (n5 instanceof Blob || -1 !== ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(n5))) && "undefined" != typeof FileReader ? new u3.Promise(function(t4, r4) {
-              var e4 = new FileReader();
-              e4.onload = function(e5) {
-                t4(e5.target.result);
-              }, e4.onerror = function(e5) {
-                r4(e5.target.error);
-              }, e4.readAsArrayBuffer(n5);
-            }) : n5;
-          }).then(function(e4) {
-            var t4 = a3.getTypeOf(e4);
-            return t4 ? ("arraybuffer" === t4 ? e4 = a3.transformTo("uint8array", e4) : "string" === t4 && (s4 ? e4 = h3.decode(e4) : n4 && true !== i4 && (e4 = function(e5) {
-              return l3(e5, o3.uint8array ? new Uint8Array(e5.length) : new Array(e5.length));
-            }(e4))), e4) : u3.Promise.reject(new Error("Can't read the data of '" + r3 + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?"));
-          });
-        };
-      }, { "./base64": 1, "./external": 6, "./nodejsUtils": 14, "./support": 30, setimmediate: 54 }], 33: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./reader/readerFor"), i3 = e2("./utils"), s3 = e2("./signature"), a3 = e2("./zipEntry"), o3 = e2("./support");
-        function h3(e3) {
-          this.files = [], this.loadOptions = e3;
-        }
-        h3.prototype = { checkSignature: function(e3) {
-          if (!this.reader.readAndCheckSignature(e3)) {
-            this.reader.index -= 4;
-            var t4 = this.reader.readString(4);
-            throw new Error("Corrupted zip or bug: unexpected signature (" + i3.pretty(t4) + ", expected " + i3.pretty(e3) + ")");
-          }
-        }, isSignature: function(e3, t4) {
-          var r3 = this.reader.index;
-          this.reader.setIndex(e3);
-          var n4 = this.reader.readString(4) === t4;
-          return this.reader.setIndex(r3), n4;
-        }, readBlockEndOfCentral: function() {
-          this.diskNumber = this.reader.readInt(2), this.diskWithCentralDirStart = this.reader.readInt(2), this.centralDirRecordsOnThisDisk = this.reader.readInt(2), this.centralDirRecords = this.reader.readInt(2), this.centralDirSize = this.reader.readInt(4), this.centralDirOffset = this.reader.readInt(4), this.zipCommentLength = this.reader.readInt(2);
-          var e3 = this.reader.readData(this.zipCommentLength), t4 = o3.uint8array ? "uint8array" : "array", r3 = i3.transformTo(t4, e3);
-          this.zipComment = this.loadOptions.decodeFileName(r3);
-        }, readBlockZip64EndOfCentral: function() {
-          this.zip64EndOfCentralSize = this.reader.readInt(8), this.reader.skip(4), this.diskNumber = this.reader.readInt(4), this.diskWithCentralDirStart = this.reader.readInt(4), this.centralDirRecordsOnThisDisk = this.reader.readInt(8), this.centralDirRecords = this.reader.readInt(8), this.centralDirSize = this.reader.readInt(8), this.centralDirOffset = this.reader.readInt(8), this.zip64ExtensibleData = {};
-          for (var e3, t4, r3, n4 = this.zip64EndOfCentralSize - 44; 0 < n4; )
-            e3 = this.reader.readInt(2), t4 = this.reader.readInt(4), r3 = this.reader.readData(t4), this.zip64ExtensibleData[e3] = { id: e3, length: t4, value: r3 };
-        }, readBlockZip64EndOfCentralLocator: function() {
-          if (this.diskWithZip64CentralDirStart = this.reader.readInt(4), this.relativeOffsetEndOfZip64CentralDir = this.reader.readInt(8), this.disksCount = this.reader.readInt(4), 1 < this.disksCount)
-            throw new Error("Multi-volumes zip are not supported");
-        }, readLocalFiles: function() {
-          var e3, t4;
-          for (e3 = 0; e3 < this.files.length; e3++)
-            t4 = this.files[e3], this.reader.setIndex(t4.localHeaderOffset), this.checkSignature(s3.LOCAL_FILE_HEADER), t4.readLocalPart(this.reader), t4.handleUTF8(), t4.processAttributes();
-        }, readCentralDir: function() {
-          var e3;
-          for (this.reader.setIndex(this.centralDirOffset); this.reader.readAndCheckSignature(s3.CENTRAL_FILE_HEADER); )
-            (e3 = new a3({ zip64: this.zip64 }, this.loadOptions)).readCentralPart(this.reader), this.files.push(e3);
-          if (this.centralDirRecords !== this.files.length && 0 !== this.centralDirRecords && 0 === this.files.length)
-            throw new Error("Corrupted zip or bug: expected " + this.centralDirRecords + " records in central dir, got " + this.files.length);
-        }, readEndOfCentral: function() {
-          var e3 = this.reader.lastIndexOfSignature(s3.CENTRAL_DIRECTORY_END);
-          if (e3 < 0)
-            throw !this.isSignature(0, s3.LOCAL_FILE_HEADER) ? new Error("Can't find end of central directory : is this a zip file ? If it is, see https://stuk.github.io/jszip/documentation/howto/read_zip.html") : new Error("Corrupted zip: can't find end of central directory");
-          this.reader.setIndex(e3);
-          var t4 = e3;
-          if (this.checkSignature(s3.CENTRAL_DIRECTORY_END), this.readBlockEndOfCentral(), this.diskNumber === i3.MAX_VALUE_16BITS || this.diskWithCentralDirStart === i3.MAX_VALUE_16BITS || this.centralDirRecordsOnThisDisk === i3.MAX_VALUE_16BITS || this.centralDirRecords === i3.MAX_VALUE_16BITS || this.centralDirSize === i3.MAX_VALUE_32BITS || this.centralDirOffset === i3.MAX_VALUE_32BITS) {
-            if (this.zip64 = true, (e3 = this.reader.lastIndexOfSignature(s3.ZIP64_CENTRAL_DIRECTORY_LOCATOR)) < 0)
-              throw new Error("Corrupted zip: can't find the ZIP64 end of central directory locator");
-            if (this.reader.setIndex(e3), this.checkSignature(s3.ZIP64_CENTRAL_DIRECTORY_LOCATOR), this.readBlockZip64EndOfCentralLocator(), !this.isSignature(this.relativeOffsetEndOfZip64CentralDir, s3.ZIP64_CENTRAL_DIRECTORY_END) && (this.relativeOffsetEndOfZip64CentralDir = this.reader.lastIndexOfSignature(s3.ZIP64_CENTRAL_DIRECTORY_END), this.relativeOffsetEndOfZip64CentralDir < 0))
-              throw new Error("Corrupted zip: can't find the ZIP64 end of central directory");
-            this.reader.setIndex(this.relativeOffsetEndOfZip64CentralDir), this.checkSignature(s3.ZIP64_CENTRAL_DIRECTORY_END), this.readBlockZip64EndOfCentral();
-          }
-          var r3 = this.centralDirOffset + this.centralDirSize;
-          this.zip64 && (r3 += 20, r3 += 12 + this.zip64EndOfCentralSize);
-          var n4 = t4 - r3;
-          if (0 < n4)
-            this.isSignature(t4, s3.CENTRAL_FILE_HEADER) || (this.reader.zero = n4);
-          else if (n4 < 0)
-            throw new Error("Corrupted zip: missing " + Math.abs(n4) + " bytes.");
-        }, prepareReader: function(e3) {
-          this.reader = n3(e3);
-        }, load: function(e3) {
-          this.prepareReader(e3), this.readEndOfCentral(), this.readCentralDir(), this.readLocalFiles();
-        } }, t3.exports = h3;
-      }, { "./reader/readerFor": 22, "./signature": 23, "./support": 30, "./utils": 32, "./zipEntry": 34 }], 34: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = e2("./reader/readerFor"), s3 = e2("./utils"), i3 = e2("./compressedObject"), a3 = e2("./crc32"), o3 = e2("./utf8"), h3 = e2("./compressions"), u3 = e2("./support");
-        function l3(e3, t4) {
-          this.options = e3, this.loadOptions = t4;
-        }
-        l3.prototype = { isEncrypted: function() {
-          return 1 == (1 & this.bitFlag);
-        }, useUTF8: function() {
-          return 2048 == (2048 & this.bitFlag);
-        }, readLocalPart: function(e3) {
-          var t4, r3;
-          if (e3.skip(22), this.fileNameLength = e3.readInt(2), r3 = e3.readInt(2), this.fileName = e3.readData(this.fileNameLength), e3.skip(r3), -1 === this.compressedSize || -1 === this.uncompressedSize)
-            throw new Error("Bug or corrupted zip : didn't get enough information from the central directory (compressedSize === -1 || uncompressedSize === -1)");
-          if (null === (t4 = function(e4) {
-            for (var t5 in h3)
-              if (Object.prototype.hasOwnProperty.call(h3, t5) && h3[t5].magic === e4)
-                return h3[t5];
-            return null;
-          }(this.compressionMethod)))
-            throw new Error("Corrupted zip : compression " + s3.pretty(this.compressionMethod) + " unknown (inner file : " + s3.transformTo("string", this.fileName) + ")");
-          this.decompressed = new i3(this.compressedSize, this.uncompressedSize, this.crc32, t4, e3.readData(this.compressedSize));
-        }, readCentralPart: function(e3) {
-          this.versionMadeBy = e3.readInt(2), e3.skip(2), this.bitFlag = e3.readInt(2), this.compressionMethod = e3.readString(2), this.date = e3.readDate(), this.crc32 = e3.readInt(4), this.compressedSize = e3.readInt(4), this.uncompressedSize = e3.readInt(4);
-          var t4 = e3.readInt(2);
-          if (this.extraFieldsLength = e3.readInt(2), this.fileCommentLength = e3.readInt(2), this.diskNumberStart = e3.readInt(2), this.internalFileAttributes = e3.readInt(2), this.externalFileAttributes = e3.readInt(4), this.localHeaderOffset = e3.readInt(4), this.isEncrypted())
-            throw new Error("Encrypted zip are not supported");
-          e3.skip(t4), this.readExtraFields(e3), this.parseZIP64ExtraField(e3), this.fileComment = e3.readData(this.fileCommentLength);
-        }, processAttributes: function() {
-          this.unixPermissions = null, this.dosPermissions = null;
-          var e3 = this.versionMadeBy >> 8;
-          this.dir = !!(16 & this.externalFileAttributes), 0 == e3 && (this.dosPermissions = 63 & this.externalFileAttributes), 3 == e3 && (this.unixPermissions = this.externalFileAttributes >> 16 & 65535), this.dir || "/" !== this.fileNameStr.slice(-1) || (this.dir = true);
-        }, parseZIP64ExtraField: function() {
-          if (this.extraFields[1]) {
-            var e3 = n3(this.extraFields[1].value);
-            this.uncompressedSize === s3.MAX_VALUE_32BITS && (this.uncompressedSize = e3.readInt(8)), this.compressedSize === s3.MAX_VALUE_32BITS && (this.compressedSize = e3.readInt(8)), this.localHeaderOffset === s3.MAX_VALUE_32BITS && (this.localHeaderOffset = e3.readInt(8)), this.diskNumberStart === s3.MAX_VALUE_32BITS && (this.diskNumberStart = e3.readInt(4));
-          }
-        }, readExtraFields: function(e3) {
-          var t4, r3, n4, i4 = e3.index + this.extraFieldsLength;
-          for (this.extraFields || (this.extraFields = {}); e3.index + 4 < i4; )
-            t4 = e3.readInt(2), r3 = e3.readInt(2), n4 = e3.readData(r3), this.extraFields[t4] = { id: t4, length: r3, value: n4 };
-          e3.setIndex(i4);
-        }, handleUTF8: function() {
-          var e3 = u3.uint8array ? "uint8array" : "array";
-          if (this.useUTF8())
-            this.fileNameStr = o3.utf8decode(this.fileName), this.fileCommentStr = o3.utf8decode(this.fileComment);
-          else {
-            var t4 = this.findExtraFieldUnicodePath();
-            if (null !== t4)
-              this.fileNameStr = t4;
-            else {
-              var r3 = s3.transformTo(e3, this.fileName);
-              this.fileNameStr = this.loadOptions.decodeFileName(r3);
-            }
-            var n4 = this.findExtraFieldUnicodeComment();
-            if (null !== n4)
-              this.fileCommentStr = n4;
-            else {
-              var i4 = s3.transformTo(e3, this.fileComment);
-              this.fileCommentStr = this.loadOptions.decodeFileName(i4);
-            }
-          }
-        }, findExtraFieldUnicodePath: function() {
-          var e3 = this.extraFields[28789];
-          if (e3) {
-            var t4 = n3(e3.value);
-            return 1 !== t4.readInt(1) ? null : a3(this.fileName) !== t4.readInt(4) ? null : o3.utf8decode(t4.readData(e3.length - 5));
-          }
-          return null;
-        }, findExtraFieldUnicodeComment: function() {
-          var e3 = this.extraFields[25461];
-          if (e3) {
-            var t4 = n3(e3.value);
-            return 1 !== t4.readInt(1) ? null : a3(this.fileComment) !== t4.readInt(4) ? null : o3.utf8decode(t4.readData(e3.length - 5));
-          }
-          return null;
-        } }, t3.exports = l3;
-      }, { "./compressedObject": 2, "./compressions": 3, "./crc32": 4, "./reader/readerFor": 22, "./support": 30, "./utf8": 31, "./utils": 32 }], 35: [function(e2, t3, r2) {
-        "use strict";
-        function n3(e3, t4, r3) {
-          this.name = e3, this.dir = r3.dir, this.date = r3.date, this.comment = r3.comment, this.unixPermissions = r3.unixPermissions, this.dosPermissions = r3.dosPermissions, this._data = t4, this._dataBinary = r3.binary, this.options = { compression: r3.compression, compressionOptions: r3.compressionOptions };
-        }
-        var s3 = e2("./stream/StreamHelper"), i3 = e2("./stream/DataWorker"), a3 = e2("./utf8"), o3 = e2("./compressedObject"), h3 = e2("./stream/GenericWorker");
-        n3.prototype = { internalStream: function(e3) {
-          var t4 = null, r3 = "string";
-          try {
-            if (!e3)
-              throw new Error("No output type specified.");
-            var n4 = "string" === (r3 = e3.toLowerCase()) || "text" === r3;
-            "binarystring" !== r3 && "text" !== r3 || (r3 = "string"), t4 = this._decompressWorker();
-            var i4 = !this._dataBinary;
-            i4 && !n4 && (t4 = t4.pipe(new a3.Utf8EncodeWorker())), !i4 && n4 && (t4 = t4.pipe(new a3.Utf8DecodeWorker()));
-          } catch (e4) {
-            (t4 = new h3("error")).error(e4);
-          }
-          return new s3(t4, r3, "");
-        }, async: function(e3, t4) {
-          return this.internalStream(e3).accumulate(t4);
-        }, nodeStream: function(e3, t4) {
-          return this.internalStream(e3 || "nodebuffer").toNodejsStream(t4);
-        }, _compressWorker: function(e3, t4) {
-          if (this._data instanceof o3 && this._data.compression.magic === e3.magic)
-            return this._data.getCompressedWorker();
-          var r3 = this._decompressWorker();
-          return this._dataBinary || (r3 = r3.pipe(new a3.Utf8EncodeWorker())), o3.createWorkerFrom(r3, e3, t4);
-        }, _decompressWorker: function() {
-          return this._data instanceof o3 ? this._data.getContentWorker() : this._data instanceof h3 ? this._data : new i3(this._data);
-        } };
-        for (var u3 = ["asText", "asBinary", "asNodeBuffer", "asUint8Array", "asArrayBuffer"], l3 = function() {
-          throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
-        }, f3 = 0; f3 < u3.length; f3++)
-          n3.prototype[u3[f3]] = l3;
-        t3.exports = n3;
-      }, { "./compressedObject": 2, "./stream/DataWorker": 27, "./stream/GenericWorker": 28, "./stream/StreamHelper": 29, "./utf8": 31 }], 36: [function(e2, l3, t3) {
-        (function(t4) {
-          "use strict";
-          var r2, n3, e3 = t4.MutationObserver || t4.WebKitMutationObserver;
-          if (e3) {
-            var i3 = 0, s3 = new e3(u3), a3 = t4.document.createTextNode("");
-            s3.observe(a3, { characterData: true }), r2 = function() {
-              a3.data = i3 = ++i3 % 2;
-            };
-          } else if (t4.setImmediate || void 0 === t4.MessageChannel)
-            r2 = "document" in t4 && "onreadystatechange" in t4.document.createElement("script") ? function() {
-              var e4 = t4.document.createElement("script");
-              e4.onreadystatechange = function() {
-                u3(), e4.onreadystatechange = null, e4.parentNode.removeChild(e4), e4 = null;
-              }, t4.document.documentElement.appendChild(e4);
-            } : function() {
-              setTimeout(u3, 0);
-            };
-          else {
-            var o3 = new t4.MessageChannel();
-            o3.port1.onmessage = u3, r2 = function() {
-              o3.port2.postMessage(0);
-            };
-          }
-          var h3 = [];
-          function u3() {
-            var e4, t5;
-            n3 = true;
-            for (var r3 = h3.length; r3; ) {
-              for (t5 = h3, h3 = [], e4 = -1; ++e4 < r3; )
-                t5[e4]();
-              r3 = h3.length;
-            }
-            n3 = false;
-          }
-          l3.exports = function(e4) {
-            1 !== h3.push(e4) || n3 || r2();
-          };
-        }).call(this, "undefined" != typeof global ? global : "undefined" != typeof self ? self : "undefined" != typeof window ? window : {});
-      }, {}], 37: [function(e2, t3, r2) {
-        "use strict";
-        var i3 = e2("immediate");
-        function u3() {
-        }
-        var l3 = {}, s3 = ["REJECTED"], a3 = ["FULFILLED"], n3 = ["PENDING"];
-        function o3(e3) {
-          if ("function" != typeof e3)
-            throw new TypeError("resolver must be a function");
-          this.state = n3, this.queue = [], this.outcome = void 0, e3 !== u3 && d2(this, e3);
-        }
-        function h3(e3, t4, r3) {
-          this.promise = e3, "function" == typeof t4 && (this.onFulfilled = t4, this.callFulfilled = this.otherCallFulfilled), "function" == typeof r3 && (this.onRejected = r3, this.callRejected = this.otherCallRejected);
-        }
-        function f3(t4, r3, n4) {
-          i3(function() {
-            var e3;
-            try {
-              e3 = r3(n4);
-            } catch (e4) {
-              return l3.reject(t4, e4);
-            }
-            e3 === t4 ? l3.reject(t4, new TypeError("Cannot resolve promise with itself")) : l3.resolve(t4, e3);
-          });
-        }
-        function c4(e3) {
-          var t4 = e3 && e3.then;
-          if (e3 && ("object" == typeof e3 || "function" == typeof e3) && "function" == typeof t4)
-            return function() {
-              t4.apply(e3, arguments);
-            };
-        }
-        function d2(t4, e3) {
-          var r3 = false;
-          function n4(e4) {
-            r3 || (r3 = true, l3.reject(t4, e4));
-          }
-          function i4(e4) {
-            r3 || (r3 = true, l3.resolve(t4, e4));
-          }
-          var s4 = p3(function() {
-            e3(i4, n4);
-          });
-          "error" === s4.status && n4(s4.value);
-        }
-        function p3(e3, t4) {
-          var r3 = {};
-          try {
-            r3.value = e3(t4), r3.status = "success";
-          } catch (e4) {
-            r3.status = "error", r3.value = e4;
-          }
-          return r3;
-        }
-        (t3.exports = o3).prototype.finally = function(t4) {
-          if ("function" != typeof t4)
-            return this;
-          var r3 = this.constructor;
-          return this.then(function(e3) {
-            return r3.resolve(t4()).then(function() {
-              return e3;
-            });
-          }, function(e3) {
-            return r3.resolve(t4()).then(function() {
-              throw e3;
-            });
-          });
-        }, o3.prototype.catch = function(e3) {
-          return this.then(null, e3);
-        }, o3.prototype.then = function(e3, t4) {
-          if ("function" != typeof e3 && this.state === a3 || "function" != typeof t4 && this.state === s3)
-            return this;
-          var r3 = new this.constructor(u3);
-          this.state !== n3 ? f3(r3, this.state === a3 ? e3 : t4, this.outcome) : this.queue.push(new h3(r3, e3, t4));
-          return r3;
-        }, h3.prototype.callFulfilled = function(e3) {
-          l3.resolve(this.promise, e3);
-        }, h3.prototype.otherCallFulfilled = function(e3) {
-          f3(this.promise, this.onFulfilled, e3);
-        }, h3.prototype.callRejected = function(e3) {
-          l3.reject(this.promise, e3);
-        }, h3.prototype.otherCallRejected = function(e3) {
-          f3(this.promise, this.onRejected, e3);
-        }, l3.resolve = function(e3, t4) {
-          var r3 = p3(c4, t4);
-          if ("error" === r3.status)
-            return l3.reject(e3, r3.value);
-          var n4 = r3.value;
-          if (n4)
-            d2(e3, n4);
-          else {
-            e3.state = a3, e3.outcome = t4;
-            for (var i4 = -1, s4 = e3.queue.length; ++i4 < s4; )
-              e3.queue[i4].callFulfilled(t4);
-          }
-          return e3;
-        }, l3.reject = function(e3, t4) {
-          e3.state = s3, e3.outcome = t4;
-          for (var r3 = -1, n4 = e3.queue.length; ++r3 < n4; )
-            e3.queue[r3].callRejected(t4);
-          return e3;
-        }, o3.resolve = function(e3) {
-          if (e3 instanceof this)
-            return e3;
-          return l3.resolve(new this(u3), e3);
-        }, o3.reject = function(e3) {
-          var t4 = new this(u3);
-          return l3.reject(t4, e3);
-        }, o3.all = function(e3) {
-          var r3 = this;
-          if ("[object Array]" !== Object.prototype.toString.call(e3))
-            return this.reject(new TypeError("must be an array"));
-          var n4 = e3.length, i4 = false;
-          if (!n4)
-            return this.resolve([]);
-          var s4 = new Array(n4), a4 = 0, t4 = -1, o4 = new this(u3);
-          for (; ++t4 < n4; )
-            h4(e3[t4], t4);
-          return o4;
-          function h4(e4, t5) {
-            r3.resolve(e4).then(function(e5) {
-              s4[t5] = e5, ++a4 !== n4 || i4 || (i4 = true, l3.resolve(o4, s4));
-            }, function(e5) {
-              i4 || (i4 = true, l3.reject(o4, e5));
-            });
-          }
-        }, o3.race = function(e3) {
-          var t4 = this;
-          if ("[object Array]" !== Object.prototype.toString.call(e3))
-            return this.reject(new TypeError("must be an array"));
-          var r3 = e3.length, n4 = false;
-          if (!r3)
-            return this.resolve([]);
-          var i4 = -1, s4 = new this(u3);
-          for (; ++i4 < r3; )
-            a4 = e3[i4], t4.resolve(a4).then(function(e4) {
-              n4 || (n4 = true, l3.resolve(s4, e4));
-            }, function(e4) {
-              n4 || (n4 = true, l3.reject(s4, e4));
-            });
-          var a4;
-          return s4;
-        };
-      }, { immediate: 36 }], 38: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = {};
-        (0, e2("./lib/utils/common").assign)(n3, e2("./lib/deflate"), e2("./lib/inflate"), e2("./lib/zlib/constants")), t3.exports = n3;
-      }, { "./lib/deflate": 39, "./lib/inflate": 40, "./lib/utils/common": 41, "./lib/zlib/constants": 44 }], 39: [function(e2, t3, r2) {
-        "use strict";
-        var a3 = e2("./zlib/deflate"), o3 = e2("./utils/common"), h3 = e2("./utils/strings"), i3 = e2("./zlib/messages"), s3 = e2("./zlib/zstream"), u3 = Object.prototype.toString, l3 = 0, f3 = -1, c4 = 0, d2 = 8;
-        function p3(e3) {
-          if (!(this instanceof p3))
-            return new p3(e3);
-          this.options = o3.assign({ level: f3, method: d2, chunkSize: 16384, windowBits: 15, memLevel: 8, strategy: c4, to: "" }, e3 || {});
-          var t4 = this.options;
-          t4.raw && 0 < t4.windowBits ? t4.windowBits = -t4.windowBits : t4.gzip && 0 < t4.windowBits && t4.windowBits < 16 && (t4.windowBits += 16), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new s3(), this.strm.avail_out = 0;
-          var r3 = a3.deflateInit2(this.strm, t4.level, t4.method, t4.windowBits, t4.memLevel, t4.strategy);
-          if (r3 !== l3)
-            throw new Error(i3[r3]);
-          if (t4.header && a3.deflateSetHeader(this.strm, t4.header), t4.dictionary) {
-            var n4;
-            if (n4 = "string" == typeof t4.dictionary ? h3.string2buf(t4.dictionary) : "[object ArrayBuffer]" === u3.call(t4.dictionary) ? new Uint8Array(t4.dictionary) : t4.dictionary, (r3 = a3.deflateSetDictionary(this.strm, n4)) !== l3)
-              throw new Error(i3[r3]);
-            this._dict_set = true;
-          }
-        }
-        function n3(e3, t4) {
-          var r3 = new p3(t4);
-          if (r3.push(e3, true), r3.err)
-            throw r3.msg || i3[r3.err];
-          return r3.result;
-        }
-        p3.prototype.push = function(e3, t4) {
-          var r3, n4, i4 = this.strm, s4 = this.options.chunkSize;
-          if (this.ended)
-            return false;
-          n4 = t4 === ~~t4 ? t4 : true === t4 ? 4 : 0, "string" == typeof e3 ? i4.input = h3.string2buf(e3) : "[object ArrayBuffer]" === u3.call(e3) ? i4.input = new Uint8Array(e3) : i4.input = e3, i4.next_in = 0, i4.avail_in = i4.input.length;
-          do {
-            if (0 === i4.avail_out && (i4.output = new o3.Buf8(s4), i4.next_out = 0, i4.avail_out = s4), 1 !== (r3 = a3.deflate(i4, n4)) && r3 !== l3)
-              return this.onEnd(r3), !(this.ended = true);
-            0 !== i4.avail_out && (0 !== i4.avail_in || 4 !== n4 && 2 !== n4) || ("string" === this.options.to ? this.onData(h3.buf2binstring(o3.shrinkBuf(i4.output, i4.next_out))) : this.onData(o3.shrinkBuf(i4.output, i4.next_out)));
-          } while ((0 < i4.avail_in || 0 === i4.avail_out) && 1 !== r3);
-          return 4 === n4 ? (r3 = a3.deflateEnd(this.strm), this.onEnd(r3), this.ended = true, r3 === l3) : 2 !== n4 || (this.onEnd(l3), !(i4.avail_out = 0));
-        }, p3.prototype.onData = function(e3) {
-          this.chunks.push(e3);
-        }, p3.prototype.onEnd = function(e3) {
-          e3 === l3 && ("string" === this.options.to ? this.result = this.chunks.join("") : this.result = o3.flattenChunks(this.chunks)), this.chunks = [], this.err = e3, this.msg = this.strm.msg;
-        }, r2.Deflate = p3, r2.deflate = n3, r2.deflateRaw = function(e3, t4) {
-          return (t4 = t4 || {}).raw = true, n3(e3, t4);
-        }, r2.gzip = function(e3, t4) {
-          return (t4 = t4 || {}).gzip = true, n3(e3, t4);
-        };
-      }, { "./utils/common": 41, "./utils/strings": 42, "./zlib/deflate": 46, "./zlib/messages": 51, "./zlib/zstream": 53 }], 40: [function(e2, t3, r2) {
-        "use strict";
-        var c4 = e2("./zlib/inflate"), d2 = e2("./utils/common"), p3 = e2("./utils/strings"), m4 = e2("./zlib/constants"), n3 = e2("./zlib/messages"), i3 = e2("./zlib/zstream"), s3 = e2("./zlib/gzheader"), _3 = Object.prototype.toString;
-        function a3(e3) {
-          if (!(this instanceof a3))
-            return new a3(e3);
-          this.options = d2.assign({ chunkSize: 16384, windowBits: 0, to: "" }, e3 || {});
-          var t4 = this.options;
-          t4.raw && 0 <= t4.windowBits && t4.windowBits < 16 && (t4.windowBits = -t4.windowBits, 0 === t4.windowBits && (t4.windowBits = -15)), !(0 <= t4.windowBits && t4.windowBits < 16) || e3 && e3.windowBits || (t4.windowBits += 32), 15 < t4.windowBits && t4.windowBits < 48 && 0 == (15 & t4.windowBits) && (t4.windowBits |= 15), this.err = 0, this.msg = "", this.ended = false, this.chunks = [], this.strm = new i3(), this.strm.avail_out = 0;
-          var r3 = c4.inflateInit2(this.strm, t4.windowBits);
-          if (r3 !== m4.Z_OK)
-            throw new Error(n3[r3]);
-          this.header = new s3(), c4.inflateGetHeader(this.strm, this.header);
-        }
-        function o3(e3, t4) {
-          var r3 = new a3(t4);
-          if (r3.push(e3, true), r3.err)
-            throw r3.msg || n3[r3.err];
-          return r3.result;
-        }
-        a3.prototype.push = function(e3, t4) {
-          var r3, n4, i4, s4, a4, o4, h3 = this.strm, u3 = this.options.chunkSize, l3 = this.options.dictionary, f3 = false;
-          if (this.ended)
-            return false;
-          n4 = t4 === ~~t4 ? t4 : true === t4 ? m4.Z_FINISH : m4.Z_NO_FLUSH, "string" == typeof e3 ? h3.input = p3.binstring2buf(e3) : "[object ArrayBuffer]" === _3.call(e3) ? h3.input = new Uint8Array(e3) : h3.input = e3, h3.next_in = 0, h3.avail_in = h3.input.length;
-          do {
-            if (0 === h3.avail_out && (h3.output = new d2.Buf8(u3), h3.next_out = 0, h3.avail_out = u3), (r3 = c4.inflate(h3, m4.Z_NO_FLUSH)) === m4.Z_NEED_DICT && l3 && (o4 = "string" == typeof l3 ? p3.string2buf(l3) : "[object ArrayBuffer]" === _3.call(l3) ? new Uint8Array(l3) : l3, r3 = c4.inflateSetDictionary(this.strm, o4)), r3 === m4.Z_BUF_ERROR && true === f3 && (r3 = m4.Z_OK, f3 = false), r3 !== m4.Z_STREAM_END && r3 !== m4.Z_OK)
-              return this.onEnd(r3), !(this.ended = true);
-            h3.next_out && (0 !== h3.avail_out && r3 !== m4.Z_STREAM_END && (0 !== h3.avail_in || n4 !== m4.Z_FINISH && n4 !== m4.Z_SYNC_FLUSH) || ("string" === this.options.to ? (i4 = p3.utf8border(h3.output, h3.next_out), s4 = h3.next_out - i4, a4 = p3.buf2string(h3.output, i4), h3.next_out = s4, h3.avail_out = u3 - s4, s4 && d2.arraySet(h3.output, h3.output, i4, s4, 0), this.onData(a4)) : this.onData(d2.shrinkBuf(h3.output, h3.next_out)))), 0 === h3.avail_in && 0 === h3.avail_out && (f3 = true);
-          } while ((0 < h3.avail_in || 0 === h3.avail_out) && r3 !== m4.Z_STREAM_END);
-          return r3 === m4.Z_STREAM_END && (n4 = m4.Z_FINISH), n4 === m4.Z_FINISH ? (r3 = c4.inflateEnd(this.strm), this.onEnd(r3), this.ended = true, r3 === m4.Z_OK) : n4 !== m4.Z_SYNC_FLUSH || (this.onEnd(m4.Z_OK), !(h3.avail_out = 0));
-        }, a3.prototype.onData = function(e3) {
-          this.chunks.push(e3);
-        }, a3.prototype.onEnd = function(e3) {
-          e3 === m4.Z_OK && ("string" === this.options.to ? this.result = this.chunks.join("") : this.result = d2.flattenChunks(this.chunks)), this.chunks = [], this.err = e3, this.msg = this.strm.msg;
-        }, r2.Inflate = a3, r2.inflate = o3, r2.inflateRaw = function(e3, t4) {
-          return (t4 = t4 || {}).raw = true, o3(e3, t4);
-        }, r2.ungzip = o3;
-      }, { "./utils/common": 41, "./utils/strings": 42, "./zlib/constants": 44, "./zlib/gzheader": 47, "./zlib/inflate": 49, "./zlib/messages": 51, "./zlib/zstream": 53 }], 41: [function(e2, t3, r2) {
-        "use strict";
-        var n3 = "undefined" != typeof Uint8Array && "undefined" != typeof Uint16Array && "undefined" != typeof Int32Array;
-        r2.assign = function(e3) {
-          for (var t4 = Array.prototype.slice.call(arguments, 1); t4.length; ) {
-            var r3 = t4.shift();
-            if (r3) {
-              if ("object" != typeof r3)
-                throw new TypeError(r3 + "must be non-object");
-              for (var n4 in r3)
-                r3.hasOwnProperty(n4) && (e3[n4] = r3[n4]);
-            }
-          }
-          return e3;
-        }, r2.shrinkBuf = function(e3, t4) {
-          return e3.length === t4 ? e3 : e3.subarray ? e3.subarray(0, t4) : (e3.length = t4, e3);
-        };
-        var i3 = { arraySet: function(e3, t4, r3, n4, i4) {
-          if (t4.subarray && e3.subarray)
-            e3.set(t4.subarray(r3, r3 + n4), i4);
-          else
-            for (var s4 = 0; s4 < n4; s4++)
-              e3[i4 + s4] = t4[r3 + s4];
-        }, flattenChunks: function(e3) {
-          var t4, r3, n4, i4, s4, a3;
-          for (t4 = n4 = 0, r3 = e3.length; t4 < r3; t4++)
-            n4 += e3[t4].length;
-          for (a3 = new Uint8Array(n4), t4 = i4 = 0, r3 = e3.length; t4 < r3; t4++)
-            s4 = e3[t4], a3.set(s4, i4), i4 += s4.length;
-          return a3;
-        } }, s3 = { arraySet: function(e3, t4, r3, n4, i4) {
-          for (var s4 = 0; s4 < n4; s4++)
-            e3[i4 + s4] = t4[r3 + s4];
-        }, flattenChunks: function(e3) {
-          return [].concat.apply([], e3);
-        } };
-        r2.setTyped = function(e3) {
-          e3 ? (r2.Buf8 = Uint8Array, r2.Buf16 = Uint16Array, r2.Buf32 = Int32Array, r2.assign(r2, i3)) : (r2.Buf8 = Array, r2.Buf16 = Array, r2.Buf32 = Array, r2.assign(r2, s3));
-        }, r2.setTyped(n3);
-      }, {}], 42: [function(e2, t3, r2) {
-        "use strict";
-        var h3 = e2("./common"), i3 = true, s3 = true;
-        try {
-          String.fromCharCode.apply(null, [0]);
-        } catch (e3) {
-          i3 = false;
-        }
-        try {
-          String.fromCharCode.apply(null, new Uint8Array(1));
-        } catch (e3) {
-          s3 = false;
-        }
-        for (var u3 = new h3.Buf8(256), n3 = 0; n3 < 256; n3++)
-          u3[n3] = 252 <= n3 ? 6 : 248 <= n3 ? 5 : 240 <= n3 ? 4 : 224 <= n3 ? 3 : 192 <= n3 ? 2 : 1;
-        function l3(e3, t4) {
-          if (t4 < 65537 && (e3.subarray && s3 || !e3.subarray && i3))
-            return String.fromCharCode.apply(null, h3.shrinkBuf(e3, t4));
-          for (var r3 = "", n4 = 0; n4 < t4; n4++)
-            r3 += String.fromCharCode(e3[n4]);
-          return r3;
-        }
-        u3[254] = u3[254] = 1, r2.string2buf = function(e3) {
-          var t4, r3, n4, i4, s4, a3 = e3.length, o3 = 0;
-          for (i4 = 0; i4 < a3; i4++)
-            55296 == (64512 & (r3 = e3.charCodeAt(i4))) && i4 + 1 < a3 && 56320 == (64512 & (n4 = e3.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), o3 += r3 < 128 ? 1 : r3 < 2048 ? 2 : r3 < 65536 ? 3 : 4;
-          for (t4 = new h3.Buf8(o3), i4 = s4 = 0; s4 < o3; i4++)
-            55296 == (64512 & (r3 = e3.charCodeAt(i4))) && i4 + 1 < a3 && 56320 == (64512 & (n4 = e3.charCodeAt(i4 + 1))) && (r3 = 65536 + (r3 - 55296 << 10) + (n4 - 56320), i4++), r3 < 128 ? t4[s4++] = r3 : (r3 < 2048 ? t4[s4++] = 192 | r3 >>> 6 : (r3 < 65536 ? t4[s4++] = 224 | r3 >>> 12 : (t4[s4++] = 240 | r3 >>> 18, t4[s4++] = 128 | r3 >>> 12 & 63), t4[s4++] = 128 | r3 >>> 6 & 63), t4[s4++] = 128 | 63 & r3);
-          return t4;
-        }, r2.buf2binstring = function(e3) {
-          return l3(e3, e3.length);
-        }, r2.binstring2buf = function(e3) {
-          for (var t4 = new h3.Buf8(e3.length), r3 = 0, n4 = t4.length; r3 < n4; r3++)
-            t4[r3] = e3.charCodeAt(r3);
-          return t4;
-        }, r2.buf2string = function(e3, t4) {
-          var r3, n4, i4, s4, a3 = t4 || e3.length, o3 = new Array(2 * a3);
-          for (r3 = n4 = 0; r3 < a3; )
-            if ((i4 = e3[r3++]) < 128)
-              o3[n4++] = i4;
-            else if (4 < (s4 = u3[i4]))
-              o3[n4++] = 65533, r3 += s4 - 1;
-            else {
-              for (i4 &= 2 === s4 ? 31 : 3 === s4 ? 15 : 7; 1 < s4 && r3 < a3; )
-                i4 = i4 << 6 | 63 & e3[r3++], s4--;
-              1 < s4 ? o3[n4++] = 65533 : i4 < 65536 ? o3[n4++] = i4 : (i4 -= 65536, o3[n4++] = 55296 | i4 >> 10 & 1023, o3[n4++] = 56320 | 1023 & i4);
-            }
-          return l3(o3, n4);
-        }, r2.utf8border = function(e3, t4) {
-          var r3;
-          for ((t4 = t4 || e3.length) > e3.length && (t4 = e3.length), r3 = t4 - 1; 0 <= r3 && 128 == (192 & e3[r3]); )
-            r3--;
-          return r3 < 0 ? t4 : 0 === r3 ? t4 : r3 + u3[e3[r3]] > t4 ? r3 : t4;
-        };
-      }, { "./common": 41 }], 43: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = function(e3, t4, r3, n3) {
-          for (var i3 = 65535 & e3 | 0, s3 = e3 >>> 16 & 65535 | 0, a3 = 0; 0 !== r3; ) {
-            for (r3 -= a3 = 2e3 < r3 ? 2e3 : r3; s3 = s3 + (i3 = i3 + t4[n3++] | 0) | 0, --a3; )
-              ;
-            i3 %= 65521, s3 %= 65521;
-          }
-          return i3 | s3 << 16 | 0;
-        };
-      }, {}], 44: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = { Z_NO_FLUSH: 0, Z_PARTIAL_FLUSH: 1, Z_SYNC_FLUSH: 2, Z_FULL_FLUSH: 3, Z_FINISH: 4, Z_BLOCK: 5, Z_TREES: 6, Z_OK: 0, Z_STREAM_END: 1, Z_NEED_DICT: 2, Z_ERRNO: -1, Z_STREAM_ERROR: -2, Z_DATA_ERROR: -3, Z_BUF_ERROR: -5, Z_NO_COMPRESSION: 0, Z_BEST_SPEED: 1, Z_BEST_COMPRESSION: 9, Z_DEFAULT_COMPRESSION: -1, Z_FILTERED: 1, Z_HUFFMAN_ONLY: 2, Z_RLE: 3, Z_FIXED: 4, Z_DEFAULT_STRATEGY: 0, Z_BINARY: 0, Z_TEXT: 1, Z_UNKNOWN: 2, Z_DEFLATED: 8 };
-      }, {}], 45: [function(e2, t3, r2) {
-        "use strict";
-        var o3 = function() {
-          for (var e3, t4 = [], r3 = 0; r3 < 256; r3++) {
-            e3 = r3;
-            for (var n3 = 0; n3 < 8; n3++)
-              e3 = 1 & e3 ? 3988292384 ^ e3 >>> 1 : e3 >>> 1;
-            t4[r3] = e3;
-          }
-          return t4;
-        }();
-        t3.exports = function(e3, t4, r3, n3) {
-          var i3 = o3, s3 = n3 + r3;
-          e3 ^= -1;
-          for (var a3 = n3; a3 < s3; a3++)
-            e3 = e3 >>> 8 ^ i3[255 & (e3 ^ t4[a3])];
-          return -1 ^ e3;
-        };
-      }, {}], 46: [function(e2, t3, r2) {
-        "use strict";
-        var h3, c4 = e2("../utils/common"), u3 = e2("./trees"), d2 = e2("./adler32"), p3 = e2("./crc32"), n3 = e2("./messages"), l3 = 0, f3 = 4, m4 = 0, _3 = -2, g2 = -1, b2 = 4, i3 = 2, v3 = 8, y4 = 9, s3 = 286, a3 = 30, o3 = 19, w2 = 2 * s3 + 1, k2 = 15, x3 = 3, S2 = 258, z2 = S2 + x3 + 1, C2 = 42, E2 = 113, A3 = 1, I2 = 2, O3 = 3, B2 = 4;
-        function R2(e3, t4) {
-          return e3.msg = n3[t4], t4;
-        }
-        function T3(e3) {
-          return (e3 << 1) - (4 < e3 ? 9 : 0);
-        }
-        function D2(e3) {
-          for (var t4 = e3.length; 0 <= --t4; )
-            e3[t4] = 0;
-        }
-        function F2(e3) {
-          var t4 = e3.state, r3 = t4.pending;
-          r3 > e3.avail_out && (r3 = e3.avail_out), 0 !== r3 && (c4.arraySet(e3.output, t4.pending_buf, t4.pending_out, r3, e3.next_out), e3.next_out += r3, t4.pending_out += r3, e3.total_out += r3, e3.avail_out -= r3, t4.pending -= r3, 0 === t4.pending && (t4.pending_out = 0));
-        }
-        function N3(e3, t4) {
-          u3._tr_flush_block(e3, 0 <= e3.block_start ? e3.block_start : -1, e3.strstart - e3.block_start, t4), e3.block_start = e3.strstart, F2(e3.strm);
-        }
-        function U2(e3, t4) {
-          e3.pending_buf[e3.pending++] = t4;
-        }
-        function P2(e3, t4) {
-          e3.pending_buf[e3.pending++] = t4 >>> 8 & 255, e3.pending_buf[e3.pending++] = 255 & t4;
-        }
-        function L2(e3, t4) {
-          var r3, n4, i4 = e3.max_chain_length, s4 = e3.strstart, a4 = e3.prev_length, o4 = e3.nice_match, h4 = e3.strstart > e3.w_size - z2 ? e3.strstart - (e3.w_size - z2) : 0, u4 = e3.window, l4 = e3.w_mask, f4 = e3.prev, c5 = e3.strstart + S2, d3 = u4[s4 + a4 - 1], p4 = u4[s4 + a4];
-          e3.prev_length >= e3.good_match && (i4 >>= 2), o4 > e3.lookahead && (o4 = e3.lookahead);
-          do {
-            if (u4[(r3 = t4) + a4] === p4 && u4[r3 + a4 - 1] === d3 && u4[r3] === u4[s4] && u4[++r3] === u4[s4 + 1]) {
-              s4 += 2, r3++;
-              do {
-              } while (u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && u4[++s4] === u4[++r3] && s4 < c5);
-              if (n4 = S2 - (c5 - s4), s4 = c5 - S2, a4 < n4) {
-                if (e3.match_start = t4, o4 <= (a4 = n4))
-                  break;
-                d3 = u4[s4 + a4 - 1], p4 = u4[s4 + a4];
-              }
-            }
-          } while ((t4 = f4[t4 & l4]) > h4 && 0 != --i4);
-          return a4 <= e3.lookahead ? a4 : e3.lookahead;
-        }
-        function j2(e3) {
-          var t4, r3, n4, i4, s4, a4, o4, h4, u4, l4, f4 = e3.w_size;
-          do {
-            if (i4 = e3.window_size - e3.lookahead - e3.strstart, e3.strstart >= f4 + (f4 - z2)) {
-              for (c4.arraySet(e3.window, e3.window, f4, f4, 0), e3.match_start -= f4, e3.strstart -= f4, e3.block_start -= f4, t4 = r3 = e3.hash_size; n4 = e3.head[--t4], e3.head[t4] = f4 <= n4 ? n4 - f4 : 0, --r3; )
-                ;
-              for (t4 = r3 = f4; n4 = e3.prev[--t4], e3.prev[t4] = f4 <= n4 ? n4 - f4 : 0, --r3; )
-                ;
-              i4 += f4;
-            }
-            if (0 === e3.strm.avail_in)
-              break;
-            if (a4 = e3.strm, o4 = e3.window, h4 = e3.strstart + e3.lookahead, u4 = i4, l4 = void 0, l4 = a4.avail_in, u4 < l4 && (l4 = u4), r3 = 0 === l4 ? 0 : (a4.avail_in -= l4, c4.arraySet(o4, a4.input, a4.next_in, l4, h4), 1 === a4.state.wrap ? a4.adler = d2(a4.adler, o4, l4, h4) : 2 === a4.state.wrap && (a4.adler = p3(a4.adler, o4, l4, h4)), a4.next_in += l4, a4.total_in += l4, l4), e3.lookahead += r3, e3.lookahead + e3.insert >= x3)
-              for (s4 = e3.strstart - e3.insert, e3.ins_h = e3.window[s4], e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[s4 + 1]) & e3.hash_mask; e3.insert && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[s4 + x3 - 1]) & e3.hash_mask, e3.prev[s4 & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = s4, s4++, e3.insert--, !(e3.lookahead + e3.insert < x3)); )
-                ;
-          } while (e3.lookahead < z2 && 0 !== e3.strm.avail_in);
-        }
-        function Z2(e3, t4) {
-          for (var r3, n4; ; ) {
-            if (e3.lookahead < z2) {
-              if (j2(e3), e3.lookahead < z2 && t4 === l3)
-                return A3;
-              if (0 === e3.lookahead)
-                break;
-            }
-            if (r3 = 0, e3.lookahead >= x3 && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart), 0 !== r3 && e3.strstart - r3 <= e3.w_size - z2 && (e3.match_length = L2(e3, r3)), e3.match_length >= x3)
-              if (n4 = u3._tr_tally(e3, e3.strstart - e3.match_start, e3.match_length - x3), e3.lookahead -= e3.match_length, e3.match_length <= e3.max_lazy_match && e3.lookahead >= x3) {
-                for (e3.match_length--; e3.strstart++, e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart, 0 != --e3.match_length; )
-                  ;
-                e3.strstart++;
-              } else
-                e3.strstart += e3.match_length, e3.match_length = 0, e3.ins_h = e3.window[e3.strstart], e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + 1]) & e3.hash_mask;
-            else
-              n4 = u3._tr_tally(e3, 0, e3.window[e3.strstart]), e3.lookahead--, e3.strstart++;
-            if (n4 && (N3(e3, false), 0 === e3.strm.avail_out))
-              return A3;
-          }
-          return e3.insert = e3.strstart < x3 - 1 ? e3.strstart : x3 - 1, t4 === f3 ? (N3(e3, true), 0 === e3.strm.avail_out ? O3 : B2) : e3.last_lit && (N3(e3, false), 0 === e3.strm.avail_out) ? A3 : I2;
-        }
-        function W2(e3, t4) {
-          for (var r3, n4, i4; ; ) {
-            if (e3.lookahead < z2) {
-              if (j2(e3), e3.lookahead < z2 && t4 === l3)
-                return A3;
-              if (0 === e3.lookahead)
-                break;
-            }
-            if (r3 = 0, e3.lookahead >= x3 && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart), e3.prev_length = e3.match_length, e3.prev_match = e3.match_start, e3.match_length = x3 - 1, 0 !== r3 && e3.prev_length < e3.max_lazy_match && e3.strstart - r3 <= e3.w_size - z2 && (e3.match_length = L2(e3, r3), e3.match_length <= 5 && (1 === e3.strategy || e3.match_length === x3 && 4096 < e3.strstart - e3.match_start) && (e3.match_length = x3 - 1)), e3.prev_length >= x3 && e3.match_length <= e3.prev_length) {
-              for (i4 = e3.strstart + e3.lookahead - x3, n4 = u3._tr_tally(e3, e3.strstart - 1 - e3.prev_match, e3.prev_length - x3), e3.lookahead -= e3.prev_length - 1, e3.prev_length -= 2; ++e3.strstart <= i4 && (e3.ins_h = (e3.ins_h << e3.hash_shift ^ e3.window[e3.strstart + x3 - 1]) & e3.hash_mask, r3 = e3.prev[e3.strstart & e3.w_mask] = e3.head[e3.ins_h], e3.head[e3.ins_h] = e3.strstart), 0 != --e3.prev_length; )
-                ;
-              if (e3.match_available = 0, e3.match_length = x3 - 1, e3.strstart++, n4 && (N3(e3, false), 0 === e3.strm.avail_out))
-                return A3;
-            } else if (e3.match_available) {
-              if ((n4 = u3._tr_tally(e3, 0, e3.window[e3.strstart - 1])) && N3(e3, false), e3.strstart++, e3.lookahead--, 0 === e3.strm.avail_out)
-                return A3;
-            } else
-              e3.match_available = 1, e3.strstart++, e3.lookahead--;
-          }
-          return e3.match_available && (n4 = u3._tr_tally(e3, 0, e3.window[e3.strstart - 1]), e3.match_available = 0), e3.insert = e3.strstart < x3 - 1 ? e3.strstart : x3 - 1, t4 === f3 ? (N3(e3, true), 0 === e3.strm.avail_out ? O3 : B2) : e3.last_lit && (N3(e3, false), 0 === e3.strm.avail_out) ? A3 : I2;
-        }
-        function M2(e3, t4, r3, n4, i4) {
-          this.good_length = e3, this.max_lazy = t4, this.nice_length = r3, this.max_chain = n4, this.func = i4;
-        }
-        function H2() {
-          this.strm = null, this.status = 0, this.pending_buf = null, this.pending_buf_size = 0, this.pending_out = 0, this.pending = 0, this.wrap = 0, this.gzhead = null, this.gzindex = 0, this.method = v3, this.last_flush = -1, this.w_size = 0, this.w_bits = 0, this.w_mask = 0, this.window = null, this.window_size = 0, this.prev = null, this.head = null, this.ins_h = 0, this.hash_size = 0, this.hash_bits = 0, this.hash_mask = 0, this.hash_shift = 0, this.block_start = 0, this.match_length = 0, this.prev_match = 0, this.match_available = 0, this.strstart = 0, this.match_start = 0, this.lookahead = 0, this.prev_length = 0, this.max_chain_length = 0, this.max_lazy_match = 0, this.level = 0, this.strategy = 0, this.good_match = 0, this.nice_match = 0, this.dyn_ltree = new c4.Buf16(2 * w2), this.dyn_dtree = new c4.Buf16(2 * (2 * a3 + 1)), this.bl_tree = new c4.Buf16(2 * (2 * o3 + 1)), D2(this.dyn_ltree), D2(this.dyn_dtree), D2(this.bl_tree), this.l_desc = null, this.d_desc = null, this.bl_desc = null, this.bl_count = new c4.Buf16(k2 + 1), this.heap = new c4.Buf16(2 * s3 + 1), D2(this.heap), this.heap_len = 0, this.heap_max = 0, this.depth = new c4.Buf16(2 * s3 + 1), D2(this.depth), this.l_buf = 0, this.lit_bufsize = 0, this.last_lit = 0, this.d_buf = 0, this.opt_len = 0, this.static_len = 0, this.matches = 0, this.insert = 0, this.bi_buf = 0, this.bi_valid = 0;
-        }
-        function G3(e3) {
-          var t4;
-          return e3 && e3.state ? (e3.total_in = e3.total_out = 0, e3.data_type = i3, (t4 = e3.state).pending = 0, t4.pending_out = 0, t4.wrap < 0 && (t4.wrap = -t4.wrap), t4.status = t4.wrap ? C2 : E2, e3.adler = 2 === t4.wrap ? 0 : 1, t4.last_flush = l3, u3._tr_init(t4), m4) : R2(e3, _3);
-        }
-        function K2(e3) {
-          var t4 = G3(e3);
-          return t4 === m4 && function(e4) {
-            e4.window_size = 2 * e4.w_size, D2(e4.head), e4.max_lazy_match = h3[e4.level].max_lazy, e4.good_match = h3[e4.level].good_length, e4.nice_match = h3[e4.level].nice_length, e4.max_chain_length = h3[e4.level].max_chain, e4.strstart = 0, e4.block_start = 0, e4.lookahead = 0, e4.insert = 0, e4.match_length = e4.prev_length = x3 - 1, e4.match_available = 0, e4.ins_h = 0;
-          }(e3.state), t4;
-        }
-        function Y2(e3, t4, r3, n4, i4, s4) {
-          if (!e3)
-            return _3;
-          var a4 = 1;
-          if (t4 === g2 && (t4 = 6), n4 < 0 ? (a4 = 0, n4 = -n4) : 15 < n4 && (a4 = 2, n4 -= 16), i4 < 1 || y4 < i4 || r3 !== v3 || n4 < 8 || 15 < n4 || t4 < 0 || 9 < t4 || s4 < 0 || b2 < s4)
-            return R2(e3, _3);
-          8 === n4 && (n4 = 9);
-          var o4 = new H2();
-          return (e3.state = o4).strm = e3, o4.wrap = a4, o4.gzhead = null, o4.w_bits = n4, o4.w_size = 1 << o4.w_bits, o4.w_mask = o4.w_size - 1, o4.hash_bits = i4 + 7, o4.hash_size = 1 << o4.hash_bits, o4.hash_mask = o4.hash_size - 1, o4.hash_shift = ~~((o4.hash_bits + x3 - 1) / x3), o4.window = new c4.Buf8(2 * o4.w_size), o4.head = new c4.Buf16(o4.hash_size), o4.prev = new c4.Buf16(o4.w_size), o4.lit_bufsize = 1 << i4 + 6, o4.pending_buf_size = 4 * o4.lit_bufsize, o4.pending_buf = new c4.Buf8(o4.pending_buf_size), o4.d_buf = 1 * o4.lit_bufsize, o4.l_buf = 3 * o4.lit_bufsize, o4.level = t4, o4.strategy = s4, o4.method = r3, K2(e3);
-        }
-        h3 = [new M2(0, 0, 0, 0, function(e3, t4) {
-          var r3 = 65535;
-          for (r3 > e3.pending_buf_size - 5 && (r3 = e3.pending_buf_size - 5); ; ) {
-            if (e3.lookahead <= 1) {
-              if (j2(e3), 0 === e3.lookahead && t4 === l3)
-                return A3;
-              if (0 === e3.lookahead)
-                break;
-            }
-            e3.strstart += e3.lookahead, e3.lookahead = 0;
-            var n4 = e3.block_start + r3;
-            if ((0 === e3.strstart || e3.strstart >= n4) && (e3.lookahead = e3.strstart - n4, e3.strstart = n4, N3(e3, false), 0 === e3.strm.avail_out))
-              return A3;
-            if (e3.strstart - e3.block_start >= e3.w_size - z2 && (N3(e3, false), 0 === e3.strm.avail_out))
-              return A3;
-          }
-          return e3.insert = 0, t4 === f3 ? (N3(e3, true), 0 === e3.strm.avail_out ? O3 : B2) : (e3.strstart > e3.block_start && (N3(e3, false), e3.strm.avail_out), A3);
-        }), new M2(4, 4, 8, 4, Z2), new M2(4, 5, 16, 8, Z2), new M2(4, 6, 32, 32, Z2), new M2(4, 4, 16, 16, W2), new M2(8, 16, 32, 32, W2), new M2(8, 16, 128, 128, W2), new M2(8, 32, 128, 256, W2), new M2(32, 128, 258, 1024, W2), new M2(32, 258, 258, 4096, W2)], r2.deflateInit = function(e3, t4) {
-          return Y2(e3, t4, v3, 15, 8, 0);
-        }, r2.deflateInit2 = Y2, r2.deflateReset = K2, r2.deflateResetKeep = G3, r2.deflateSetHeader = function(e3, t4) {
-          return e3 && e3.state ? 2 !== e3.state.wrap ? _3 : (e3.state.gzhead = t4, m4) : _3;
-        }, r2.deflate = function(e3, t4) {
-          var r3, n4, i4, s4;
-          if (!e3 || !e3.state || 5 < t4 || t4 < 0)
-            return e3 ? R2(e3, _3) : _3;
-          if (n4 = e3.state, !e3.output || !e3.input && 0 !== e3.avail_in || 666 === n4.status && t4 !== f3)
-            return R2(e3, 0 === e3.avail_out ? -5 : _3);
-          if (n4.strm = e3, r3 = n4.last_flush, n4.last_flush = t4, n4.status === C2)
-            if (2 === n4.wrap)
-              e3.adler = 0, U2(n4, 31), U2(n4, 139), U2(n4, 8), n4.gzhead ? (U2(n4, (n4.gzhead.text ? 1 : 0) + (n4.gzhead.hcrc ? 2 : 0) + (n4.gzhead.extra ? 4 : 0) + (n4.gzhead.name ? 8 : 0) + (n4.gzhead.comment ? 16 : 0)), U2(n4, 255 & n4.gzhead.time), U2(n4, n4.gzhead.time >> 8 & 255), U2(n4, n4.gzhead.time >> 16 & 255), U2(n4, n4.gzhead.time >> 24 & 255), U2(n4, 9 === n4.level ? 2 : 2 <= n4.strategy || n4.level < 2 ? 4 : 0), U2(n4, 255 & n4.gzhead.os), n4.gzhead.extra && n4.gzhead.extra.length && (U2(n4, 255 & n4.gzhead.extra.length), U2(n4, n4.gzhead.extra.length >> 8 & 255)), n4.gzhead.hcrc && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending, 0)), n4.gzindex = 0, n4.status = 69) : (U2(n4, 0), U2(n4, 0), U2(n4, 0), U2(n4, 0), U2(n4, 0), U2(n4, 9 === n4.level ? 2 : 2 <= n4.strategy || n4.level < 2 ? 4 : 0), U2(n4, 3), n4.status = E2);
-            else {
-              var a4 = v3 + (n4.w_bits - 8 << 4) << 8;
-              a4 |= (2 <= n4.strategy || n4.level < 2 ? 0 : n4.level < 6 ? 1 : 6 === n4.level ? 2 : 3) << 6, 0 !== n4.strstart && (a4 |= 32), a4 += 31 - a4 % 31, n4.status = E2, P2(n4, a4), 0 !== n4.strstart && (P2(n4, e3.adler >>> 16), P2(n4, 65535 & e3.adler)), e3.adler = 1;
-            }
-          if (69 === n4.status)
-            if (n4.gzhead.extra) {
-              for (i4 = n4.pending; n4.gzindex < (65535 & n4.gzhead.extra.length) && (n4.pending !== n4.pending_buf_size || (n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), F2(e3), i4 = n4.pending, n4.pending !== n4.pending_buf_size)); )
-                U2(n4, 255 & n4.gzhead.extra[n4.gzindex]), n4.gzindex++;
-              n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), n4.gzindex === n4.gzhead.extra.length && (n4.gzindex = 0, n4.status = 73);
-            } else
-              n4.status = 73;
-          if (73 === n4.status)
-            if (n4.gzhead.name) {
-              i4 = n4.pending;
-              do {
-                if (n4.pending === n4.pending_buf_size && (n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), F2(e3), i4 = n4.pending, n4.pending === n4.pending_buf_size)) {
-                  s4 = 1;
-                  break;
-                }
-                s4 = n4.gzindex < n4.gzhead.name.length ? 255 & n4.gzhead.name.charCodeAt(n4.gzindex++) : 0, U2(n4, s4);
-              } while (0 !== s4);
-              n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), 0 === s4 && (n4.gzindex = 0, n4.status = 91);
-            } else
-              n4.status = 91;
-          if (91 === n4.status)
-            if (n4.gzhead.comment) {
-              i4 = n4.pending;
-              do {
-                if (n4.pending === n4.pending_buf_size && (n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), F2(e3), i4 = n4.pending, n4.pending === n4.pending_buf_size)) {
-                  s4 = 1;
-                  break;
-                }
-                s4 = n4.gzindex < n4.gzhead.comment.length ? 255 & n4.gzhead.comment.charCodeAt(n4.gzindex++) : 0, U2(n4, s4);
-              } while (0 !== s4);
-              n4.gzhead.hcrc && n4.pending > i4 && (e3.adler = p3(e3.adler, n4.pending_buf, n4.pending - i4, i4)), 0 === s4 && (n4.status = 103);
-            } else
-              n4.status = 103;
-          if (103 === n4.status && (n4.gzhead.hcrc ? (n4.pending + 2 > n4.pending_buf_size && F2(e3), n4.pending + 2 <= n4.pending_buf_size && (U2(n4, 255 & e3.adler), U2(n4, e3.adler >> 8 & 255), e3.adler = 0, n4.status = E2)) : n4.status = E2), 0 !== n4.pending) {
-            if (F2(e3), 0 === e3.avail_out)
-              return n4.last_flush = -1, m4;
-          } else if (0 === e3.avail_in && T3(t4) <= T3(r3) && t4 !== f3)
-            return R2(e3, -5);
-          if (666 === n4.status && 0 !== e3.avail_in)
-            return R2(e3, -5);
-          if (0 !== e3.avail_in || 0 !== n4.lookahead || t4 !== l3 && 666 !== n4.status) {
-            var o4 = 2 === n4.strategy ? function(e4, t5) {
-              for (var r4; ; ) {
-                if (0 === e4.lookahead && (j2(e4), 0 === e4.lookahead)) {
-                  if (t5 === l3)
-                    return A3;
-                  break;
-                }
-                if (e4.match_length = 0, r4 = u3._tr_tally(e4, 0, e4.window[e4.strstart]), e4.lookahead--, e4.strstart++, r4 && (N3(e4, false), 0 === e4.strm.avail_out))
-                  return A3;
-              }
-              return e4.insert = 0, t5 === f3 ? (N3(e4, true), 0 === e4.strm.avail_out ? O3 : B2) : e4.last_lit && (N3(e4, false), 0 === e4.strm.avail_out) ? A3 : I2;
-            }(n4, t4) : 3 === n4.strategy ? function(e4, t5) {
-              for (var r4, n5, i5, s5, a5 = e4.window; ; ) {
-                if (e4.lookahead <= S2) {
-                  if (j2(e4), e4.lookahead <= S2 && t5 === l3)
-                    return A3;
-                  if (0 === e4.lookahead)
-                    break;
-                }
-                if (e4.match_length = 0, e4.lookahead >= x3 && 0 < e4.strstart && (n5 = a5[i5 = e4.strstart - 1]) === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5]) {
-                  s5 = e4.strstart + S2;
-                  do {
-                  } while (n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && n5 === a5[++i5] && i5 < s5);
-                  e4.match_length = S2 - (s5 - i5), e4.match_length > e4.lookahead && (e4.match_length = e4.lookahead);
-                }
-                if (e4.match_length >= x3 ? (r4 = u3._tr_tally(e4, 1, e4.match_length - x3), e4.lookahead -= e4.match_length, e4.strstart += e4.match_length, e4.match_length = 0) : (r4 = u3._tr_tally(e4, 0, e4.window[e4.strstart]), e4.lookahead--, e4.strstart++), r4 && (N3(e4, false), 0 === e4.strm.avail_out))
-                  return A3;
-              }
-              return e4.insert = 0, t5 === f3 ? (N3(e4, true), 0 === e4.strm.avail_out ? O3 : B2) : e4.last_lit && (N3(e4, false), 0 === e4.strm.avail_out) ? A3 : I2;
-            }(n4, t4) : h3[n4.level].func(n4, t4);
-            if (o4 !== O3 && o4 !== B2 || (n4.status = 666), o4 === A3 || o4 === O3)
-              return 0 === e3.avail_out && (n4.last_flush = -1), m4;
-            if (o4 === I2 && (1 === t4 ? u3._tr_align(n4) : 5 !== t4 && (u3._tr_stored_block(n4, 0, 0, false), 3 === t4 && (D2(n4.head), 0 === n4.lookahead && (n4.strstart = 0, n4.block_start = 0, n4.insert = 0))), F2(e3), 0 === e3.avail_out))
-              return n4.last_flush = -1, m4;
-          }
-          return t4 !== f3 ? m4 : n4.wrap <= 0 ? 1 : (2 === n4.wrap ? (U2(n4, 255 & e3.adler), U2(n4, e3.adler >> 8 & 255), U2(n4, e3.adler >> 16 & 255), U2(n4, e3.adler >> 24 & 255), U2(n4, 255 & e3.total_in), U2(n4, e3.total_in >> 8 & 255), U2(n4, e3.total_in >> 16 & 255), U2(n4, e3.total_in >> 24 & 255)) : (P2(n4, e3.adler >>> 16), P2(n4, 65535 & e3.adler)), F2(e3), 0 < n4.wrap && (n4.wrap = -n4.wrap), 0 !== n4.pending ? m4 : 1);
-        }, r2.deflateEnd = function(e3) {
-          var t4;
-          return e3 && e3.state ? (t4 = e3.state.status) !== C2 && 69 !== t4 && 73 !== t4 && 91 !== t4 && 103 !== t4 && t4 !== E2 && 666 !== t4 ? R2(e3, _3) : (e3.state = null, t4 === E2 ? R2(e3, -3) : m4) : _3;
-        }, r2.deflateSetDictionary = function(e3, t4) {
-          var r3, n4, i4, s4, a4, o4, h4, u4, l4 = t4.length;
-          if (!e3 || !e3.state)
-            return _3;
-          if (2 === (s4 = (r3 = e3.state).wrap) || 1 === s4 && r3.status !== C2 || r3.lookahead)
-            return _3;
-          for (1 === s4 && (e3.adler = d2(e3.adler, t4, l4, 0)), r3.wrap = 0, l4 >= r3.w_size && (0 === s4 && (D2(r3.head), r3.strstart = 0, r3.block_start = 0, r3.insert = 0), u4 = new c4.Buf8(r3.w_size), c4.arraySet(u4, t4, l4 - r3.w_size, r3.w_size, 0), t4 = u4, l4 = r3.w_size), a4 = e3.avail_in, o4 = e3.next_in, h4 = e3.input, e3.avail_in = l4, e3.next_in = 0, e3.input = t4, j2(r3); r3.lookahead >= x3; ) {
-            for (n4 = r3.strstart, i4 = r3.lookahead - (x3 - 1); r3.ins_h = (r3.ins_h << r3.hash_shift ^ r3.window[n4 + x3 - 1]) & r3.hash_mask, r3.prev[n4 & r3.w_mask] = r3.head[r3.ins_h], r3.head[r3.ins_h] = n4, n4++, --i4; )
-              ;
-            r3.strstart = n4, r3.lookahead = x3 - 1, j2(r3);
-          }
-          return r3.strstart += r3.lookahead, r3.block_start = r3.strstart, r3.insert = r3.lookahead, r3.lookahead = 0, r3.match_length = r3.prev_length = x3 - 1, r3.match_available = 0, e3.next_in = o4, e3.input = h4, e3.avail_in = a4, r3.wrap = s4, m4;
-        }, r2.deflateInfo = "pako deflate (from Nodeca project)";
-      }, { "../utils/common": 41, "./adler32": 43, "./crc32": 45, "./messages": 51, "./trees": 52 }], 47: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = function() {
-          this.text = 0, this.time = 0, this.xflags = 0, this.os = 0, this.extra = null, this.extra_len = 0, this.name = "", this.comment = "", this.hcrc = 0, this.done = false;
-        };
-      }, {}], 48: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = function(e3, t4) {
-          var r3, n3, i3, s3, a3, o3, h3, u3, l3, f3, c4, d2, p3, m4, _3, g2, b2, v3, y4, w2, k2, x3, S2, z2, C2;
-          r3 = e3.state, n3 = e3.next_in, z2 = e3.input, i3 = n3 + (e3.avail_in - 5), s3 = e3.next_out, C2 = e3.output, a3 = s3 - (t4 - e3.avail_out), o3 = s3 + (e3.avail_out - 257), h3 = r3.dmax, u3 = r3.wsize, l3 = r3.whave, f3 = r3.wnext, c4 = r3.window, d2 = r3.hold, p3 = r3.bits, m4 = r3.lencode, _3 = r3.distcode, g2 = (1 << r3.lenbits) - 1, b2 = (1 << r3.distbits) - 1;
-          e:
-            do {
-              p3 < 15 && (d2 += z2[n3++] << p3, p3 += 8, d2 += z2[n3++] << p3, p3 += 8), v3 = m4[d2 & g2];
-              t:
-                for (; ; ) {
-                  if (d2 >>>= y4 = v3 >>> 24, p3 -= y4, 0 === (y4 = v3 >>> 16 & 255))
-                    C2[s3++] = 65535 & v3;
-                  else {
-                    if (!(16 & y4)) {
-                      if (0 == (64 & y4)) {
-                        v3 = m4[(65535 & v3) + (d2 & (1 << y4) - 1)];
-                        continue t;
-                      }
-                      if (32 & y4) {
-                        r3.mode = 12;
-                        break e;
-                      }
-                      e3.msg = "invalid literal/length code", r3.mode = 30;
-                      break e;
-                    }
-                    w2 = 65535 & v3, (y4 &= 15) && (p3 < y4 && (d2 += z2[n3++] << p3, p3 += 8), w2 += d2 & (1 << y4) - 1, d2 >>>= y4, p3 -= y4), p3 < 15 && (d2 += z2[n3++] << p3, p3 += 8, d2 += z2[n3++] << p3, p3 += 8), v3 = _3[d2 & b2];
-                    r:
-                      for (; ; ) {
-                        if (d2 >>>= y4 = v3 >>> 24, p3 -= y4, !(16 & (y4 = v3 >>> 16 & 255))) {
-                          if (0 == (64 & y4)) {
-                            v3 = _3[(65535 & v3) + (d2 & (1 << y4) - 1)];
-                            continue r;
-                          }
-                          e3.msg = "invalid distance code", r3.mode = 30;
-                          break e;
-                        }
-                        if (k2 = 65535 & v3, p3 < (y4 &= 15) && (d2 += z2[n3++] << p3, (p3 += 8) < y4 && (d2 += z2[n3++] << p3, p3 += 8)), h3 < (k2 += d2 & (1 << y4) - 1)) {
-                          e3.msg = "invalid distance too far back", r3.mode = 30;
-                          break e;
-                        }
-                        if (d2 >>>= y4, p3 -= y4, (y4 = s3 - a3) < k2) {
-                          if (l3 < (y4 = k2 - y4) && r3.sane) {
-                            e3.msg = "invalid distance too far back", r3.mode = 30;
-                            break e;
-                          }
-                          if (S2 = c4, (x3 = 0) === f3) {
-                            if (x3 += u3 - y4, y4 < w2) {
-                              for (w2 -= y4; C2[s3++] = c4[x3++], --y4; )
-                                ;
-                              x3 = s3 - k2, S2 = C2;
-                            }
-                          } else if (f3 < y4) {
-                            if (x3 += u3 + f3 - y4, (y4 -= f3) < w2) {
-                              for (w2 -= y4; C2[s3++] = c4[x3++], --y4; )
-                                ;
-                              if (x3 = 0, f3 < w2) {
-                                for (w2 -= y4 = f3; C2[s3++] = c4[x3++], --y4; )
-                                  ;
-                                x3 = s3 - k2, S2 = C2;
-                              }
-                            }
-                          } else if (x3 += f3 - y4, y4 < w2) {
-                            for (w2 -= y4; C2[s3++] = c4[x3++], --y4; )
-                              ;
-                            x3 = s3 - k2, S2 = C2;
-                          }
-                          for (; 2 < w2; )
-                            C2[s3++] = S2[x3++], C2[s3++] = S2[x3++], C2[s3++] = S2[x3++], w2 -= 3;
-                          w2 && (C2[s3++] = S2[x3++], 1 < w2 && (C2[s3++] = S2[x3++]));
-                        } else {
-                          for (x3 = s3 - k2; C2[s3++] = C2[x3++], C2[s3++] = C2[x3++], C2[s3++] = C2[x3++], 2 < (w2 -= 3); )
-                            ;
-                          w2 && (C2[s3++] = C2[x3++], 1 < w2 && (C2[s3++] = C2[x3++]));
-                        }
-                        break;
-                      }
-                  }
-                  break;
-                }
-            } while (n3 < i3 && s3 < o3);
-          n3 -= w2 = p3 >> 3, d2 &= (1 << (p3 -= w2 << 3)) - 1, e3.next_in = n3, e3.next_out = s3, e3.avail_in = n3 < i3 ? i3 - n3 + 5 : 5 - (n3 - i3), e3.avail_out = s3 < o3 ? o3 - s3 + 257 : 257 - (s3 - o3), r3.hold = d2, r3.bits = p3;
-        };
-      }, {}], 49: [function(e2, t3, r2) {
-        "use strict";
-        var I2 = e2("../utils/common"), O3 = e2("./adler32"), B2 = e2("./crc32"), R2 = e2("./inffast"), T3 = e2("./inftrees"), D2 = 1, F2 = 2, N3 = 0, U2 = -2, P2 = 1, n3 = 852, i3 = 592;
-        function L2(e3) {
-          return (e3 >>> 24 & 255) + (e3 >>> 8 & 65280) + ((65280 & e3) << 8) + ((255 & e3) << 24);
-        }
-        function s3() {
-          this.mode = 0, this.last = false, this.wrap = 0, this.havedict = false, this.flags = 0, this.dmax = 0, this.check = 0, this.total = 0, this.head = null, this.wbits = 0, this.wsize = 0, this.whave = 0, this.wnext = 0, this.window = null, this.hold = 0, this.bits = 0, this.length = 0, this.offset = 0, this.extra = 0, this.lencode = null, this.distcode = null, this.lenbits = 0, this.distbits = 0, this.ncode = 0, this.nlen = 0, this.ndist = 0, this.have = 0, this.next = null, this.lens = new I2.Buf16(320), this.work = new I2.Buf16(288), this.lendyn = null, this.distdyn = null, this.sane = 0, this.back = 0, this.was = 0;
-        }
-        function a3(e3) {
-          var t4;
-          return e3 && e3.state ? (t4 = e3.state, e3.total_in = e3.total_out = t4.total = 0, e3.msg = "", t4.wrap && (e3.adler = 1 & t4.wrap), t4.mode = P2, t4.last = 0, t4.havedict = 0, t4.dmax = 32768, t4.head = null, t4.hold = 0, t4.bits = 0, t4.lencode = t4.lendyn = new I2.Buf32(n3), t4.distcode = t4.distdyn = new I2.Buf32(i3), t4.sane = 1, t4.back = -1, N3) : U2;
-        }
-        function o3(e3) {
-          var t4;
-          return e3 && e3.state ? ((t4 = e3.state).wsize = 0, t4.whave = 0, t4.wnext = 0, a3(e3)) : U2;
-        }
-        function h3(e3, t4) {
-          var r3, n4;
-          return e3 && e3.state ? (n4 = e3.state, t4 < 0 ? (r3 = 0, t4 = -t4) : (r3 = 1 + (t4 >> 4), t4 < 48 && (t4 &= 15)), t4 && (t4 < 8 || 15 < t4) ? U2 : (null !== n4.window && n4.wbits !== t4 && (n4.window = null), n4.wrap = r3, n4.wbits = t4, o3(e3))) : U2;
-        }
-        function u3(e3, t4) {
-          var r3, n4;
-          return e3 ? (n4 = new s3(), (e3.state = n4).window = null, (r3 = h3(e3, t4)) !== N3 && (e3.state = null), r3) : U2;
-        }
-        var l3, f3, c4 = true;
-        function j2(e3) {
-          if (c4) {
-            var t4;
-            for (l3 = new I2.Buf32(512), f3 = new I2.Buf32(32), t4 = 0; t4 < 144; )
-              e3.lens[t4++] = 8;
-            for (; t4 < 256; )
-              e3.lens[t4++] = 9;
-            for (; t4 < 280; )
-              e3.lens[t4++] = 7;
-            for (; t4 < 288; )
-              e3.lens[t4++] = 8;
-            for (T3(D2, e3.lens, 0, 288, l3, 0, e3.work, { bits: 9 }), t4 = 0; t4 < 32; )
-              e3.lens[t4++] = 5;
-            T3(F2, e3.lens, 0, 32, f3, 0, e3.work, { bits: 5 }), c4 = false;
-          }
-          e3.lencode = l3, e3.lenbits = 9, e3.distcode = f3, e3.distbits = 5;
-        }
-        function Z2(e3, t4, r3, n4) {
-          var i4, s4 = e3.state;
-          return null === s4.window && (s4.wsize = 1 << s4.wbits, s4.wnext = 0, s4.whave = 0, s4.window = new I2.Buf8(s4.wsize)), n4 >= s4.wsize ? (I2.arraySet(s4.window, t4, r3 - s4.wsize, s4.wsize, 0), s4.wnext = 0, s4.whave = s4.wsize) : (n4 < (i4 = s4.wsize - s4.wnext) && (i4 = n4), I2.arraySet(s4.window, t4, r3 - n4, i4, s4.wnext), (n4 -= i4) ? (I2.arraySet(s4.window, t4, r3 - n4, n4, 0), s4.wnext = n4, s4.whave = s4.wsize) : (s4.wnext += i4, s4.wnext === s4.wsize && (s4.wnext = 0), s4.whave < s4.wsize && (s4.whave += i4))), 0;
-        }
-        r2.inflateReset = o3, r2.inflateReset2 = h3, r2.inflateResetKeep = a3, r2.inflateInit = function(e3) {
-          return u3(e3, 15);
-        }, r2.inflateInit2 = u3, r2.inflate = function(e3, t4) {
-          var r3, n4, i4, s4, a4, o4, h4, u4, l4, f4, c5, d2, p3, m4, _3, g2, b2, v3, y4, w2, k2, x3, S2, z2, C2 = 0, E2 = new I2.Buf8(4), A3 = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
-          if (!e3 || !e3.state || !e3.output || !e3.input && 0 !== e3.avail_in)
-            return U2;
-          12 === (r3 = e3.state).mode && (r3.mode = 13), a4 = e3.next_out, i4 = e3.output, h4 = e3.avail_out, s4 = e3.next_in, n4 = e3.input, o4 = e3.avail_in, u4 = r3.hold, l4 = r3.bits, f4 = o4, c5 = h4, x3 = N3;
-          e:
-            for (; ; )
-              switch (r3.mode) {
-                case P2:
-                  if (0 === r3.wrap) {
-                    r3.mode = 13;
-                    break;
-                  }
-                  for (; l4 < 16; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  if (2 & r3.wrap && 35615 === u4) {
-                    E2[r3.check = 0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0), l4 = u4 = 0, r3.mode = 2;
-                    break;
-                  }
-                  if (r3.flags = 0, r3.head && (r3.head.done = false), !(1 & r3.wrap) || (((255 & u4) << 8) + (u4 >> 8)) % 31) {
-                    e3.msg = "incorrect header check", r3.mode = 30;
-                    break;
-                  }
-                  if (8 != (15 & u4)) {
-                    e3.msg = "unknown compression method", r3.mode = 30;
-                    break;
-                  }
-                  if (l4 -= 4, k2 = 8 + (15 & (u4 >>>= 4)), 0 === r3.wbits)
-                    r3.wbits = k2;
-                  else if (k2 > r3.wbits) {
-                    e3.msg = "invalid window size", r3.mode = 30;
-                    break;
-                  }
-                  r3.dmax = 1 << k2, e3.adler = r3.check = 1, r3.mode = 512 & u4 ? 10 : 12, l4 = u4 = 0;
-                  break;
-                case 2:
-                  for (; l4 < 16; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  if (r3.flags = u4, 8 != (255 & r3.flags)) {
-                    e3.msg = "unknown compression method", r3.mode = 30;
-                    break;
-                  }
-                  if (57344 & r3.flags) {
-                    e3.msg = "unknown header flags set", r3.mode = 30;
-                    break;
-                  }
-                  r3.head && (r3.head.text = u4 >> 8 & 1), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0)), l4 = u4 = 0, r3.mode = 3;
-                case 3:
-                  for (; l4 < 32; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  r3.head && (r3.head.time = u4), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, E2[2] = u4 >>> 16 & 255, E2[3] = u4 >>> 24 & 255, r3.check = B2(r3.check, E2, 4, 0)), l4 = u4 = 0, r3.mode = 4;
-                case 4:
-                  for (; l4 < 16; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  r3.head && (r3.head.xflags = 255 & u4, r3.head.os = u4 >> 8), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0)), l4 = u4 = 0, r3.mode = 5;
-                case 5:
-                  if (1024 & r3.flags) {
-                    for (; l4 < 16; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    r3.length = u4, r3.head && (r3.head.extra_len = u4), 512 & r3.flags && (E2[0] = 255 & u4, E2[1] = u4 >>> 8 & 255, r3.check = B2(r3.check, E2, 2, 0)), l4 = u4 = 0;
-                  } else
-                    r3.head && (r3.head.extra = null);
-                  r3.mode = 6;
-                case 6:
-                  if (1024 & r3.flags && (o4 < (d2 = r3.length) && (d2 = o4), d2 && (r3.head && (k2 = r3.head.extra_len - r3.length, r3.head.extra || (r3.head.extra = new Array(r3.head.extra_len)), I2.arraySet(r3.head.extra, n4, s4, d2, k2)), 512 & r3.flags && (r3.check = B2(r3.check, n4, d2, s4)), o4 -= d2, s4 += d2, r3.length -= d2), r3.length))
-                    break e;
-                  r3.length = 0, r3.mode = 7;
-                case 7:
-                  if (2048 & r3.flags) {
-                    if (0 === o4)
-                      break e;
-                    for (d2 = 0; k2 = n4[s4 + d2++], r3.head && k2 && r3.length < 65536 && (r3.head.name += String.fromCharCode(k2)), k2 && d2 < o4; )
-                      ;
-                    if (512 & r3.flags && (r3.check = B2(r3.check, n4, d2, s4)), o4 -= d2, s4 += d2, k2)
-                      break e;
-                  } else
-                    r3.head && (r3.head.name = null);
-                  r3.length = 0, r3.mode = 8;
-                case 8:
-                  if (4096 & r3.flags) {
-                    if (0 === o4)
-                      break e;
-                    for (d2 = 0; k2 = n4[s4 + d2++], r3.head && k2 && r3.length < 65536 && (r3.head.comment += String.fromCharCode(k2)), k2 && d2 < o4; )
-                      ;
-                    if (512 & r3.flags && (r3.check = B2(r3.check, n4, d2, s4)), o4 -= d2, s4 += d2, k2)
-                      break e;
-                  } else
-                    r3.head && (r3.head.comment = null);
-                  r3.mode = 9;
-                case 9:
-                  if (512 & r3.flags) {
-                    for (; l4 < 16; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    if (u4 !== (65535 & r3.check)) {
-                      e3.msg = "header crc mismatch", r3.mode = 30;
-                      break;
-                    }
-                    l4 = u4 = 0;
-                  }
-                  r3.head && (r3.head.hcrc = r3.flags >> 9 & 1, r3.head.done = true), e3.adler = r3.check = 0, r3.mode = 12;
-                  break;
-                case 10:
-                  for (; l4 < 32; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  e3.adler = r3.check = L2(u4), l4 = u4 = 0, r3.mode = 11;
-                case 11:
-                  if (0 === r3.havedict)
-                    return e3.next_out = a4, e3.avail_out = h4, e3.next_in = s4, e3.avail_in = o4, r3.hold = u4, r3.bits = l4, 2;
-                  e3.adler = r3.check = 1, r3.mode = 12;
-                case 12:
-                  if (5 === t4 || 6 === t4)
-                    break e;
-                case 13:
-                  if (r3.last) {
-                    u4 >>>= 7 & l4, l4 -= 7 & l4, r3.mode = 27;
-                    break;
-                  }
-                  for (; l4 < 3; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  switch (r3.last = 1 & u4, l4 -= 1, 3 & (u4 >>>= 1)) {
-                    case 0:
-                      r3.mode = 14;
-                      break;
-                    case 1:
-                      if (j2(r3), r3.mode = 20, 6 !== t4)
-                        break;
-                      u4 >>>= 2, l4 -= 2;
-                      break e;
-                    case 2:
-                      r3.mode = 17;
-                      break;
-                    case 3:
-                      e3.msg = "invalid block type", r3.mode = 30;
-                  }
-                  u4 >>>= 2, l4 -= 2;
-                  break;
-                case 14:
-                  for (u4 >>>= 7 & l4, l4 -= 7 & l4; l4 < 32; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  if ((65535 & u4) != (u4 >>> 16 ^ 65535)) {
-                    e3.msg = "invalid stored block lengths", r3.mode = 30;
-                    break;
-                  }
-                  if (r3.length = 65535 & u4, l4 = u4 = 0, r3.mode = 15, 6 === t4)
-                    break e;
-                case 15:
-                  r3.mode = 16;
-                case 16:
-                  if (d2 = r3.length) {
-                    if (o4 < d2 && (d2 = o4), h4 < d2 && (d2 = h4), 0 === d2)
-                      break e;
-                    I2.arraySet(i4, n4, s4, d2, a4), o4 -= d2, s4 += d2, h4 -= d2, a4 += d2, r3.length -= d2;
-                    break;
-                  }
-                  r3.mode = 12;
-                  break;
-                case 17:
-                  for (; l4 < 14; ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  if (r3.nlen = 257 + (31 & u4), u4 >>>= 5, l4 -= 5, r3.ndist = 1 + (31 & u4), u4 >>>= 5, l4 -= 5, r3.ncode = 4 + (15 & u4), u4 >>>= 4, l4 -= 4, 286 < r3.nlen || 30 < r3.ndist) {
-                    e3.msg = "too many length or distance symbols", r3.mode = 30;
-                    break;
-                  }
-                  r3.have = 0, r3.mode = 18;
-                case 18:
-                  for (; r3.have < r3.ncode; ) {
-                    for (; l4 < 3; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    r3.lens[A3[r3.have++]] = 7 & u4, u4 >>>= 3, l4 -= 3;
-                  }
-                  for (; r3.have < 19; )
-                    r3.lens[A3[r3.have++]] = 0;
-                  if (r3.lencode = r3.lendyn, r3.lenbits = 7, S2 = { bits: r3.lenbits }, x3 = T3(0, r3.lens, 0, 19, r3.lencode, 0, r3.work, S2), r3.lenbits = S2.bits, x3) {
-                    e3.msg = "invalid code lengths set", r3.mode = 30;
-                    break;
-                  }
-                  r3.have = 0, r3.mode = 19;
-                case 19:
-                  for (; r3.have < r3.nlen + r3.ndist; ) {
-                    for (; g2 = (C2 = r3.lencode[u4 & (1 << r3.lenbits) - 1]) >>> 16 & 255, b2 = 65535 & C2, !((_3 = C2 >>> 24) <= l4); ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    if (b2 < 16)
-                      u4 >>>= _3, l4 -= _3, r3.lens[r3.have++] = b2;
-                    else {
-                      if (16 === b2) {
-                        for (z2 = _3 + 2; l4 < z2; ) {
-                          if (0 === o4)
-                            break e;
-                          o4--, u4 += n4[s4++] << l4, l4 += 8;
-                        }
-                        if (u4 >>>= _3, l4 -= _3, 0 === r3.have) {
-                          e3.msg = "invalid bit length repeat", r3.mode = 30;
-                          break;
-                        }
-                        k2 = r3.lens[r3.have - 1], d2 = 3 + (3 & u4), u4 >>>= 2, l4 -= 2;
-                      } else if (17 === b2) {
-                        for (z2 = _3 + 3; l4 < z2; ) {
-                          if (0 === o4)
-                            break e;
-                          o4--, u4 += n4[s4++] << l4, l4 += 8;
-                        }
-                        l4 -= _3, k2 = 0, d2 = 3 + (7 & (u4 >>>= _3)), u4 >>>= 3, l4 -= 3;
-                      } else {
-                        for (z2 = _3 + 7; l4 < z2; ) {
-                          if (0 === o4)
-                            break e;
-                          o4--, u4 += n4[s4++] << l4, l4 += 8;
-                        }
-                        l4 -= _3, k2 = 0, d2 = 11 + (127 & (u4 >>>= _3)), u4 >>>= 7, l4 -= 7;
-                      }
-                      if (r3.have + d2 > r3.nlen + r3.ndist) {
-                        e3.msg = "invalid bit length repeat", r3.mode = 30;
-                        break;
-                      }
-                      for (; d2--; )
-                        r3.lens[r3.have++] = k2;
-                    }
-                  }
-                  if (30 === r3.mode)
-                    break;
-                  if (0 === r3.lens[256]) {
-                    e3.msg = "invalid code -- missing end-of-block", r3.mode = 30;
-                    break;
-                  }
-                  if (r3.lenbits = 9, S2 = { bits: r3.lenbits }, x3 = T3(D2, r3.lens, 0, r3.nlen, r3.lencode, 0, r3.work, S2), r3.lenbits = S2.bits, x3) {
-                    e3.msg = "invalid literal/lengths set", r3.mode = 30;
-                    break;
-                  }
-                  if (r3.distbits = 6, r3.distcode = r3.distdyn, S2 = { bits: r3.distbits }, x3 = T3(F2, r3.lens, r3.nlen, r3.ndist, r3.distcode, 0, r3.work, S2), r3.distbits = S2.bits, x3) {
-                    e3.msg = "invalid distances set", r3.mode = 30;
-                    break;
-                  }
-                  if (r3.mode = 20, 6 === t4)
-                    break e;
-                case 20:
-                  r3.mode = 21;
-                case 21:
-                  if (6 <= o4 && 258 <= h4) {
-                    e3.next_out = a4, e3.avail_out = h4, e3.next_in = s4, e3.avail_in = o4, r3.hold = u4, r3.bits = l4, R2(e3, c5), a4 = e3.next_out, i4 = e3.output, h4 = e3.avail_out, s4 = e3.next_in, n4 = e3.input, o4 = e3.avail_in, u4 = r3.hold, l4 = r3.bits, 12 === r3.mode && (r3.back = -1);
-                    break;
-                  }
-                  for (r3.back = 0; g2 = (C2 = r3.lencode[u4 & (1 << r3.lenbits) - 1]) >>> 16 & 255, b2 = 65535 & C2, !((_3 = C2 >>> 24) <= l4); ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  if (g2 && 0 == (240 & g2)) {
-                    for (v3 = _3, y4 = g2, w2 = b2; g2 = (C2 = r3.lencode[w2 + ((u4 & (1 << v3 + y4) - 1) >> v3)]) >>> 16 & 255, b2 = 65535 & C2, !(v3 + (_3 = C2 >>> 24) <= l4); ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    u4 >>>= v3, l4 -= v3, r3.back += v3;
-                  }
-                  if (u4 >>>= _3, l4 -= _3, r3.back += _3, r3.length = b2, 0 === g2) {
-                    r3.mode = 26;
-                    break;
-                  }
-                  if (32 & g2) {
-                    r3.back = -1, r3.mode = 12;
-                    break;
-                  }
-                  if (64 & g2) {
-                    e3.msg = "invalid literal/length code", r3.mode = 30;
-                    break;
-                  }
-                  r3.extra = 15 & g2, r3.mode = 22;
-                case 22:
-                  if (r3.extra) {
-                    for (z2 = r3.extra; l4 < z2; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    r3.length += u4 & (1 << r3.extra) - 1, u4 >>>= r3.extra, l4 -= r3.extra, r3.back += r3.extra;
-                  }
-                  r3.was = r3.length, r3.mode = 23;
-                case 23:
-                  for (; g2 = (C2 = r3.distcode[u4 & (1 << r3.distbits) - 1]) >>> 16 & 255, b2 = 65535 & C2, !((_3 = C2 >>> 24) <= l4); ) {
-                    if (0 === o4)
-                      break e;
-                    o4--, u4 += n4[s4++] << l4, l4 += 8;
-                  }
-                  if (0 == (240 & g2)) {
-                    for (v3 = _3, y4 = g2, w2 = b2; g2 = (C2 = r3.distcode[w2 + ((u4 & (1 << v3 + y4) - 1) >> v3)]) >>> 16 & 255, b2 = 65535 & C2, !(v3 + (_3 = C2 >>> 24) <= l4); ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    u4 >>>= v3, l4 -= v3, r3.back += v3;
-                  }
-                  if (u4 >>>= _3, l4 -= _3, r3.back += _3, 64 & g2) {
-                    e3.msg = "invalid distance code", r3.mode = 30;
-                    break;
-                  }
-                  r3.offset = b2, r3.extra = 15 & g2, r3.mode = 24;
-                case 24:
-                  if (r3.extra) {
-                    for (z2 = r3.extra; l4 < z2; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    r3.offset += u4 & (1 << r3.extra) - 1, u4 >>>= r3.extra, l4 -= r3.extra, r3.back += r3.extra;
-                  }
-                  if (r3.offset > r3.dmax) {
-                    e3.msg = "invalid distance too far back", r3.mode = 30;
-                    break;
-                  }
-                  r3.mode = 25;
-                case 25:
-                  if (0 === h4)
-                    break e;
-                  if (d2 = c5 - h4, r3.offset > d2) {
-                    if ((d2 = r3.offset - d2) > r3.whave && r3.sane) {
-                      e3.msg = "invalid distance too far back", r3.mode = 30;
-                      break;
-                    }
-                    p3 = d2 > r3.wnext ? (d2 -= r3.wnext, r3.wsize - d2) : r3.wnext - d2, d2 > r3.length && (d2 = r3.length), m4 = r3.window;
-                  } else
-                    m4 = i4, p3 = a4 - r3.offset, d2 = r3.length;
-                  for (h4 < d2 && (d2 = h4), h4 -= d2, r3.length -= d2; i4[a4++] = m4[p3++], --d2; )
-                    ;
-                  0 === r3.length && (r3.mode = 21);
-                  break;
-                case 26:
-                  if (0 === h4)
-                    break e;
-                  i4[a4++] = r3.length, h4--, r3.mode = 21;
-                  break;
-                case 27:
-                  if (r3.wrap) {
-                    for (; l4 < 32; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 |= n4[s4++] << l4, l4 += 8;
-                    }
-                    if (c5 -= h4, e3.total_out += c5, r3.total += c5, c5 && (e3.adler = r3.check = r3.flags ? B2(r3.check, i4, c5, a4 - c5) : O3(r3.check, i4, c5, a4 - c5)), c5 = h4, (r3.flags ? u4 : L2(u4)) !== r3.check) {
-                      e3.msg = "incorrect data check", r3.mode = 30;
-                      break;
-                    }
-                    l4 = u4 = 0;
-                  }
-                  r3.mode = 28;
-                case 28:
-                  if (r3.wrap && r3.flags) {
-                    for (; l4 < 32; ) {
-                      if (0 === o4)
-                        break e;
-                      o4--, u4 += n4[s4++] << l4, l4 += 8;
-                    }
-                    if (u4 !== (4294967295 & r3.total)) {
-                      e3.msg = "incorrect length check", r3.mode = 30;
-                      break;
-                    }
-                    l4 = u4 = 0;
-                  }
-                  r3.mode = 29;
-                case 29:
-                  x3 = 1;
-                  break e;
-                case 30:
-                  x3 = -3;
-                  break e;
-                case 31:
-                  return -4;
-                case 32:
-                default:
-                  return U2;
-              }
-          return e3.next_out = a4, e3.avail_out = h4, e3.next_in = s4, e3.avail_in = o4, r3.hold = u4, r3.bits = l4, (r3.wsize || c5 !== e3.avail_out && r3.mode < 30 && (r3.mode < 27 || 4 !== t4)) && Z2(e3, e3.output, e3.next_out, c5 - e3.avail_out) ? (r3.mode = 31, -4) : (f4 -= e3.avail_in, c5 -= e3.avail_out, e3.total_in += f4, e3.total_out += c5, r3.total += c5, r3.wrap && c5 && (e3.adler = r3.check = r3.flags ? B2(r3.check, i4, c5, e3.next_out - c5) : O3(r3.check, i4, c5, e3.next_out - c5)), e3.data_type = r3.bits + (r3.last ? 64 : 0) + (12 === r3.mode ? 128 : 0) + (20 === r3.mode || 15 === r3.mode ? 256 : 0), (0 == f4 && 0 === c5 || 4 === t4) && x3 === N3 && (x3 = -5), x3);
-        }, r2.inflateEnd = function(e3) {
-          if (!e3 || !e3.state)
-            return U2;
-          var t4 = e3.state;
-          return t4.window && (t4.window = null), e3.state = null, N3;
-        }, r2.inflateGetHeader = function(e3, t4) {
-          var r3;
-          return e3 && e3.state ? 0 == (2 & (r3 = e3.state).wrap) ? U2 : ((r3.head = t4).done = false, N3) : U2;
-        }, r2.inflateSetDictionary = function(e3, t4) {
-          var r3, n4 = t4.length;
-          return e3 && e3.state ? 0 !== (r3 = e3.state).wrap && 11 !== r3.mode ? U2 : 11 === r3.mode && O3(1, t4, n4, 0) !== r3.check ? -3 : Z2(e3, t4, n4, n4) ? (r3.mode = 31, -4) : (r3.havedict = 1, N3) : U2;
-        }, r2.inflateInfo = "pako inflate (from Nodeca project)";
-      }, { "../utils/common": 41, "./adler32": 43, "./crc32": 45, "./inffast": 48, "./inftrees": 50 }], 50: [function(e2, t3, r2) {
-        "use strict";
-        var D2 = e2("../utils/common"), F2 = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0], N3 = [16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 72, 78], U2 = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577, 0, 0], P2 = [16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 64, 64];
-        t3.exports = function(e3, t4, r3, n3, i3, s3, a3, o3) {
-          var h3, u3, l3, f3, c4, d2, p3, m4, _3, g2 = o3.bits, b2 = 0, v3 = 0, y4 = 0, w2 = 0, k2 = 0, x3 = 0, S2 = 0, z2 = 0, C2 = 0, E2 = 0, A3 = null, I2 = 0, O3 = new D2.Buf16(16), B2 = new D2.Buf16(16), R2 = null, T3 = 0;
-          for (b2 = 0; b2 <= 15; b2++)
-            O3[b2] = 0;
-          for (v3 = 0; v3 < n3; v3++)
-            O3[t4[r3 + v3]]++;
-          for (k2 = g2, w2 = 15; 1 <= w2 && 0 === O3[w2]; w2--)
-            ;
-          if (w2 < k2 && (k2 = w2), 0 === w2)
-            return i3[s3++] = 20971520, i3[s3++] = 20971520, o3.bits = 1, 0;
-          for (y4 = 1; y4 < w2 && 0 === O3[y4]; y4++)
-            ;
-          for (k2 < y4 && (k2 = y4), b2 = z2 = 1; b2 <= 15; b2++)
-            if (z2 <<= 1, (z2 -= O3[b2]) < 0)
-              return -1;
-          if (0 < z2 && (0 === e3 || 1 !== w2))
-            return -1;
-          for (B2[1] = 0, b2 = 1; b2 < 15; b2++)
-            B2[b2 + 1] = B2[b2] + O3[b2];
-          for (v3 = 0; v3 < n3; v3++)
-            0 !== t4[r3 + v3] && (a3[B2[t4[r3 + v3]]++] = v3);
-          if (d2 = 0 === e3 ? (A3 = R2 = a3, 19) : 1 === e3 ? (A3 = F2, I2 -= 257, R2 = N3, T3 -= 257, 256) : (A3 = U2, R2 = P2, -1), b2 = y4, c4 = s3, S2 = v3 = E2 = 0, l3 = -1, f3 = (C2 = 1 << (x3 = k2)) - 1, 1 === e3 && 852 < C2 || 2 === e3 && 592 < C2)
-            return 1;
-          for (; ; ) {
-            for (p3 = b2 - S2, _3 = a3[v3] < d2 ? (m4 = 0, a3[v3]) : a3[v3] > d2 ? (m4 = R2[T3 + a3[v3]], A3[I2 + a3[v3]]) : (m4 = 96, 0), h3 = 1 << b2 - S2, y4 = u3 = 1 << x3; i3[c4 + (E2 >> S2) + (u3 -= h3)] = p3 << 24 | m4 << 16 | _3 | 0, 0 !== u3; )
-              ;
-            for (h3 = 1 << b2 - 1; E2 & h3; )
-              h3 >>= 1;
-            if (0 !== h3 ? (E2 &= h3 - 1, E2 += h3) : E2 = 0, v3++, 0 == --O3[b2]) {
-              if (b2 === w2)
-                break;
-              b2 = t4[r3 + a3[v3]];
-            }
-            if (k2 < b2 && (E2 & f3) !== l3) {
-              for (0 === S2 && (S2 = k2), c4 += y4, z2 = 1 << (x3 = b2 - S2); x3 + S2 < w2 && !((z2 -= O3[x3 + S2]) <= 0); )
-                x3++, z2 <<= 1;
-              if (C2 += 1 << x3, 1 === e3 && 852 < C2 || 2 === e3 && 592 < C2)
-                return 1;
-              i3[l3 = E2 & f3] = k2 << 24 | x3 << 16 | c4 - s3 | 0;
-            }
-          }
-          return 0 !== E2 && (i3[c4 + E2] = b2 - S2 << 24 | 64 << 16 | 0), o3.bits = k2, 0;
-        };
-      }, { "../utils/common": 41 }], 51: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = { 2: "need dictionary", 1: "stream end", 0: "", "-1": "file error", "-2": "stream error", "-3": "data error", "-4": "insufficient memory", "-5": "buffer error", "-6": "incompatible version" };
-      }, {}], 52: [function(e2, t3, r2) {
-        "use strict";
-        var i3 = e2("../utils/common"), o3 = 0, h3 = 1;
-        function n3(e3) {
-          for (var t4 = e3.length; 0 <= --t4; )
-            e3[t4] = 0;
-        }
-        var s3 = 0, a3 = 29, u3 = 256, l3 = u3 + 1 + a3, f3 = 30, c4 = 19, _3 = 2 * l3 + 1, g2 = 15, d2 = 16, p3 = 7, m4 = 256, b2 = 16, v3 = 17, y4 = 18, w2 = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0], k2 = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13], x3 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 7], S2 = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15], z2 = new Array(2 * (l3 + 2));
-        n3(z2);
-        var C2 = new Array(2 * f3);
-        n3(C2);
-        var E2 = new Array(512);
-        n3(E2);
-        var A3 = new Array(256);
-        n3(A3);
-        var I2 = new Array(a3);
-        n3(I2);
-        var O3, B2, R2, T3 = new Array(f3);
-        function D2(e3, t4, r3, n4, i4) {
-          this.static_tree = e3, this.extra_bits = t4, this.extra_base = r3, this.elems = n4, this.max_length = i4, this.has_stree = e3 && e3.length;
-        }
-        function F2(e3, t4) {
-          this.dyn_tree = e3, this.max_code = 0, this.stat_desc = t4;
-        }
-        function N3(e3) {
-          return e3 < 256 ? E2[e3] : E2[256 + (e3 >>> 7)];
-        }
-        function U2(e3, t4) {
-          e3.pending_buf[e3.pending++] = 255 & t4, e3.pending_buf[e3.pending++] = t4 >>> 8 & 255;
-        }
-        function P2(e3, t4, r3) {
-          e3.bi_valid > d2 - r3 ? (e3.bi_buf |= t4 << e3.bi_valid & 65535, U2(e3, e3.bi_buf), e3.bi_buf = t4 >> d2 - e3.bi_valid, e3.bi_valid += r3 - d2) : (e3.bi_buf |= t4 << e3.bi_valid & 65535, e3.bi_valid += r3);
-        }
-        function L2(e3, t4, r3) {
-          P2(e3, r3[2 * t4], r3[2 * t4 + 1]);
-        }
-        function j2(e3, t4) {
-          for (var r3 = 0; r3 |= 1 & e3, e3 >>>= 1, r3 <<= 1, 0 < --t4; )
-            ;
-          return r3 >>> 1;
-        }
-        function Z2(e3, t4, r3) {
-          var n4, i4, s4 = new Array(g2 + 1), a4 = 0;
-          for (n4 = 1; n4 <= g2; n4++)
-            s4[n4] = a4 = a4 + r3[n4 - 1] << 1;
-          for (i4 = 0; i4 <= t4; i4++) {
-            var o4 = e3[2 * i4 + 1];
-            0 !== o4 && (e3[2 * i4] = j2(s4[o4]++, o4));
-          }
-        }
-        function W2(e3) {
-          var t4;
-          for (t4 = 0; t4 < l3; t4++)
-            e3.dyn_ltree[2 * t4] = 0;
-          for (t4 = 0; t4 < f3; t4++)
-            e3.dyn_dtree[2 * t4] = 0;
-          for (t4 = 0; t4 < c4; t4++)
-            e3.bl_tree[2 * t4] = 0;
-          e3.dyn_ltree[2 * m4] = 1, e3.opt_len = e3.static_len = 0, e3.last_lit = e3.matches = 0;
-        }
-        function M2(e3) {
-          8 < e3.bi_valid ? U2(e3, e3.bi_buf) : 0 < e3.bi_valid && (e3.pending_buf[e3.pending++] = e3.bi_buf), e3.bi_buf = 0, e3.bi_valid = 0;
-        }
-        function H2(e3, t4, r3, n4) {
-          var i4 = 2 * t4, s4 = 2 * r3;
-          return e3[i4] < e3[s4] || e3[i4] === e3[s4] && n4[t4] <= n4[r3];
-        }
-        function G3(e3, t4, r3) {
-          for (var n4 = e3.heap[r3], i4 = r3 << 1; i4 <= e3.heap_len && (i4 < e3.heap_len && H2(t4, e3.heap[i4 + 1], e3.heap[i4], e3.depth) && i4++, !H2(t4, n4, e3.heap[i4], e3.depth)); )
-            e3.heap[r3] = e3.heap[i4], r3 = i4, i4 <<= 1;
-          e3.heap[r3] = n4;
-        }
-        function K2(e3, t4, r3) {
-          var n4, i4, s4, a4, o4 = 0;
-          if (0 !== e3.last_lit)
-            for (; n4 = e3.pending_buf[e3.d_buf + 2 * o4] << 8 | e3.pending_buf[e3.d_buf + 2 * o4 + 1], i4 = e3.pending_buf[e3.l_buf + o4], o4++, 0 === n4 ? L2(e3, i4, t4) : (L2(e3, (s4 = A3[i4]) + u3 + 1, t4), 0 !== (a4 = w2[s4]) && P2(e3, i4 -= I2[s4], a4), L2(e3, s4 = N3(--n4), r3), 0 !== (a4 = k2[s4]) && P2(e3, n4 -= T3[s4], a4)), o4 < e3.last_lit; )
-              ;
-          L2(e3, m4, t4);
-        }
-        function Y2(e3, t4) {
-          var r3, n4, i4, s4 = t4.dyn_tree, a4 = t4.stat_desc.static_tree, o4 = t4.stat_desc.has_stree, h4 = t4.stat_desc.elems, u4 = -1;
-          for (e3.heap_len = 0, e3.heap_max = _3, r3 = 0; r3 < h4; r3++)
-            0 !== s4[2 * r3] ? (e3.heap[++e3.heap_len] = u4 = r3, e3.depth[r3] = 0) : s4[2 * r3 + 1] = 0;
-          for (; e3.heap_len < 2; )
-            s4[2 * (i4 = e3.heap[++e3.heap_len] = u4 < 2 ? ++u4 : 0)] = 1, e3.depth[i4] = 0, e3.opt_len--, o4 && (e3.static_len -= a4[2 * i4 + 1]);
-          for (t4.max_code = u4, r3 = e3.heap_len >> 1; 1 <= r3; r3--)
-            G3(e3, s4, r3);
-          for (i4 = h4; r3 = e3.heap[1], e3.heap[1] = e3.heap[e3.heap_len--], G3(e3, s4, 1), n4 = e3.heap[1], e3.heap[--e3.heap_max] = r3, e3.heap[--e3.heap_max] = n4, s4[2 * i4] = s4[2 * r3] + s4[2 * n4], e3.depth[i4] = (e3.depth[r3] >= e3.depth[n4] ? e3.depth[r3] : e3.depth[n4]) + 1, s4[2 * r3 + 1] = s4[2 * n4 + 1] = i4, e3.heap[1] = i4++, G3(e3, s4, 1), 2 <= e3.heap_len; )
-            ;
-          e3.heap[--e3.heap_max] = e3.heap[1], function(e4, t5) {
-            var r4, n5, i5, s5, a5, o5, h5 = t5.dyn_tree, u5 = t5.max_code, l4 = t5.stat_desc.static_tree, f4 = t5.stat_desc.has_stree, c5 = t5.stat_desc.extra_bits, d3 = t5.stat_desc.extra_base, p4 = t5.stat_desc.max_length, m5 = 0;
-            for (s5 = 0; s5 <= g2; s5++)
-              e4.bl_count[s5] = 0;
-            for (h5[2 * e4.heap[e4.heap_max] + 1] = 0, r4 = e4.heap_max + 1; r4 < _3; r4++)
-              p4 < (s5 = h5[2 * h5[2 * (n5 = e4.heap[r4]) + 1] + 1] + 1) && (s5 = p4, m5++), h5[2 * n5 + 1] = s5, u5 < n5 || (e4.bl_count[s5]++, a5 = 0, d3 <= n5 && (a5 = c5[n5 - d3]), o5 = h5[2 * n5], e4.opt_len += o5 * (s5 + a5), f4 && (e4.static_len += o5 * (l4[2 * n5 + 1] + a5)));
-            if (0 !== m5) {
-              do {
-                for (s5 = p4 - 1; 0 === e4.bl_count[s5]; )
-                  s5--;
-                e4.bl_count[s5]--, e4.bl_count[s5 + 1] += 2, e4.bl_count[p4]--, m5 -= 2;
-              } while (0 < m5);
-              for (s5 = p4; 0 !== s5; s5--)
-                for (n5 = e4.bl_count[s5]; 0 !== n5; )
-                  u5 < (i5 = e4.heap[--r4]) || (h5[2 * i5 + 1] !== s5 && (e4.opt_len += (s5 - h5[2 * i5 + 1]) * h5[2 * i5], h5[2 * i5 + 1] = s5), n5--);
-            }
-          }(e3, t4), Z2(s4, u4, e3.bl_count);
-        }
-        function X2(e3, t4, r3) {
-          var n4, i4, s4 = -1, a4 = t4[1], o4 = 0, h4 = 7, u4 = 4;
-          for (0 === a4 && (h4 = 138, u4 = 3), t4[2 * (r3 + 1) + 1] = 65535, n4 = 0; n4 <= r3; n4++)
-            i4 = a4, a4 = t4[2 * (n4 + 1) + 1], ++o4 < h4 && i4 === a4 || (o4 < u4 ? e3.bl_tree[2 * i4] += o4 : 0 !== i4 ? (i4 !== s4 && e3.bl_tree[2 * i4]++, e3.bl_tree[2 * b2]++) : o4 <= 10 ? e3.bl_tree[2 * v3]++ : e3.bl_tree[2 * y4]++, s4 = i4, u4 = (o4 = 0) === a4 ? (h4 = 138, 3) : i4 === a4 ? (h4 = 6, 3) : (h4 = 7, 4));
-        }
-        function V2(e3, t4, r3) {
-          var n4, i4, s4 = -1, a4 = t4[1], o4 = 0, h4 = 7, u4 = 4;
-          for (0 === a4 && (h4 = 138, u4 = 3), n4 = 0; n4 <= r3; n4++)
-            if (i4 = a4, a4 = t4[2 * (n4 + 1) + 1], !(++o4 < h4 && i4 === a4)) {
-              if (o4 < u4)
-                for (; L2(e3, i4, e3.bl_tree), 0 != --o4; )
-                  ;
-              else
-                0 !== i4 ? (i4 !== s4 && (L2(e3, i4, e3.bl_tree), o4--), L2(e3, b2, e3.bl_tree), P2(e3, o4 - 3, 2)) : o4 <= 10 ? (L2(e3, v3, e3.bl_tree), P2(e3, o4 - 3, 3)) : (L2(e3, y4, e3.bl_tree), P2(e3, o4 - 11, 7));
-              s4 = i4, u4 = (o4 = 0) === a4 ? (h4 = 138, 3) : i4 === a4 ? (h4 = 6, 3) : (h4 = 7, 4);
-            }
-        }
-        n3(T3);
-        var q2 = false;
-        function J2(e3, t4, r3, n4) {
-          P2(e3, (s3 << 1) + (n4 ? 1 : 0), 3), function(e4, t5, r4, n5) {
-            M2(e4), n5 && (U2(e4, r4), U2(e4, ~r4)), i3.arraySet(e4.pending_buf, e4.window, t5, r4, e4.pending), e4.pending += r4;
-          }(e3, t4, r3, true);
-        }
-        r2._tr_init = function(e3) {
-          q2 || (function() {
-            var e4, t4, r3, n4, i4, s4 = new Array(g2 + 1);
-            for (n4 = r3 = 0; n4 < a3 - 1; n4++)
-              for (I2[n4] = r3, e4 = 0; e4 < 1 << w2[n4]; e4++)
-                A3[r3++] = n4;
-            for (A3[r3 - 1] = n4, n4 = i4 = 0; n4 < 16; n4++)
-              for (T3[n4] = i4, e4 = 0; e4 < 1 << k2[n4]; e4++)
-                E2[i4++] = n4;
-            for (i4 >>= 7; n4 < f3; n4++)
-              for (T3[n4] = i4 << 7, e4 = 0; e4 < 1 << k2[n4] - 7; e4++)
-                E2[256 + i4++] = n4;
-            for (t4 = 0; t4 <= g2; t4++)
-              s4[t4] = 0;
-            for (e4 = 0; e4 <= 143; )
-              z2[2 * e4 + 1] = 8, e4++, s4[8]++;
-            for (; e4 <= 255; )
-              z2[2 * e4 + 1] = 9, e4++, s4[9]++;
-            for (; e4 <= 279; )
-              z2[2 * e4 + 1] = 7, e4++, s4[7]++;
-            for (; e4 <= 287; )
-              z2[2 * e4 + 1] = 8, e4++, s4[8]++;
-            for (Z2(z2, l3 + 1, s4), e4 = 0; e4 < f3; e4++)
-              C2[2 * e4 + 1] = 5, C2[2 * e4] = j2(e4, 5);
-            O3 = new D2(z2, w2, u3 + 1, l3, g2), B2 = new D2(C2, k2, 0, f3, g2), R2 = new D2(new Array(0), x3, 0, c4, p3);
-          }(), q2 = true), e3.l_desc = new F2(e3.dyn_ltree, O3), e3.d_desc = new F2(e3.dyn_dtree, B2), e3.bl_desc = new F2(e3.bl_tree, R2), e3.bi_buf = 0, e3.bi_valid = 0, W2(e3);
-        }, r2._tr_stored_block = J2, r2._tr_flush_block = function(e3, t4, r3, n4) {
-          var i4, s4, a4 = 0;
-          0 < e3.level ? (2 === e3.strm.data_type && (e3.strm.data_type = function(e4) {
-            var t5, r4 = 4093624447;
-            for (t5 = 0; t5 <= 31; t5++, r4 >>>= 1)
-              if (1 & r4 && 0 !== e4.dyn_ltree[2 * t5])
-                return o3;
-            if (0 !== e4.dyn_ltree[18] || 0 !== e4.dyn_ltree[20] || 0 !== e4.dyn_ltree[26])
-              return h3;
-            for (t5 = 32; t5 < u3; t5++)
-              if (0 !== e4.dyn_ltree[2 * t5])
-                return h3;
-            return o3;
-          }(e3)), Y2(e3, e3.l_desc), Y2(e3, e3.d_desc), a4 = function(e4) {
-            var t5;
-            for (X2(e4, e4.dyn_ltree, e4.l_desc.max_code), X2(e4, e4.dyn_dtree, e4.d_desc.max_code), Y2(e4, e4.bl_desc), t5 = c4 - 1; 3 <= t5 && 0 === e4.bl_tree[2 * S2[t5] + 1]; t5--)
-              ;
-            return e4.opt_len += 3 * (t5 + 1) + 5 + 5 + 4, t5;
-          }(e3), i4 = e3.opt_len + 3 + 7 >>> 3, (s4 = e3.static_len + 3 + 7 >>> 3) <= i4 && (i4 = s4)) : i4 = s4 = r3 + 5, r3 + 4 <= i4 && -1 !== t4 ? J2(e3, t4, r3, n4) : 4 === e3.strategy || s4 === i4 ? (P2(e3, 2 + (n4 ? 1 : 0), 3), K2(e3, z2, C2)) : (P2(e3, 4 + (n4 ? 1 : 0), 3), function(e4, t5, r4, n5) {
-            var i5;
-            for (P2(e4, t5 - 257, 5), P2(e4, r4 - 1, 5), P2(e4, n5 - 4, 4), i5 = 0; i5 < n5; i5++)
-              P2(e4, e4.bl_tree[2 * S2[i5] + 1], 3);
-            V2(e4, e4.dyn_ltree, t5 - 1), V2(e4, e4.dyn_dtree, r4 - 1);
-          }(e3, e3.l_desc.max_code + 1, e3.d_desc.max_code + 1, a4 + 1), K2(e3, e3.dyn_ltree, e3.dyn_dtree)), W2(e3), n4 && M2(e3);
-        }, r2._tr_tally = function(e3, t4, r3) {
-          return e3.pending_buf[e3.d_buf + 2 * e3.last_lit] = t4 >>> 8 & 255, e3.pending_buf[e3.d_buf + 2 * e3.last_lit + 1] = 255 & t4, e3.pending_buf[e3.l_buf + e3.last_lit] = 255 & r3, e3.last_lit++, 0 === t4 ? e3.dyn_ltree[2 * r3]++ : (e3.matches++, t4--, e3.dyn_ltree[2 * (A3[r3] + u3 + 1)]++, e3.dyn_dtree[2 * N3(t4)]++), e3.last_lit === e3.lit_bufsize - 1;
-        }, r2._tr_align = function(e3) {
-          P2(e3, 2, 3), L2(e3, m4, z2), function(e4) {
-            16 === e4.bi_valid ? (U2(e4, e4.bi_buf), e4.bi_buf = 0, e4.bi_valid = 0) : 8 <= e4.bi_valid && (e4.pending_buf[e4.pending++] = 255 & e4.bi_buf, e4.bi_buf >>= 8, e4.bi_valid -= 8);
-          }(e3);
-        };
-      }, { "../utils/common": 41 }], 53: [function(e2, t3, r2) {
-        "use strict";
-        t3.exports = function() {
-          this.input = null, this.next_in = 0, this.avail_in = 0, this.total_in = 0, this.output = null, this.next_out = 0, this.avail_out = 0, this.total_out = 0, this.msg = "", this.state = null, this.data_type = 2, this.adler = 0;
-        };
-      }, {}], 54: [function(e2, t3, r2) {
-        (function(e3) {
-          !function(r3, n3) {
-            "use strict";
-            if (!r3.setImmediate) {
-              var i3, s3, t4, a3, o3 = 1, h3 = {}, u3 = false, l3 = r3.document, e4 = Object.getPrototypeOf && Object.getPrototypeOf(r3);
-              e4 = e4 && e4.setTimeout ? e4 : r3, i3 = "[object process]" === {}.toString.call(r3.process) ? function(e5) {
-                process.nextTick(function() {
-                  c4(e5);
-                });
-              } : function() {
-                if (r3.postMessage && !r3.importScripts) {
-                  var e5 = true, t5 = r3.onmessage;
-                  return r3.onmessage = function() {
-                    e5 = false;
-                  }, r3.postMessage("", "*"), r3.onmessage = t5, e5;
-                }
-              }() ? (a3 = "setImmediate$" + Math.random() + "$", r3.addEventListener ? r3.addEventListener("message", d2, false) : r3.attachEvent("onmessage", d2), function(e5) {
-                r3.postMessage(a3 + e5, "*");
-              }) : r3.MessageChannel ? ((t4 = new MessageChannel()).port1.onmessage = function(e5) {
-                c4(e5.data);
-              }, function(e5) {
-                t4.port2.postMessage(e5);
-              }) : l3 && "onreadystatechange" in l3.createElement("script") ? (s3 = l3.documentElement, function(e5) {
-                var t5 = l3.createElement("script");
-                t5.onreadystatechange = function() {
-                  c4(e5), t5.onreadystatechange = null, s3.removeChild(t5), t5 = null;
-                }, s3.appendChild(t5);
-              }) : function(e5) {
-                setTimeout(c4, 0, e5);
-              }, e4.setImmediate = function(e5) {
-                "function" != typeof e5 && (e5 = new Function("" + e5));
-                for (var t5 = new Array(arguments.length - 1), r4 = 0; r4 < t5.length; r4++)
-                  t5[r4] = arguments[r4 + 1];
-                var n4 = { callback: e5, args: t5 };
-                return h3[o3] = n4, i3(o3), o3++;
-              }, e4.clearImmediate = f3;
-            }
-            function f3(e5) {
-              delete h3[e5];
-            }
-            function c4(e5) {
-              if (u3)
-                setTimeout(c4, 0, e5);
-              else {
-                var t5 = h3[e5];
-                if (t5) {
-                  u3 = true;
-                  try {
-                    !function(e6) {
-                      var t6 = e6.callback, r4 = e6.args;
-                      switch (r4.length) {
-                        case 0:
-                          t6();
-                          break;
-                        case 1:
-                          t6(r4[0]);
-                          break;
-                        case 2:
-                          t6(r4[0], r4[1]);
-                          break;
-                        case 3:
-                          t6(r4[0], r4[1], r4[2]);
-                          break;
-                        default:
-                          t6.apply(n3, r4);
-                      }
-                    }(t5);
-                  } finally {
-                    f3(e5), u3 = false;
-                  }
-                }
-              }
-            }
-            function d2(e5) {
-              e5.source === r3 && "string" == typeof e5.data && 0 === e5.data.indexOf(a3) && c4(+e5.data.slice(a3.length));
-            }
-          }("undefined" == typeof self ? void 0 === e3 ? this : e3 : self);
-        }).call(this, "undefined" != typeof global ? global : "undefined" != typeof self ? self : "undefined" != typeof window ? window : {});
-      }, {}] }, {}, [10])(10);
-    });
-  }
-});
-
-// ../simple-mind-map/node_modules/safe-buffer/index.js
-var require_safe_buffer = __commonJS({
-  "../simple-mind-map/node_modules/safe-buffer/index.js"(exports, module) {
-    var buffer = __require("buffer");
-    var Buffer2 = buffer.Buffer;
-    function copyProps(src, dst) {
-      for (var key in src) {
-        dst[key] = src[key];
+      if (cursor_pos < 0 || text1.length < cursor_pos) {
+        cursor_pos = null;
       }
+      var commonlength = diff_commonPrefix(text1, text22);
+      var commonprefix = text1.substring(0, commonlength);
+      text1 = text1.substring(commonlength);
+      text22 = text22.substring(commonlength);
+      commonlength = diff_commonSuffix(text1, text22);
+      var commonsuffix = text1.substring(text1.length - commonlength);
+      text1 = text1.substring(0, text1.length - commonlength);
+      text22 = text22.substring(0, text22.length - commonlength);
+      var diffs = diff_compute_(text1, text22);
+      if (commonprefix) {
+        diffs.unshift([DIFF_EQUAL, commonprefix]);
+      }
+      if (commonsuffix) {
+        diffs.push([DIFF_EQUAL, commonsuffix]);
+      }
+      diff_cleanupMerge(diffs);
+      if (cursor_pos != null) {
+        diffs = fix_cursor(diffs, cursor_pos);
+      }
+      diffs = fix_emoji(diffs);
+      return diffs;
     }
-    if (Buffer2.from && Buffer2.alloc && Buffer2.allocUnsafe && Buffer2.allocUnsafeSlow) {
-      module.exports = buffer;
-    } else {
-      copyProps(buffer, exports);
-      exports.Buffer = SafeBuffer;
-    }
-    function SafeBuffer(arg, encodingOrOffset, length2) {
-      return Buffer2(arg, encodingOrOffset, length2);
-    }
-    copyProps(Buffer2, SafeBuffer);
-    SafeBuffer.from = function(arg, encodingOrOffset, length2) {
-      if (typeof arg === "number") {
-        throw new TypeError("Argument must not be a number");
+    function diff_compute_(text1, text22) {
+      var diffs;
+      if (!text1) {
+        return [[DIFF_INSERT, text22]];
       }
-      return Buffer2(arg, encodingOrOffset, length2);
-    };
-    SafeBuffer.alloc = function(size2, fill, encoding) {
-      if (typeof size2 !== "number") {
-        throw new TypeError("Argument must be a number");
+      if (!text22) {
+        return [[DIFF_DELETE, text1]];
       }
-      var buf = Buffer2(size2);
-      if (fill !== void 0) {
-        if (typeof encoding === "string") {
-          buf.fill(fill, encoding);
+      var longtext = text1.length > text22.length ? text1 : text22;
+      var shorttext = text1.length > text22.length ? text22 : text1;
+      var i3 = longtext.indexOf(shorttext);
+      if (i3 != -1) {
+        diffs = [
+          [DIFF_INSERT, longtext.substring(0, i3)],
+          [DIFF_EQUAL, shorttext],
+          [DIFF_INSERT, longtext.substring(i3 + shorttext.length)]
+        ];
+        if (text1.length > text22.length) {
+          diffs[0][0] = diffs[2][0] = DIFF_DELETE;
+        }
+        return diffs;
+      }
+      if (shorttext.length == 1) {
+        return [[DIFF_DELETE, text1], [DIFF_INSERT, text22]];
+      }
+      var hm = diff_halfMatch_(text1, text22);
+      if (hm) {
+        var text1_a = hm[0];
+        var text1_b = hm[1];
+        var text2_a = hm[2];
+        var text2_b = hm[3];
+        var mid_common = hm[4];
+        var diffs_a = diff_main(text1_a, text2_a);
+        var diffs_b = diff_main(text1_b, text2_b);
+        return diffs_a.concat([[DIFF_EQUAL, mid_common]], diffs_b);
+      }
+      return diff_bisect_(text1, text22);
+    }
+    function diff_bisect_(text1, text22) {
+      var text1_length = text1.length;
+      var text2_length = text22.length;
+      var max_d = Math.ceil((text1_length + text2_length) / 2);
+      var v_offset = max_d;
+      var v_length = 2 * max_d;
+      var v1 = new Array(v_length);
+      var v22 = new Array(v_length);
+      for (var x3 = 0; x3 < v_length; x3++) {
+        v1[x3] = -1;
+        v22[x3] = -1;
+      }
+      v1[v_offset + 1] = 0;
+      v22[v_offset + 1] = 0;
+      var delta = text1_length - text2_length;
+      var front2 = delta % 2 != 0;
+      var k1start = 0;
+      var k1end = 0;
+      var k2start = 0;
+      var k2end = 0;
+      for (var d2 = 0; d2 < max_d; d2++) {
+        for (var k1 = -d2 + k1start; k1 <= d2 - k1end; k1 += 2) {
+          var k1_offset = v_offset + k1;
+          var x1;
+          if (k1 == -d2 || k1 != d2 && v1[k1_offset - 1] < v1[k1_offset + 1]) {
+            x1 = v1[k1_offset + 1];
+          } else {
+            x1 = v1[k1_offset - 1] + 1;
+          }
+          var y1 = x1 - k1;
+          while (x1 < text1_length && y1 < text2_length && text1.charAt(x1) == text22.charAt(y1)) {
+            x1++;
+            y1++;
+          }
+          v1[k1_offset] = x1;
+          if (x1 > text1_length) {
+            k1end += 2;
+          } else if (y1 > text2_length) {
+            k1start += 2;
+          } else if (front2) {
+            var k2_offset = v_offset + delta - k1;
+            if (k2_offset >= 0 && k2_offset < v_length && v22[k2_offset] != -1) {
+              var x22 = text1_length - v22[k2_offset];
+              if (x1 >= x22) {
+                return diff_bisectSplit_(text1, text22, x1, y1);
+              }
+            }
+          }
+        }
+        for (var k2 = -d2 + k2start; k2 <= d2 - k2end; k2 += 2) {
+          var k2_offset = v_offset + k2;
+          var x22;
+          if (k2 == -d2 || k2 != d2 && v22[k2_offset - 1] < v22[k2_offset + 1]) {
+            x22 = v22[k2_offset + 1];
+          } else {
+            x22 = v22[k2_offset - 1] + 1;
+          }
+          var y22 = x22 - k2;
+          while (x22 < text1_length && y22 < text2_length && text1.charAt(text1_length - x22 - 1) == text22.charAt(text2_length - y22 - 1)) {
+            x22++;
+            y22++;
+          }
+          v22[k2_offset] = x22;
+          if (x22 > text1_length) {
+            k2end += 2;
+          } else if (y22 > text2_length) {
+            k2start += 2;
+          } else if (!front2) {
+            var k1_offset = v_offset + delta - k2;
+            if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] != -1) {
+              var x1 = v1[k1_offset];
+              var y1 = v_offset + x1 - k1_offset;
+              x22 = text1_length - x22;
+              if (x1 >= x22) {
+                return diff_bisectSplit_(text1, text22, x1, y1);
+              }
+            }
+          }
+        }
+      }
+      return [[DIFF_DELETE, text1], [DIFF_INSERT, text22]];
+    }
+    function diff_bisectSplit_(text1, text22, x3, y4) {
+      var text1a = text1.substring(0, x3);
+      var text2a = text22.substring(0, y4);
+      var text1b = text1.substring(x3);
+      var text2b = text22.substring(y4);
+      var diffs = diff_main(text1a, text2a);
+      var diffsb = diff_main(text1b, text2b);
+      return diffs.concat(diffsb);
+    }
+    function diff_commonPrefix(text1, text22) {
+      if (!text1 || !text22 || text1.charAt(0) != text22.charAt(0)) {
+        return 0;
+      }
+      var pointermin = 0;
+      var pointermax = Math.min(text1.length, text22.length);
+      var pointermid = pointermax;
+      var pointerstart = 0;
+      while (pointermin < pointermid) {
+        if (text1.substring(pointerstart, pointermid) == text22.substring(pointerstart, pointermid)) {
+          pointermin = pointermid;
+          pointerstart = pointermin;
         } else {
-          buf.fill(fill);
+          pointermax = pointermid;
         }
-      } else {
-        buf.fill(0);
+        pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
       }
-      return buf;
-    };
-    SafeBuffer.allocUnsafe = function(size2) {
-      if (typeof size2 !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      return Buffer2(size2);
-    };
-    SafeBuffer.allocUnsafeSlow = function(size2) {
-      if (typeof size2 !== "number") {
-        throw new TypeError("Argument must be a number");
-      }
-      return buffer.SlowBuffer(size2);
-    };
-  }
-});
-
-// ../simple-mind-map/node_modules/string_decoder/lib/string_decoder.js
-var require_string_decoder = __commonJS({
-  "../simple-mind-map/node_modules/string_decoder/lib/string_decoder.js"(exports) {
-    "use strict";
-    var Buffer2 = require_safe_buffer().Buffer;
-    var isEncoding = Buffer2.isEncoding || function(encoding) {
-      encoding = "" + encoding;
-      switch (encoding && encoding.toLowerCase()) {
-        case "hex":
-        case "utf8":
-        case "utf-8":
-        case "ascii":
-        case "binary":
-        case "base64":
-        case "ucs2":
-        case "ucs-2":
-        case "utf16le":
-        case "utf-16le":
-        case "raw":
-          return true;
-        default:
-          return false;
-      }
-    };
-    function _normalizeEncoding(enc) {
-      if (!enc)
-        return "utf8";
-      var retried;
-      while (true) {
-        switch (enc) {
-          case "utf8":
-          case "utf-8":
-            return "utf8";
-          case "ucs2":
-          case "ucs-2":
-          case "utf16le":
-          case "utf-16le":
-            return "utf16le";
-          case "latin1":
-          case "binary":
-            return "latin1";
-          case "base64":
-          case "ascii":
-          case "hex":
-            return enc;
-          default:
-            if (retried)
-              return;
-            enc = ("" + enc).toLowerCase();
-            retried = true;
-        }
-      }
+      return pointermid;
     }
-    function normalizeEncoding(enc) {
-      var nenc = _normalizeEncoding(enc);
-      if (typeof nenc !== "string" && (Buffer2.isEncoding === isEncoding || !isEncoding(enc)))
-        throw new Error("Unknown encoding: " + enc);
-      return nenc || enc;
-    }
-    exports.StringDecoder = StringDecoder;
-    function StringDecoder(encoding) {
-      this.encoding = normalizeEncoding(encoding);
-      var nb;
-      switch (this.encoding) {
-        case "utf16le":
-          this.text = utf16Text;
-          this.end = utf16End;
-          nb = 4;
-          break;
-        case "utf8":
-          this.fillLast = utf8FillLast;
-          nb = 4;
-          break;
-        case "base64":
-          this.text = base64Text;
-          this.end = base64End;
-          nb = 3;
-          break;
-        default:
-          this.write = simpleWrite;
-          this.end = simpleEnd;
-          return;
-      }
-      this.lastNeed = 0;
-      this.lastTotal = 0;
-      this.lastChar = Buffer2.allocUnsafe(nb);
-    }
-    StringDecoder.prototype.write = function(buf) {
-      if (buf.length === 0)
-        return "";
-      var r2;
-      var i3;
-      if (this.lastNeed) {
-        r2 = this.fillLast(buf);
-        if (r2 === void 0)
-          return "";
-        i3 = this.lastNeed;
-        this.lastNeed = 0;
-      } else {
-        i3 = 0;
-      }
-      if (i3 < buf.length)
-        return r2 ? r2 + this.text(buf, i3) : this.text(buf, i3);
-      return r2 || "";
-    };
-    StringDecoder.prototype.end = utf8End;
-    StringDecoder.prototype.text = utf8Text;
-    StringDecoder.prototype.fillLast = function(buf) {
-      if (this.lastNeed <= buf.length) {
-        buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, this.lastNeed);
-        return this.lastChar.toString(this.encoding, 0, this.lastTotal);
-      }
-      buf.copy(this.lastChar, this.lastTotal - this.lastNeed, 0, buf.length);
-      this.lastNeed -= buf.length;
-    };
-    function utf8CheckByte(byte) {
-      if (byte <= 127)
+    function diff_commonSuffix(text1, text22) {
+      if (!text1 || !text22 || text1.charAt(text1.length - 1) != text22.charAt(text22.length - 1)) {
         return 0;
-      else if (byte >> 5 === 6)
-        return 2;
-      else if (byte >> 4 === 14)
-        return 3;
-      else if (byte >> 3 === 30)
-        return 4;
-      return byte >> 6 === 2 ? -1 : -2;
-    }
-    function utf8CheckIncomplete(self2, buf, i3) {
-      var j2 = buf.length - 1;
-      if (j2 < i3)
-        return 0;
-      var nb = utf8CheckByte(buf[j2]);
-      if (nb >= 0) {
-        if (nb > 0)
-          self2.lastNeed = nb - 1;
-        return nb;
       }
-      if (--j2 < i3 || nb === -2)
-        return 0;
-      nb = utf8CheckByte(buf[j2]);
-      if (nb >= 0) {
-        if (nb > 0)
-          self2.lastNeed = nb - 2;
-        return nb;
-      }
-      if (--j2 < i3 || nb === -2)
-        return 0;
-      nb = utf8CheckByte(buf[j2]);
-      if (nb >= 0) {
-        if (nb > 0) {
-          if (nb === 2)
-            nb = 0;
-          else
-            self2.lastNeed = nb - 3;
-        }
-        return nb;
-      }
-      return 0;
-    }
-    function utf8CheckExtraBytes(self2, buf, p3) {
-      if ((buf[0] & 192) !== 128) {
-        self2.lastNeed = 0;
-        return "\uFFFD";
-      }
-      if (self2.lastNeed > 1 && buf.length > 1) {
-        if ((buf[1] & 192) !== 128) {
-          self2.lastNeed = 1;
-          return "\uFFFD";
-        }
-        if (self2.lastNeed > 2 && buf.length > 2) {
-          if ((buf[2] & 192) !== 128) {
-            self2.lastNeed = 2;
-            return "\uFFFD";
-          }
-        }
-      }
-    }
-    function utf8FillLast(buf) {
-      var p3 = this.lastTotal - this.lastNeed;
-      var r2 = utf8CheckExtraBytes(this, buf, p3);
-      if (r2 !== void 0)
-        return r2;
-      if (this.lastNeed <= buf.length) {
-        buf.copy(this.lastChar, p3, 0, this.lastNeed);
-        return this.lastChar.toString(this.encoding, 0, this.lastTotal);
-      }
-      buf.copy(this.lastChar, p3, 0, buf.length);
-      this.lastNeed -= buf.length;
-    }
-    function utf8Text(buf, i3) {
-      var total = utf8CheckIncomplete(this, buf, i3);
-      if (!this.lastNeed)
-        return buf.toString("utf8", i3);
-      this.lastTotal = total;
-      var end = buf.length - (total - this.lastNeed);
-      buf.copy(this.lastChar, 0, end);
-      return buf.toString("utf8", i3, end);
-    }
-    function utf8End(buf) {
-      var r2 = buf && buf.length ? this.write(buf) : "";
-      if (this.lastNeed)
-        return r2 + "\uFFFD";
-      return r2;
-    }
-    function utf16Text(buf, i3) {
-      if ((buf.length - i3) % 2 === 0) {
-        var r2 = buf.toString("utf16le", i3);
-        if (r2) {
-          var c4 = r2.charCodeAt(r2.length - 1);
-          if (c4 >= 55296 && c4 <= 56319) {
-            this.lastNeed = 2;
-            this.lastTotal = 4;
-            this.lastChar[0] = buf[buf.length - 2];
-            this.lastChar[1] = buf[buf.length - 1];
-            return r2.slice(0, -1);
-          }
-        }
-        return r2;
-      }
-      this.lastNeed = 1;
-      this.lastTotal = 2;
-      this.lastChar[0] = buf[buf.length - 1];
-      return buf.toString("utf16le", i3, buf.length - 1);
-    }
-    function utf16End(buf) {
-      var r2 = buf && buf.length ? this.write(buf) : "";
-      if (this.lastNeed) {
-        var end = this.lastTotal - this.lastNeed;
-        return r2 + this.lastChar.toString("utf16le", 0, end);
-      }
-      return r2;
-    }
-    function base64Text(buf, i3) {
-      var n3 = (buf.length - i3) % 3;
-      if (n3 === 0)
-        return buf.toString("base64", i3);
-      this.lastNeed = 3 - n3;
-      this.lastTotal = 3;
-      if (n3 === 1) {
-        this.lastChar[0] = buf[buf.length - 1];
-      } else {
-        this.lastChar[0] = buf[buf.length - 2];
-        this.lastChar[1] = buf[buf.length - 1];
-      }
-      return buf.toString("base64", i3, buf.length - n3);
-    }
-    function base64End(buf) {
-      var r2 = buf && buf.length ? this.write(buf) : "";
-      if (this.lastNeed)
-        return r2 + this.lastChar.toString("base64", 0, 3 - this.lastNeed);
-      return r2;
-    }
-    function simpleWrite(buf) {
-      return buf.toString(this.encoding);
-    }
-    function simpleEnd(buf) {
-      return buf && buf.length ? this.write(buf) : "";
-    }
-  }
-});
-
-// ../simple-mind-map/node_modules/sax/lib/sax.js
-var require_sax = __commonJS({
-  "../simple-mind-map/node_modules/sax/lib/sax.js"(exports) {
-    (function(sax) {
-      sax.parser = function(strict, opt) {
-        return new SAXParser(strict, opt);
-      };
-      sax.SAXParser = SAXParser;
-      sax.SAXStream = SAXStream;
-      sax.createStream = createStream;
-      sax.MAX_BUFFER_LENGTH = 64 * 1024;
-      var buffers = [
-        "comment",
-        "sgmlDecl",
-        "textNode",
-        "tagName",
-        "doctype",
-        "procInstName",
-        "procInstBody",
-        "entity",
-        "attribName",
-        "attribValue",
-        "cdata",
-        "script"
-      ];
-      sax.EVENTS = [
-        "text",
-        "processinginstruction",
-        "sgmldeclaration",
-        "doctype",
-        "comment",
-        "opentagstart",
-        "attribute",
-        "opentag",
-        "closetag",
-        "opencdata",
-        "cdata",
-        "closecdata",
-        "error",
-        "end",
-        "ready",
-        "script",
-        "opennamespace",
-        "closenamespace"
-      ];
-      function SAXParser(strict, opt) {
-        if (!(this instanceof SAXParser)) {
-          return new SAXParser(strict, opt);
-        }
-        var parser2 = this;
-        clearBuffers(parser2);
-        parser2.q = parser2.c = "";
-        parser2.bufferCheckPosition = sax.MAX_BUFFER_LENGTH;
-        parser2.opt = opt || {};
-        parser2.opt.lowercase = parser2.opt.lowercase || parser2.opt.lowercasetags;
-        parser2.looseCase = parser2.opt.lowercase ? "toLowerCase" : "toUpperCase";
-        parser2.tags = [];
-        parser2.closed = parser2.closedRoot = parser2.sawRoot = false;
-        parser2.tag = parser2.error = null;
-        parser2.strict = !!strict;
-        parser2.noscript = !!(strict || parser2.opt.noscript);
-        parser2.state = S2.BEGIN;
-        parser2.strictEntities = parser2.opt.strictEntities;
-        parser2.ENTITIES = parser2.strictEntities ? Object.create(sax.XML_ENTITIES) : Object.create(sax.ENTITIES);
-        parser2.attribList = [];
-        if (parser2.opt.xmlns) {
-          parser2.ns = Object.create(rootNS);
-        }
-        parser2.trackPosition = parser2.opt.position !== false;
-        if (parser2.trackPosition) {
-          parser2.position = parser2.line = parser2.column = 0;
-        }
-        emit(parser2, "onready");
-      }
-      if (!Object.create) {
-        Object.create = function(o3) {
-          function F2() {
-          }
-          F2.prototype = o3;
-          var newf = new F2();
-          return newf;
-        };
-      }
-      if (!Object.keys) {
-        Object.keys = function(o3) {
-          var a3 = [];
-          for (var i3 in o3)
-            if (o3.hasOwnProperty(i3))
-              a3.push(i3);
-          return a3;
-        };
-      }
-      function checkBufferLength(parser2) {
-        var maxAllowed = Math.max(sax.MAX_BUFFER_LENGTH, 10);
-        var maxActual = 0;
-        for (var i3 = 0, l3 = buffers.length; i3 < l3; i3++) {
-          var len = parser2[buffers[i3]].length;
-          if (len > maxAllowed) {
-            switch (buffers[i3]) {
-              case "textNode":
-                closeText(parser2);
-                break;
-              case "cdata":
-                emitNode(parser2, "oncdata", parser2.cdata);
-                parser2.cdata = "";
-                break;
-              case "script":
-                emitNode(parser2, "onscript", parser2.script);
-                parser2.script = "";
-                break;
-              default:
-                error(parser2, "Max buffer length exceeded: " + buffers[i3]);
-            }
-          }
-          maxActual = Math.max(maxActual, len);
-        }
-        var m4 = sax.MAX_BUFFER_LENGTH - maxActual;
-        parser2.bufferCheckPosition = m4 + parser2.position;
-      }
-      function clearBuffers(parser2) {
-        for (var i3 = 0, l3 = buffers.length; i3 < l3; i3++) {
-          parser2[buffers[i3]] = "";
-        }
-      }
-      function flushBuffers(parser2) {
-        closeText(parser2);
-        if (parser2.cdata !== "") {
-          emitNode(parser2, "oncdata", parser2.cdata);
-          parser2.cdata = "";
-        }
-        if (parser2.script !== "") {
-          emitNode(parser2, "onscript", parser2.script);
-          parser2.script = "";
-        }
-      }
-      SAXParser.prototype = {
-        end: function() {
-          end(this);
-        },
-        write,
-        resume: function() {
-          this.error = null;
-          return this;
-        },
-        close: function() {
-          return this.write(null);
-        },
-        flush: function() {
-          flushBuffers(this);
-        }
-      };
-      var Stream;
-      try {
-        Stream = __require("stream").Stream;
-      } catch (ex) {
-        Stream = function() {
-        };
-      }
-      var streamWraps = sax.EVENTS.filter(function(ev) {
-        return ev !== "error" && ev !== "end";
-      });
-      function createStream(strict, opt) {
-        return new SAXStream(strict, opt);
-      }
-      function SAXStream(strict, opt) {
-        if (!(this instanceof SAXStream)) {
-          return new SAXStream(strict, opt);
-        }
-        Stream.apply(this);
-        this._parser = new SAXParser(strict, opt);
-        this.writable = true;
-        this.readable = true;
-        var me2 = this;
-        this._parser.onend = function() {
-          me2.emit("end");
-        };
-        this._parser.onerror = function(er) {
-          me2.emit("error", er);
-          me2._parser.error = null;
-        };
-        this._decoder = null;
-        streamWraps.forEach(function(ev) {
-          Object.defineProperty(me2, "on" + ev, {
-            get: function() {
-              return me2._parser["on" + ev];
-            },
-            set: function(h3) {
-              if (!h3) {
-                me2.removeAllListeners(ev);
-                me2._parser["on" + ev] = h3;
-                return h3;
-              }
-              me2.on(ev, h3);
-            },
-            enumerable: true,
-            configurable: false
-          });
-        });
-      }
-      SAXStream.prototype = Object.create(Stream.prototype, {
-        constructor: {
-          value: SAXStream
-        }
-      });
-      SAXStream.prototype.write = function(data2) {
-        if (typeof Buffer === "function" && typeof Buffer.isBuffer === "function" && Buffer.isBuffer(data2)) {
-          if (!this._decoder) {
-            var SD = require_string_decoder().StringDecoder;
-            this._decoder = new SD("utf8");
-          }
-          data2 = this._decoder.write(data2);
-        }
-        this._parser.write(data2.toString());
-        this.emit("data", data2);
-        return true;
-      };
-      SAXStream.prototype.end = function(chunk) {
-        if (chunk && chunk.length) {
-          this.write(chunk);
-        }
-        this._parser.end();
-        return true;
-      };
-      SAXStream.prototype.on = function(ev, handler) {
-        var me2 = this;
-        if (!me2._parser["on" + ev] && streamWraps.indexOf(ev) !== -1) {
-          me2._parser["on" + ev] = function() {
-            var args = arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments);
-            args.splice(0, 0, ev);
-            me2.emit.apply(me2, args);
-          };
-        }
-        return Stream.prototype.on.call(me2, ev, handler);
-      };
-      var CDATA = "[CDATA[";
-      var DOCTYPE = "DOCTYPE";
-      var XML_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
-      var XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/";
-      var rootNS = { xml: XML_NAMESPACE, xmlns: XMLNS_NAMESPACE };
-      var nameStart = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
-      var nameBody = /[:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
-      var entityStart = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD]/;
-      var entityBody = /[#:_A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u00B7\u0300-\u036F\u203F-\u2040.\d-]/;
-      function isWhitespace(c4) {
-        return c4 === " " || c4 === "\n" || c4 === "\r" || c4 === "	";
-      }
-      function isQuote(c4) {
-        return c4 === '"' || c4 === "'";
-      }
-      function isAttribEnd(c4) {
-        return c4 === ">" || isWhitespace(c4);
-      }
-      function isMatch(regex, c4) {
-        return regex.test(c4);
-      }
-      function notMatch(regex, c4) {
-        return !isMatch(regex, c4);
-      }
-      var S2 = 0;
-      sax.STATE = {
-        BEGIN: S2++,
-        // leading byte order mark or whitespace
-        BEGIN_WHITESPACE: S2++,
-        // leading whitespace
-        TEXT: S2++,
-        // general stuff
-        TEXT_ENTITY: S2++,
-        // &amp and such.
-        OPEN_WAKA: S2++,
-        // <
-        SGML_DECL: S2++,
-        // <!BLARG
-        SGML_DECL_QUOTED: S2++,
-        // <!BLARG foo "bar
-        DOCTYPE: S2++,
-        // <!DOCTYPE
-        DOCTYPE_QUOTED: S2++,
-        // <!DOCTYPE "//blah
-        DOCTYPE_DTD: S2++,
-        // <!DOCTYPE "//blah" [ ...
-        DOCTYPE_DTD_QUOTED: S2++,
-        // <!DOCTYPE "//blah" [ "foo
-        COMMENT_STARTING: S2++,
-        // <!-
-        COMMENT: S2++,
-        // <!--
-        COMMENT_ENDING: S2++,
-        // <!-- blah -
-        COMMENT_ENDED: S2++,
-        // <!-- blah --
-        CDATA: S2++,
-        // <![CDATA[ something
-        CDATA_ENDING: S2++,
-        // ]
-        CDATA_ENDING_2: S2++,
-        // ]]
-        PROC_INST: S2++,
-        // <?hi
-        PROC_INST_BODY: S2++,
-        // <?hi there
-        PROC_INST_ENDING: S2++,
-        // <?hi "there" ?
-        OPEN_TAG: S2++,
-        // <strong
-        OPEN_TAG_SLASH: S2++,
-        // <strong /
-        ATTRIB: S2++,
-        // <a
-        ATTRIB_NAME: S2++,
-        // <a foo
-        ATTRIB_NAME_SAW_WHITE: S2++,
-        // <a foo _
-        ATTRIB_VALUE: S2++,
-        // <a foo=
-        ATTRIB_VALUE_QUOTED: S2++,
-        // <a foo="bar
-        ATTRIB_VALUE_CLOSED: S2++,
-        // <a foo="bar"
-        ATTRIB_VALUE_UNQUOTED: S2++,
-        // <a foo=bar
-        ATTRIB_VALUE_ENTITY_Q: S2++,
-        // <foo bar="&quot;"
-        ATTRIB_VALUE_ENTITY_U: S2++,
-        // <foo bar=&quot
-        CLOSE_TAG: S2++,
-        // </a
-        CLOSE_TAG_SAW_WHITE: S2++,
-        // </a   >
-        SCRIPT: S2++,
-        // <script> ...
-        SCRIPT_ENDING: S2++
-        // <script> ... <
-      };
-      sax.XML_ENTITIES = {
-        "amp": "&",
-        "gt": ">",
-        "lt": "<",
-        "quot": '"',
-        "apos": "'"
-      };
-      sax.ENTITIES = {
-        "amp": "&",
-        "gt": ">",
-        "lt": "<",
-        "quot": '"',
-        "apos": "'",
-        "AElig": 198,
-        "Aacute": 193,
-        "Acirc": 194,
-        "Agrave": 192,
-        "Aring": 197,
-        "Atilde": 195,
-        "Auml": 196,
-        "Ccedil": 199,
-        "ETH": 208,
-        "Eacute": 201,
-        "Ecirc": 202,
-        "Egrave": 200,
-        "Euml": 203,
-        "Iacute": 205,
-        "Icirc": 206,
-        "Igrave": 204,
-        "Iuml": 207,
-        "Ntilde": 209,
-        "Oacute": 211,
-        "Ocirc": 212,
-        "Ograve": 210,
-        "Oslash": 216,
-        "Otilde": 213,
-        "Ouml": 214,
-        "THORN": 222,
-        "Uacute": 218,
-        "Ucirc": 219,
-        "Ugrave": 217,
-        "Uuml": 220,
-        "Yacute": 221,
-        "aacute": 225,
-        "acirc": 226,
-        "aelig": 230,
-        "agrave": 224,
-        "aring": 229,
-        "atilde": 227,
-        "auml": 228,
-        "ccedil": 231,
-        "eacute": 233,
-        "ecirc": 234,
-        "egrave": 232,
-        "eth": 240,
-        "euml": 235,
-        "iacute": 237,
-        "icirc": 238,
-        "igrave": 236,
-        "iuml": 239,
-        "ntilde": 241,
-        "oacute": 243,
-        "ocirc": 244,
-        "ograve": 242,
-        "oslash": 248,
-        "otilde": 245,
-        "ouml": 246,
-        "szlig": 223,
-        "thorn": 254,
-        "uacute": 250,
-        "ucirc": 251,
-        "ugrave": 249,
-        "uuml": 252,
-        "yacute": 253,
-        "yuml": 255,
-        "copy": 169,
-        "reg": 174,
-        "nbsp": 160,
-        "iexcl": 161,
-        "cent": 162,
-        "pound": 163,
-        "curren": 164,
-        "yen": 165,
-        "brvbar": 166,
-        "sect": 167,
-        "uml": 168,
-        "ordf": 170,
-        "laquo": 171,
-        "not": 172,
-        "shy": 173,
-        "macr": 175,
-        "deg": 176,
-        "plusmn": 177,
-        "sup1": 185,
-        "sup2": 178,
-        "sup3": 179,
-        "acute": 180,
-        "micro": 181,
-        "para": 182,
-        "middot": 183,
-        "cedil": 184,
-        "ordm": 186,
-        "raquo": 187,
-        "frac14": 188,
-        "frac12": 189,
-        "frac34": 190,
-        "iquest": 191,
-        "times": 215,
-        "divide": 247,
-        "OElig": 338,
-        "oelig": 339,
-        "Scaron": 352,
-        "scaron": 353,
-        "Yuml": 376,
-        "fnof": 402,
-        "circ": 710,
-        "tilde": 732,
-        "Alpha": 913,
-        "Beta": 914,
-        "Gamma": 915,
-        "Delta": 916,
-        "Epsilon": 917,
-        "Zeta": 918,
-        "Eta": 919,
-        "Theta": 920,
-        "Iota": 921,
-        "Kappa": 922,
-        "Lambda": 923,
-        "Mu": 924,
-        "Nu": 925,
-        "Xi": 926,
-        "Omicron": 927,
-        "Pi": 928,
-        "Rho": 929,
-        "Sigma": 931,
-        "Tau": 932,
-        "Upsilon": 933,
-        "Phi": 934,
-        "Chi": 935,
-        "Psi": 936,
-        "Omega": 937,
-        "alpha": 945,
-        "beta": 946,
-        "gamma": 947,
-        "delta": 948,
-        "epsilon": 949,
-        "zeta": 950,
-        "eta": 951,
-        "theta": 952,
-        "iota": 953,
-        "kappa": 954,
-        "lambda": 955,
-        "mu": 956,
-        "nu": 957,
-        "xi": 958,
-        "omicron": 959,
-        "pi": 960,
-        "rho": 961,
-        "sigmaf": 962,
-        "sigma": 963,
-        "tau": 964,
-        "upsilon": 965,
-        "phi": 966,
-        "chi": 967,
-        "psi": 968,
-        "omega": 969,
-        "thetasym": 977,
-        "upsih": 978,
-        "piv": 982,
-        "ensp": 8194,
-        "emsp": 8195,
-        "thinsp": 8201,
-        "zwnj": 8204,
-        "zwj": 8205,
-        "lrm": 8206,
-        "rlm": 8207,
-        "ndash": 8211,
-        "mdash": 8212,
-        "lsquo": 8216,
-        "rsquo": 8217,
-        "sbquo": 8218,
-        "ldquo": 8220,
-        "rdquo": 8221,
-        "bdquo": 8222,
-        "dagger": 8224,
-        "Dagger": 8225,
-        "bull": 8226,
-        "hellip": 8230,
-        "permil": 8240,
-        "prime": 8242,
-        "Prime": 8243,
-        "lsaquo": 8249,
-        "rsaquo": 8250,
-        "oline": 8254,
-        "frasl": 8260,
-        "euro": 8364,
-        "image": 8465,
-        "weierp": 8472,
-        "real": 8476,
-        "trade": 8482,
-        "alefsym": 8501,
-        "larr": 8592,
-        "uarr": 8593,
-        "rarr": 8594,
-        "darr": 8595,
-        "harr": 8596,
-        "crarr": 8629,
-        "lArr": 8656,
-        "uArr": 8657,
-        "rArr": 8658,
-        "dArr": 8659,
-        "hArr": 8660,
-        "forall": 8704,
-        "part": 8706,
-        "exist": 8707,
-        "empty": 8709,
-        "nabla": 8711,
-        "isin": 8712,
-        "notin": 8713,
-        "ni": 8715,
-        "prod": 8719,
-        "sum": 8721,
-        "minus": 8722,
-        "lowast": 8727,
-        "radic": 8730,
-        "prop": 8733,
-        "infin": 8734,
-        "ang": 8736,
-        "and": 8743,
-        "or": 8744,
-        "cap": 8745,
-        "cup": 8746,
-        "int": 8747,
-        "there4": 8756,
-        "sim": 8764,
-        "cong": 8773,
-        "asymp": 8776,
-        "ne": 8800,
-        "equiv": 8801,
-        "le": 8804,
-        "ge": 8805,
-        "sub": 8834,
-        "sup": 8835,
-        "nsub": 8836,
-        "sube": 8838,
-        "supe": 8839,
-        "oplus": 8853,
-        "otimes": 8855,
-        "perp": 8869,
-        "sdot": 8901,
-        "lceil": 8968,
-        "rceil": 8969,
-        "lfloor": 8970,
-        "rfloor": 8971,
-        "lang": 9001,
-        "rang": 9002,
-        "loz": 9674,
-        "spades": 9824,
-        "clubs": 9827,
-        "hearts": 9829,
-        "diams": 9830
-      };
-      Object.keys(sax.ENTITIES).forEach(function(key) {
-        var e2 = sax.ENTITIES[key];
-        var s4 = typeof e2 === "number" ? String.fromCharCode(e2) : e2;
-        sax.ENTITIES[key] = s4;
-      });
-      for (var s3 in sax.STATE) {
-        sax.STATE[sax.STATE[s3]] = s3;
-      }
-      S2 = sax.STATE;
-      function emit(parser2, event, data2) {
-        parser2[event] && parser2[event](data2);
-      }
-      function emitNode(parser2, nodeType, data2) {
-        if (parser2.textNode)
-          closeText(parser2);
-        emit(parser2, nodeType, data2);
-      }
-      function closeText(parser2) {
-        parser2.textNode = textopts(parser2.opt, parser2.textNode);
-        if (parser2.textNode)
-          emit(parser2, "ontext", parser2.textNode);
-        parser2.textNode = "";
-      }
-      function textopts(opt, text3) {
-        if (opt.trim)
-          text3 = text3.trim();
-        if (opt.normalize)
-          text3 = text3.replace(/\s+/g, " ");
-        return text3;
-      }
-      function error(parser2, er) {
-        closeText(parser2);
-        if (parser2.trackPosition) {
-          er += "\nLine: " + parser2.line + "\nColumn: " + parser2.column + "\nChar: " + parser2.c;
-        }
-        er = new Error(er);
-        parser2.error = er;
-        emit(parser2, "onerror", er);
-        return parser2;
-      }
-      function end(parser2) {
-        if (parser2.sawRoot && !parser2.closedRoot)
-          strictFail(parser2, "Unclosed root tag");
-        if (parser2.state !== S2.BEGIN && parser2.state !== S2.BEGIN_WHITESPACE && parser2.state !== S2.TEXT) {
-          error(parser2, "Unexpected end");
-        }
-        closeText(parser2);
-        parser2.c = "";
-        parser2.closed = true;
-        emit(parser2, "onend");
-        SAXParser.call(parser2, parser2.strict, parser2.opt);
-        return parser2;
-      }
-      function strictFail(parser2, message) {
-        if (typeof parser2 !== "object" || !(parser2 instanceof SAXParser)) {
-          throw new Error("bad call to strictFail");
-        }
-        if (parser2.strict) {
-          error(parser2, message);
-        }
-      }
-      function newTag(parser2) {
-        if (!parser2.strict)
-          parser2.tagName = parser2.tagName[parser2.looseCase]();
-        var parent = parser2.tags[parser2.tags.length - 1] || parser2;
-        var tag = parser2.tag = { name: parser2.tagName, attributes: {} };
-        if (parser2.opt.xmlns) {
-          tag.ns = parent.ns;
-        }
-        parser2.attribList.length = 0;
-        emitNode(parser2, "onopentagstart", tag);
-      }
-      function qname(name, attribute) {
-        var i3 = name.indexOf(":");
-        var qualName = i3 < 0 ? ["", name] : name.split(":");
-        var prefix = qualName[0];
-        var local = qualName[1];
-        if (attribute && name === "xmlns") {
-          prefix = "xmlns";
-          local = "";
-        }
-        return { prefix, local };
-      }
-      function attrib(parser2) {
-        if (!parser2.strict) {
-          parser2.attribName = parser2.attribName[parser2.looseCase]();
-        }
-        if (parser2.attribList.indexOf(parser2.attribName) !== -1 || parser2.tag.attributes.hasOwnProperty(parser2.attribName)) {
-          parser2.attribName = parser2.attribValue = "";
-          return;
-        }
-        if (parser2.opt.xmlns) {
-          var qn = qname(parser2.attribName, true);
-          var prefix = qn.prefix;
-          var local = qn.local;
-          if (prefix === "xmlns") {
-            if (local === "xml" && parser2.attribValue !== XML_NAMESPACE) {
-              strictFail(
-                parser2,
-                "xml: prefix must be bound to " + XML_NAMESPACE + "\nActual: " + parser2.attribValue
-              );
-            } else if (local === "xmlns" && parser2.attribValue !== XMLNS_NAMESPACE) {
-              strictFail(
-                parser2,
-                "xmlns: prefix must be bound to " + XMLNS_NAMESPACE + "\nActual: " + parser2.attribValue
-              );
-            } else {
-              var tag = parser2.tag;
-              var parent = parser2.tags[parser2.tags.length - 1] || parser2;
-              if (tag.ns === parent.ns) {
-                tag.ns = Object.create(parent.ns);
-              }
-              tag.ns[local] = parser2.attribValue;
-            }
-          }
-          parser2.attribList.push([parser2.attribName, parser2.attribValue]);
+      var pointermin = 0;
+      var pointermax = Math.min(text1.length, text22.length);
+      var pointermid = pointermax;
+      var pointerend = 0;
+      while (pointermin < pointermid) {
+        if (text1.substring(text1.length - pointermid, text1.length - pointerend) == text22.substring(text22.length - pointermid, text22.length - pointerend)) {
+          pointermin = pointermid;
+          pointerend = pointermin;
         } else {
-          parser2.tag.attributes[parser2.attribName] = parser2.attribValue;
-          emitNode(parser2, "onattribute", {
-            name: parser2.attribName,
-            value: parser2.attribValue
-          });
+          pointermax = pointermid;
         }
-        parser2.attribName = parser2.attribValue = "";
+        pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
       }
-      function openTag(parser2, selfClosing) {
-        if (parser2.opt.xmlns) {
-          var tag = parser2.tag;
-          var qn = qname(parser2.tagName);
-          tag.prefix = qn.prefix;
-          tag.local = qn.local;
-          tag.uri = tag.ns[qn.prefix] || "";
-          if (tag.prefix && !tag.uri) {
-            strictFail(parser2, "Unbound namespace prefix: " + JSON.stringify(parser2.tagName));
-            tag.uri = qn.prefix;
-          }
-          var parent = parser2.tags[parser2.tags.length - 1] || parser2;
-          if (tag.ns && parent.ns !== tag.ns) {
-            Object.keys(tag.ns).forEach(function(p3) {
-              emitNode(parser2, "onopennamespace", {
-                prefix: p3,
-                uri: tag.ns[p3]
-              });
-            });
-          }
-          for (var i3 = 0, l3 = parser2.attribList.length; i3 < l3; i3++) {
-            var nv = parser2.attribList[i3];
-            var name = nv[0];
-            var value = nv[1];
-            var qualName = qname(name, true);
-            var prefix = qualName.prefix;
-            var local = qualName.local;
-            var uri = prefix === "" ? "" : tag.ns[prefix] || "";
-            var a3 = {
-              name,
-              value,
-              prefix,
-              local,
-              uri
-            };
-            if (prefix && prefix !== "xmlns" && !uri) {
-              strictFail(parser2, "Unbound namespace prefix: " + JSON.stringify(prefix));
-              a3.uri = prefix;
-            }
-            parser2.tag.attributes[name] = a3;
-            emitNode(parser2, "onattribute", a3);
-          }
-          parser2.attribList.length = 0;
-        }
-        parser2.tag.isSelfClosing = !!selfClosing;
-        parser2.sawRoot = true;
-        parser2.tags.push(parser2.tag);
-        emitNode(parser2, "onopentag", parser2.tag);
-        if (!selfClosing) {
-          if (!parser2.noscript && parser2.tagName.toLowerCase() === "script") {
-            parser2.state = S2.SCRIPT;
-          } else {
-            parser2.state = S2.TEXT;
-          }
-          parser2.tag = null;
-          parser2.tagName = "";
-        }
-        parser2.attribName = parser2.attribValue = "";
-        parser2.attribList.length = 0;
+      return pointermid;
+    }
+    function diff_halfMatch_(text1, text22) {
+      var longtext = text1.length > text22.length ? text1 : text22;
+      var shorttext = text1.length > text22.length ? text22 : text1;
+      if (longtext.length < 4 || shorttext.length * 2 < longtext.length) {
+        return null;
       }
-      function closeTag(parser2) {
-        if (!parser2.tagName) {
-          strictFail(parser2, "Weird empty close tag.");
-          parser2.textNode += "</>";
-          parser2.state = S2.TEXT;
-          return;
-        }
-        if (parser2.script) {
-          if (parser2.tagName !== "script") {
-            parser2.script += "</" + parser2.tagName + ">";
-            parser2.tagName = "";
-            parser2.state = S2.SCRIPT;
-            return;
-          }
-          emitNode(parser2, "onscript", parser2.script);
-          parser2.script = "";
-        }
-        var t3 = parser2.tags.length;
-        var tagName = parser2.tagName;
-        if (!parser2.strict) {
-          tagName = tagName[parser2.looseCase]();
-        }
-        var closeTo = tagName;
-        while (t3--) {
-          var close2 = parser2.tags[t3];
-          if (close2.name !== closeTo) {
-            strictFail(parser2, "Unexpected close tag");
-          } else {
-            break;
-          }
-        }
-        if (t3 < 0) {
-          strictFail(parser2, "Unmatched closing tag: " + parser2.tagName);
-          parser2.textNode += "</" + parser2.tagName + ">";
-          parser2.state = S2.TEXT;
-          return;
-        }
-        parser2.tagName = tagName;
-        var s4 = parser2.tags.length;
-        while (s4-- > t3) {
-          var tag = parser2.tag = parser2.tags.pop();
-          parser2.tagName = parser2.tag.name;
-          emitNode(parser2, "onclosetag", parser2.tagName);
-          var x3 = {};
-          for (var i3 in tag.ns) {
-            x3[i3] = tag.ns[i3];
-          }
-          var parent = parser2.tags[parser2.tags.length - 1] || parser2;
-          if (parser2.opt.xmlns && tag.ns !== parent.ns) {
-            Object.keys(tag.ns).forEach(function(p3) {
-              var n3 = tag.ns[p3];
-              emitNode(parser2, "onclosenamespace", { prefix: p3, uri: n3 });
-            });
-          }
-        }
-        if (t3 === 0)
-          parser2.closedRoot = true;
-        parser2.tagName = parser2.attribValue = parser2.attribName = "";
-        parser2.attribList.length = 0;
-        parser2.state = S2.TEXT;
-      }
-      function parseEntity(parser2) {
-        var entity = parser2.entity;
-        var entityLC = entity.toLowerCase();
-        var num;
-        var numStr = "";
-        if (parser2.ENTITIES[entity]) {
-          return parser2.ENTITIES[entity];
-        }
-        if (parser2.ENTITIES[entityLC]) {
-          return parser2.ENTITIES[entityLC];
-        }
-        entity = entityLC;
-        if (entity.charAt(0) === "#") {
-          if (entity.charAt(1) === "x") {
-            entity = entity.slice(2);
-            num = parseInt(entity, 16);
-            numStr = num.toString(16);
-          } else {
-            entity = entity.slice(1);
-            num = parseInt(entity, 10);
-            numStr = num.toString(10);
-          }
-        }
-        entity = entity.replace(/^0+/, "");
-        if (isNaN(num) || numStr.toLowerCase() !== entity) {
-          strictFail(parser2, "Invalid character entity");
-          return "&" + parser2.entity + ";";
-        }
-        return String.fromCodePoint(num);
-      }
-      function beginWhiteSpace(parser2, c4) {
-        if (c4 === "<") {
-          parser2.state = S2.OPEN_WAKA;
-          parser2.startTagPosition = parser2.position;
-        } else if (!isWhitespace(c4)) {
-          strictFail(parser2, "Non-whitespace before first tag.");
-          parser2.textNode = c4;
-          parser2.state = S2.TEXT;
-        }
-      }
-      function charAt(chunk, i3) {
-        var result = "";
-        if (i3 < chunk.length) {
-          result = chunk.charAt(i3);
-        }
-        return result;
-      }
-      function write(chunk) {
-        var parser2 = this;
-        if (this.error) {
-          throw this.error;
-        }
-        if (parser2.closed) {
-          return error(
-            parser2,
-            "Cannot write after close. Assign an onready handler."
+      function diff_halfMatchI_(longtext2, shorttext2, i3) {
+        var seed = longtext2.substring(i3, i3 + Math.floor(longtext2.length / 4));
+        var j2 = -1;
+        var best_common = "";
+        var best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b;
+        while ((j2 = shorttext2.indexOf(seed, j2 + 1)) != -1) {
+          var prefixLength = diff_commonPrefix(
+            longtext2.substring(i3),
+            shorttext2.substring(j2)
           );
-        }
-        if (chunk === null) {
-          return end(parser2);
-        }
-        if (typeof chunk === "object") {
-          chunk = chunk.toString();
-        }
-        var i3 = 0;
-        var c4 = "";
-        while (true) {
-          c4 = charAt(chunk, i3++);
-          parser2.c = c4;
-          if (!c4) {
-            break;
-          }
-          if (parser2.trackPosition) {
-            parser2.position++;
-            if (c4 === "\n") {
-              parser2.line++;
-              parser2.column = 0;
-            } else {
-              parser2.column++;
-            }
-          }
-          switch (parser2.state) {
-            case S2.BEGIN:
-              parser2.state = S2.BEGIN_WHITESPACE;
-              if (c4 === "\uFEFF") {
-                continue;
-              }
-              beginWhiteSpace(parser2, c4);
-              continue;
-            case S2.BEGIN_WHITESPACE:
-              beginWhiteSpace(parser2, c4);
-              continue;
-            case S2.TEXT:
-              if (parser2.sawRoot && !parser2.closedRoot) {
-                var starti = i3 - 1;
-                while (c4 && c4 !== "<" && c4 !== "&") {
-                  c4 = charAt(chunk, i3++);
-                  if (c4 && parser2.trackPosition) {
-                    parser2.position++;
-                    if (c4 === "\n") {
-                      parser2.line++;
-                      parser2.column = 0;
-                    } else {
-                      parser2.column++;
-                    }
-                  }
-                }
-                parser2.textNode += chunk.substring(starti, i3 - 1);
-              }
-              if (c4 === "<" && !(parser2.sawRoot && parser2.closedRoot && !parser2.strict)) {
-                parser2.state = S2.OPEN_WAKA;
-                parser2.startTagPosition = parser2.position;
-              } else {
-                if (!isWhitespace(c4) && (!parser2.sawRoot || parser2.closedRoot)) {
-                  strictFail(parser2, "Text data outside of root node.");
-                }
-                if (c4 === "&") {
-                  parser2.state = S2.TEXT_ENTITY;
-                } else {
-                  parser2.textNode += c4;
-                }
-              }
-              continue;
-            case S2.SCRIPT:
-              if (c4 === "<") {
-                parser2.state = S2.SCRIPT_ENDING;
-              } else {
-                parser2.script += c4;
-              }
-              continue;
-            case S2.SCRIPT_ENDING:
-              if (c4 === "/") {
-                parser2.state = S2.CLOSE_TAG;
-              } else {
-                parser2.script += "<" + c4;
-                parser2.state = S2.SCRIPT;
-              }
-              continue;
-            case S2.OPEN_WAKA:
-              if (c4 === "!") {
-                parser2.state = S2.SGML_DECL;
-                parser2.sgmlDecl = "";
-              } else if (isWhitespace(c4)) {
-              } else if (isMatch(nameStart, c4)) {
-                parser2.state = S2.OPEN_TAG;
-                parser2.tagName = c4;
-              } else if (c4 === "/") {
-                parser2.state = S2.CLOSE_TAG;
-                parser2.tagName = "";
-              } else if (c4 === "?") {
-                parser2.state = S2.PROC_INST;
-                parser2.procInstName = parser2.procInstBody = "";
-              } else {
-                strictFail(parser2, "Unencoded <");
-                if (parser2.startTagPosition + 1 < parser2.position) {
-                  var pad = parser2.position - parser2.startTagPosition;
-                  c4 = new Array(pad).join(" ") + c4;
-                }
-                parser2.textNode += "<" + c4;
-                parser2.state = S2.TEXT;
-              }
-              continue;
-            case S2.SGML_DECL:
-              if ((parser2.sgmlDecl + c4).toUpperCase() === CDATA) {
-                emitNode(parser2, "onopencdata");
-                parser2.state = S2.CDATA;
-                parser2.sgmlDecl = "";
-                parser2.cdata = "";
-              } else if (parser2.sgmlDecl + c4 === "--") {
-                parser2.state = S2.COMMENT;
-                parser2.comment = "";
-                parser2.sgmlDecl = "";
-              } else if ((parser2.sgmlDecl + c4).toUpperCase() === DOCTYPE) {
-                parser2.state = S2.DOCTYPE;
-                if (parser2.doctype || parser2.sawRoot) {
-                  strictFail(
-                    parser2,
-                    "Inappropriately located doctype declaration"
-                  );
-                }
-                parser2.doctype = "";
-                parser2.sgmlDecl = "";
-              } else if (c4 === ">") {
-                emitNode(parser2, "onsgmldeclaration", parser2.sgmlDecl);
-                parser2.sgmlDecl = "";
-                parser2.state = S2.TEXT;
-              } else if (isQuote(c4)) {
-                parser2.state = S2.SGML_DECL_QUOTED;
-                parser2.sgmlDecl += c4;
-              } else {
-                parser2.sgmlDecl += c4;
-              }
-              continue;
-            case S2.SGML_DECL_QUOTED:
-              if (c4 === parser2.q) {
-                parser2.state = S2.SGML_DECL;
-                parser2.q = "";
-              }
-              parser2.sgmlDecl += c4;
-              continue;
-            case S2.DOCTYPE:
-              if (c4 === ">") {
-                parser2.state = S2.TEXT;
-                emitNode(parser2, "ondoctype", parser2.doctype);
-                parser2.doctype = true;
-              } else {
-                parser2.doctype += c4;
-                if (c4 === "[") {
-                  parser2.state = S2.DOCTYPE_DTD;
-                } else if (isQuote(c4)) {
-                  parser2.state = S2.DOCTYPE_QUOTED;
-                  parser2.q = c4;
-                }
-              }
-              continue;
-            case S2.DOCTYPE_QUOTED:
-              parser2.doctype += c4;
-              if (c4 === parser2.q) {
-                parser2.q = "";
-                parser2.state = S2.DOCTYPE;
-              }
-              continue;
-            case S2.DOCTYPE_DTD:
-              parser2.doctype += c4;
-              if (c4 === "]") {
-                parser2.state = S2.DOCTYPE;
-              } else if (isQuote(c4)) {
-                parser2.state = S2.DOCTYPE_DTD_QUOTED;
-                parser2.q = c4;
-              }
-              continue;
-            case S2.DOCTYPE_DTD_QUOTED:
-              parser2.doctype += c4;
-              if (c4 === parser2.q) {
-                parser2.state = S2.DOCTYPE_DTD;
-                parser2.q = "";
-              }
-              continue;
-            case S2.COMMENT:
-              if (c4 === "-") {
-                parser2.state = S2.COMMENT_ENDING;
-              } else {
-                parser2.comment += c4;
-              }
-              continue;
-            case S2.COMMENT_ENDING:
-              if (c4 === "-") {
-                parser2.state = S2.COMMENT_ENDED;
-                parser2.comment = textopts(parser2.opt, parser2.comment);
-                if (parser2.comment) {
-                  emitNode(parser2, "oncomment", parser2.comment);
-                }
-                parser2.comment = "";
-              } else {
-                parser2.comment += "-" + c4;
-                parser2.state = S2.COMMENT;
-              }
-              continue;
-            case S2.COMMENT_ENDED:
-              if (c4 !== ">") {
-                strictFail(parser2, "Malformed comment");
-                parser2.comment += "--" + c4;
-                parser2.state = S2.COMMENT;
-              } else {
-                parser2.state = S2.TEXT;
-              }
-              continue;
-            case S2.CDATA:
-              if (c4 === "]") {
-                parser2.state = S2.CDATA_ENDING;
-              } else {
-                parser2.cdata += c4;
-              }
-              continue;
-            case S2.CDATA_ENDING:
-              if (c4 === "]") {
-                parser2.state = S2.CDATA_ENDING_2;
-              } else {
-                parser2.cdata += "]" + c4;
-                parser2.state = S2.CDATA;
-              }
-              continue;
-            case S2.CDATA_ENDING_2:
-              if (c4 === ">") {
-                if (parser2.cdata) {
-                  emitNode(parser2, "oncdata", parser2.cdata);
-                }
-                emitNode(parser2, "onclosecdata");
-                parser2.cdata = "";
-                parser2.state = S2.TEXT;
-              } else if (c4 === "]") {
-                parser2.cdata += "]";
-              } else {
-                parser2.cdata += "]]" + c4;
-                parser2.state = S2.CDATA;
-              }
-              continue;
-            case S2.PROC_INST:
-              if (c4 === "?") {
-                parser2.state = S2.PROC_INST_ENDING;
-              } else if (isWhitespace(c4)) {
-                parser2.state = S2.PROC_INST_BODY;
-              } else {
-                parser2.procInstName += c4;
-              }
-              continue;
-            case S2.PROC_INST_BODY:
-              if (!parser2.procInstBody && isWhitespace(c4)) {
-                continue;
-              } else if (c4 === "?") {
-                parser2.state = S2.PROC_INST_ENDING;
-              } else {
-                parser2.procInstBody += c4;
-              }
-              continue;
-            case S2.PROC_INST_ENDING:
-              if (c4 === ">") {
-                emitNode(parser2, "onprocessinginstruction", {
-                  name: parser2.procInstName,
-                  body: parser2.procInstBody
-                });
-                parser2.procInstName = parser2.procInstBody = "";
-                parser2.state = S2.TEXT;
-              } else {
-                parser2.procInstBody += "?" + c4;
-                parser2.state = S2.PROC_INST_BODY;
-              }
-              continue;
-            case S2.OPEN_TAG:
-              if (isMatch(nameBody, c4)) {
-                parser2.tagName += c4;
-              } else {
-                newTag(parser2);
-                if (c4 === ">") {
-                  openTag(parser2);
-                } else if (c4 === "/") {
-                  parser2.state = S2.OPEN_TAG_SLASH;
-                } else {
-                  if (!isWhitespace(c4)) {
-                    strictFail(parser2, "Invalid character in tag name");
-                  }
-                  parser2.state = S2.ATTRIB;
-                }
-              }
-              continue;
-            case S2.OPEN_TAG_SLASH:
-              if (c4 === ">") {
-                openTag(parser2, true);
-                closeTag(parser2);
-              } else {
-                strictFail(parser2, "Forward-slash in opening tag not followed by >");
-                parser2.state = S2.ATTRIB;
-              }
-              continue;
-            case S2.ATTRIB:
-              if (isWhitespace(c4)) {
-                continue;
-              } else if (c4 === ">") {
-                openTag(parser2);
-              } else if (c4 === "/") {
-                parser2.state = S2.OPEN_TAG_SLASH;
-              } else if (isMatch(nameStart, c4)) {
-                parser2.attribName = c4;
-                parser2.attribValue = "";
-                parser2.state = S2.ATTRIB_NAME;
-              } else {
-                strictFail(parser2, "Invalid attribute name");
-              }
-              continue;
-            case S2.ATTRIB_NAME:
-              if (c4 === "=") {
-                parser2.state = S2.ATTRIB_VALUE;
-              } else if (c4 === ">") {
-                strictFail(parser2, "Attribute without value");
-                parser2.attribValue = parser2.attribName;
-                attrib(parser2);
-                openTag(parser2);
-              } else if (isWhitespace(c4)) {
-                parser2.state = S2.ATTRIB_NAME_SAW_WHITE;
-              } else if (isMatch(nameBody, c4)) {
-                parser2.attribName += c4;
-              } else {
-                strictFail(parser2, "Invalid attribute name");
-              }
-              continue;
-            case S2.ATTRIB_NAME_SAW_WHITE:
-              if (c4 === "=") {
-                parser2.state = S2.ATTRIB_VALUE;
-              } else if (isWhitespace(c4)) {
-                continue;
-              } else {
-                strictFail(parser2, "Attribute without value");
-                parser2.tag.attributes[parser2.attribName] = "";
-                parser2.attribValue = "";
-                emitNode(parser2, "onattribute", {
-                  name: parser2.attribName,
-                  value: ""
-                });
-                parser2.attribName = "";
-                if (c4 === ">") {
-                  openTag(parser2);
-                } else if (isMatch(nameStart, c4)) {
-                  parser2.attribName = c4;
-                  parser2.state = S2.ATTRIB_NAME;
-                } else {
-                  strictFail(parser2, "Invalid attribute name");
-                  parser2.state = S2.ATTRIB;
-                }
-              }
-              continue;
-            case S2.ATTRIB_VALUE:
-              if (isWhitespace(c4)) {
-                continue;
-              } else if (isQuote(c4)) {
-                parser2.q = c4;
-                parser2.state = S2.ATTRIB_VALUE_QUOTED;
-              } else {
-                strictFail(parser2, "Unquoted attribute value");
-                parser2.state = S2.ATTRIB_VALUE_UNQUOTED;
-                parser2.attribValue = c4;
-              }
-              continue;
-            case S2.ATTRIB_VALUE_QUOTED:
-              if (c4 !== parser2.q) {
-                if (c4 === "&") {
-                  parser2.state = S2.ATTRIB_VALUE_ENTITY_Q;
-                } else {
-                  parser2.attribValue += c4;
-                }
-                continue;
-              }
-              attrib(parser2);
-              parser2.q = "";
-              parser2.state = S2.ATTRIB_VALUE_CLOSED;
-              continue;
-            case S2.ATTRIB_VALUE_CLOSED:
-              if (isWhitespace(c4)) {
-                parser2.state = S2.ATTRIB;
-              } else if (c4 === ">") {
-                openTag(parser2);
-              } else if (c4 === "/") {
-                parser2.state = S2.OPEN_TAG_SLASH;
-              } else if (isMatch(nameStart, c4)) {
-                strictFail(parser2, "No whitespace between attributes");
-                parser2.attribName = c4;
-                parser2.attribValue = "";
-                parser2.state = S2.ATTRIB_NAME;
-              } else {
-                strictFail(parser2, "Invalid attribute name");
-              }
-              continue;
-            case S2.ATTRIB_VALUE_UNQUOTED:
-              if (!isAttribEnd(c4)) {
-                if (c4 === "&") {
-                  parser2.state = S2.ATTRIB_VALUE_ENTITY_U;
-                } else {
-                  parser2.attribValue += c4;
-                }
-                continue;
-              }
-              attrib(parser2);
-              if (c4 === ">") {
-                openTag(parser2);
-              } else {
-                parser2.state = S2.ATTRIB;
-              }
-              continue;
-            case S2.CLOSE_TAG:
-              if (!parser2.tagName) {
-                if (isWhitespace(c4)) {
-                  continue;
-                } else if (notMatch(nameStart, c4)) {
-                  if (parser2.script) {
-                    parser2.script += "</" + c4;
-                    parser2.state = S2.SCRIPT;
-                  } else {
-                    strictFail(parser2, "Invalid tagname in closing tag.");
-                  }
-                } else {
-                  parser2.tagName = c4;
-                }
-              } else if (c4 === ">") {
-                closeTag(parser2);
-              } else if (isMatch(nameBody, c4)) {
-                parser2.tagName += c4;
-              } else if (parser2.script) {
-                parser2.script += "</" + parser2.tagName;
-                parser2.tagName = "";
-                parser2.state = S2.SCRIPT;
-              } else {
-                if (!isWhitespace(c4)) {
-                  strictFail(parser2, "Invalid tagname in closing tag");
-                }
-                parser2.state = S2.CLOSE_TAG_SAW_WHITE;
-              }
-              continue;
-            case S2.CLOSE_TAG_SAW_WHITE:
-              if (isWhitespace(c4)) {
-                continue;
-              }
-              if (c4 === ">") {
-                closeTag(parser2);
-              } else {
-                strictFail(parser2, "Invalid characters in closing tag");
-              }
-              continue;
-            case S2.TEXT_ENTITY:
-            case S2.ATTRIB_VALUE_ENTITY_Q:
-            case S2.ATTRIB_VALUE_ENTITY_U:
-              var returnState;
-              var buffer;
-              switch (parser2.state) {
-                case S2.TEXT_ENTITY:
-                  returnState = S2.TEXT;
-                  buffer = "textNode";
-                  break;
-                case S2.ATTRIB_VALUE_ENTITY_Q:
-                  returnState = S2.ATTRIB_VALUE_QUOTED;
-                  buffer = "attribValue";
-                  break;
-                case S2.ATTRIB_VALUE_ENTITY_U:
-                  returnState = S2.ATTRIB_VALUE_UNQUOTED;
-                  buffer = "attribValue";
-                  break;
-              }
-              if (c4 === ";") {
-                parser2[buffer] += parseEntity(parser2);
-                parser2.entity = "";
-                parser2.state = returnState;
-              } else if (isMatch(parser2.entity.length ? entityBody : entityStart, c4)) {
-                parser2.entity += c4;
-              } else {
-                strictFail(parser2, "Invalid character in entity name");
-                parser2[buffer] += "&" + parser2.entity + c4;
-                parser2.entity = "";
-                parser2.state = returnState;
-              }
-              continue;
-            default:
-              throw new Error(parser2, "Unknown state: " + parser2.state);
+          var suffixLength = diff_commonSuffix(
+            longtext2.substring(0, i3),
+            shorttext2.substring(0, j2)
+          );
+          if (best_common.length < suffixLength + prefixLength) {
+            best_common = shorttext2.substring(j2 - suffixLength, j2) + shorttext2.substring(j2, j2 + prefixLength);
+            best_longtext_a = longtext2.substring(0, i3 - suffixLength);
+            best_longtext_b = longtext2.substring(i3 + prefixLength);
+            best_shorttext_a = shorttext2.substring(0, j2 - suffixLength);
+            best_shorttext_b = shorttext2.substring(j2 + prefixLength);
           }
         }
-        if (parser2.position >= parser2.bufferCheckPosition) {
-          checkBufferLength(parser2);
+        if (best_common.length * 2 >= longtext2.length) {
+          return [
+            best_longtext_a,
+            best_longtext_b,
+            best_shorttext_a,
+            best_shorttext_b,
+            best_common
+          ];
+        } else {
+          return null;
         }
-        return parser2;
       }
-      if (!String.fromCodePoint) {
-        (function() {
-          var stringFromCharCode = String.fromCharCode;
-          var floor = Math.floor;
-          var fromCodePoint = function() {
-            var MAX_SIZE = 16384;
-            var codeUnits = [];
-            var highSurrogate;
-            var lowSurrogate;
-            var index3 = -1;
-            var length2 = arguments.length;
-            if (!length2) {
-              return "";
-            }
-            var result = "";
-            while (++index3 < length2) {
-              var codePoint = Number(arguments[index3]);
-              if (!isFinite(codePoint) || // `NaN`, `+Infinity`, or `-Infinity`
-              codePoint < 0 || // not a valid Unicode code point
-              codePoint > 1114111 || // not a valid Unicode code point
-              floor(codePoint) !== codePoint) {
-                throw RangeError("Invalid code point: " + codePoint);
-              }
-              if (codePoint <= 65535) {
-                codeUnits.push(codePoint);
-              } else {
-                codePoint -= 65536;
-                highSurrogate = (codePoint >> 10) + 55296;
-                lowSurrogate = codePoint % 1024 + 56320;
-                codeUnits.push(highSurrogate, lowSurrogate);
-              }
-              if (index3 + 1 === length2 || codeUnits.length > MAX_SIZE) {
-                result += stringFromCharCode.apply(null, codeUnits);
-                codeUnits.length = 0;
-              }
-            }
-            return result;
-          };
-          if (Object.defineProperty) {
-            Object.defineProperty(String, "fromCodePoint", {
-              value: fromCodePoint,
-              configurable: true,
-              writable: true
-            });
-          } else {
-            String.fromCodePoint = fromCodePoint;
-          }
-        })();
+      var hm1 = diff_halfMatchI_(
+        longtext,
+        shorttext,
+        Math.ceil(longtext.length / 4)
+      );
+      var hm2 = diff_halfMatchI_(
+        longtext,
+        shorttext,
+        Math.ceil(longtext.length / 2)
+      );
+      var hm;
+      if (!hm1 && !hm2) {
+        return null;
+      } else if (!hm2) {
+        hm = hm1;
+      } else if (!hm1) {
+        hm = hm2;
+      } else {
+        hm = hm1[4].length > hm2[4].length ? hm1 : hm2;
       }
-    })(typeof exports === "undefined" ? exports.sax = {} : exports);
-  }
-});
-
-// ../simple-mind-map/node_modules/xml-js/lib/array-helper.js
-var require_array_helper = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/array-helper.js"(exports, module) {
-    module.exports = {
-      isArray: function(value) {
-        if (Array.isArray) {
-          return Array.isArray(value);
-        }
-        return Object.prototype.toString.call(value) === "[object Array]";
+      var text1_a, text1_b, text2_a, text2_b;
+      if (text1.length > text22.length) {
+        text1_a = hm[0];
+        text1_b = hm[1];
+        text2_a = hm[2];
+        text2_b = hm[3];
+      } else {
+        text2_a = hm[0];
+        text2_b = hm[1];
+        text1_a = hm[2];
+        text1_b = hm[3];
       }
-    };
-  }
-});
-
-// ../simple-mind-map/node_modules/xml-js/lib/options-helper.js
-var require_options_helper = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/options-helper.js"(exports, module) {
-    var isArray2 = require_array_helper().isArray;
-    module.exports = {
-      copyOptions: function(options) {
-        var key, copy = {};
-        for (key in options) {
-          if (options.hasOwnProperty(key)) {
-            copy[key] = options[key];
-          }
-        }
-        return copy;
-      },
-      ensureFlagExists: function(item, options) {
-        if (!(item in options) || typeof options[item] !== "boolean") {
-          options[item] = false;
-        }
-      },
-      ensureSpacesExists: function(options) {
-        if (!("spaces" in options) || typeof options.spaces !== "number" && typeof options.spaces !== "string") {
-          options.spaces = 0;
-        }
-      },
-      ensureAlwaysArrayExists: function(options) {
-        if (!("alwaysArray" in options) || typeof options.alwaysArray !== "boolean" && !isArray2(options.alwaysArray)) {
-          options.alwaysArray = false;
-        }
-      },
-      ensureKeyExists: function(key, options) {
-        if (!(key + "Key" in options) || typeof options[key + "Key"] !== "string") {
-          options[key + "Key"] = options.compact ? "_" + key : key;
-        }
-      },
-      checkFnExists: function(key, options) {
-        return key + "Fn" in options;
-      }
-    };
-  }
-});
-
-// ../simple-mind-map/node_modules/xml-js/lib/xml2js.js
-var require_xml2js = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/xml2js.js"(exports, module) {
-    var sax = require_sax();
-    var expat = { on: function() {
-    }, parse: function() {
-    } };
-    var helper = require_options_helper();
-    var isArray2 = require_array_helper().isArray;
-    var options;
-    var pureJsParser = true;
-    var currentElement;
-    function validateOptions(userOptions) {
-      options = helper.copyOptions(userOptions);
-      helper.ensureFlagExists("ignoreDeclaration", options);
-      helper.ensureFlagExists("ignoreInstruction", options);
-      helper.ensureFlagExists("ignoreAttributes", options);
-      helper.ensureFlagExists("ignoreText", options);
-      helper.ensureFlagExists("ignoreComment", options);
-      helper.ensureFlagExists("ignoreCdata", options);
-      helper.ensureFlagExists("ignoreDoctype", options);
-      helper.ensureFlagExists("compact", options);
-      helper.ensureFlagExists("alwaysChildren", options);
-      helper.ensureFlagExists("addParent", options);
-      helper.ensureFlagExists("trim", options);
-      helper.ensureFlagExists("nativeType", options);
-      helper.ensureFlagExists("nativeTypeAttributes", options);
-      helper.ensureFlagExists("sanitize", options);
-      helper.ensureFlagExists("instructionHasAttributes", options);
-      helper.ensureFlagExists("captureSpacesBetweenElements", options);
-      helper.ensureAlwaysArrayExists(options);
-      helper.ensureKeyExists("declaration", options);
-      helper.ensureKeyExists("instruction", options);
-      helper.ensureKeyExists("attributes", options);
-      helper.ensureKeyExists("text", options);
-      helper.ensureKeyExists("comment", options);
-      helper.ensureKeyExists("cdata", options);
-      helper.ensureKeyExists("doctype", options);
-      helper.ensureKeyExists("type", options);
-      helper.ensureKeyExists("name", options);
-      helper.ensureKeyExists("elements", options);
-      helper.ensureKeyExists("parent", options);
-      helper.checkFnExists("doctype", options);
-      helper.checkFnExists("instruction", options);
-      helper.checkFnExists("cdata", options);
-      helper.checkFnExists("comment", options);
-      helper.checkFnExists("text", options);
-      helper.checkFnExists("instructionName", options);
-      helper.checkFnExists("elementName", options);
-      helper.checkFnExists("attributeName", options);
-      helper.checkFnExists("attributeValue", options);
-      helper.checkFnExists("attributes", options);
-      return options;
+      var mid_common = hm[4];
+      return [text1_a, text1_b, text2_a, text2_b, mid_common];
     }
-    function nativeType(value) {
-      var nValue = Number(value);
-      if (!isNaN(nValue)) {
-        return nValue;
+    function diff_cleanupMerge(diffs) {
+      diffs.push([DIFF_EQUAL, ""]);
+      var pointer = 0;
+      var count_delete = 0;
+      var count_insert = 0;
+      var text_delete = "";
+      var text_insert = "";
+      var commonlength;
+      while (pointer < diffs.length) {
+        switch (diffs[pointer][0]) {
+          case DIFF_INSERT:
+            count_insert++;
+            text_insert += diffs[pointer][1];
+            pointer++;
+            break;
+          case DIFF_DELETE:
+            count_delete++;
+            text_delete += diffs[pointer][1];
+            pointer++;
+            break;
+          case DIFF_EQUAL:
+            if (count_delete + count_insert > 1) {
+              if (count_delete !== 0 && count_insert !== 0) {
+                commonlength = diff_commonPrefix(text_insert, text_delete);
+                if (commonlength !== 0) {
+                  if (pointer - count_delete - count_insert > 0 && diffs[pointer - count_delete - count_insert - 1][0] == DIFF_EQUAL) {
+                    diffs[pointer - count_delete - count_insert - 1][1] += text_insert.substring(0, commonlength);
+                  } else {
+                    diffs.splice(0, 0, [
+                      DIFF_EQUAL,
+                      text_insert.substring(0, commonlength)
+                    ]);
+                    pointer++;
+                  }
+                  text_insert = text_insert.substring(commonlength);
+                  text_delete = text_delete.substring(commonlength);
+                }
+                commonlength = diff_commonSuffix(text_insert, text_delete);
+                if (commonlength !== 0) {
+                  diffs[pointer][1] = text_insert.substring(text_insert.length - commonlength) + diffs[pointer][1];
+                  text_insert = text_insert.substring(0, text_insert.length - commonlength);
+                  text_delete = text_delete.substring(0, text_delete.length - commonlength);
+                }
+              }
+              if (count_delete === 0) {
+                diffs.splice(
+                  pointer - count_insert,
+                  count_delete + count_insert,
+                  [DIFF_INSERT, text_insert]
+                );
+              } else if (count_insert === 0) {
+                diffs.splice(
+                  pointer - count_delete,
+                  count_delete + count_insert,
+                  [DIFF_DELETE, text_delete]
+                );
+              } else {
+                diffs.splice(
+                  pointer - count_delete - count_insert,
+                  count_delete + count_insert,
+                  [DIFF_DELETE, text_delete],
+                  [DIFF_INSERT, text_insert]
+                );
+              }
+              pointer = pointer - count_delete - count_insert + (count_delete ? 1 : 0) + (count_insert ? 1 : 0) + 1;
+            } else if (pointer !== 0 && diffs[pointer - 1][0] == DIFF_EQUAL) {
+              diffs[pointer - 1][1] += diffs[pointer][1];
+              diffs.splice(pointer, 1);
+            } else {
+              pointer++;
+            }
+            count_insert = 0;
+            count_delete = 0;
+            text_delete = "";
+            text_insert = "";
+            break;
+        }
       }
-      var bValue = value.toLowerCase();
-      if (bValue === "true") {
-        return true;
-      } else if (bValue === "false") {
+      if (diffs[diffs.length - 1][1] === "") {
+        diffs.pop();
+      }
+      var changes = false;
+      pointer = 1;
+      while (pointer < diffs.length - 1) {
+        if (diffs[pointer - 1][0] == DIFF_EQUAL && diffs[pointer + 1][0] == DIFF_EQUAL) {
+          if (diffs[pointer][1].substring(diffs[pointer][1].length - diffs[pointer - 1][1].length) == diffs[pointer - 1][1]) {
+            diffs[pointer][1] = diffs[pointer - 1][1] + diffs[pointer][1].substring(0, diffs[pointer][1].length - diffs[pointer - 1][1].length);
+            diffs[pointer + 1][1] = diffs[pointer - 1][1] + diffs[pointer + 1][1];
+            diffs.splice(pointer - 1, 1);
+            changes = true;
+          } else if (diffs[pointer][1].substring(0, diffs[pointer + 1][1].length) == diffs[pointer + 1][1]) {
+            diffs[pointer - 1][1] += diffs[pointer + 1][1];
+            diffs[pointer][1] = diffs[pointer][1].substring(diffs[pointer + 1][1].length) + diffs[pointer + 1][1];
+            diffs.splice(pointer + 1, 1);
+            changes = true;
+          }
+        }
+        pointer++;
+      }
+      if (changes) {
+        diff_cleanupMerge(diffs);
+      }
+    }
+    var diff = diff_main;
+    diff.INSERT = DIFF_INSERT;
+    diff.DELETE = DIFF_DELETE;
+    diff.EQUAL = DIFF_EQUAL;
+    module.exports = diff;
+    function cursor_normalize_diff(diffs, cursor_pos) {
+      if (cursor_pos === 0) {
+        return [DIFF_EQUAL, diffs];
+      }
+      for (var current_pos = 0, i3 = 0; i3 < diffs.length; i3++) {
+        var d2 = diffs[i3];
+        if (d2[0] === DIFF_DELETE || d2[0] === DIFF_EQUAL) {
+          var next_pos = current_pos + d2[1].length;
+          if (cursor_pos === next_pos) {
+            return [i3 + 1, diffs];
+          } else if (cursor_pos < next_pos) {
+            diffs = diffs.slice();
+            var split_pos = cursor_pos - current_pos;
+            var d_left = [d2[0], d2[1].slice(0, split_pos)];
+            var d_right = [d2[0], d2[1].slice(split_pos)];
+            diffs.splice(i3, 1, d_left, d_right);
+            return [i3 + 1, diffs];
+          } else {
+            current_pos = next_pos;
+          }
+        }
+      }
+      throw new Error("cursor_pos is out of bounds!");
+    }
+    function fix_cursor(diffs, cursor_pos) {
+      var norm = cursor_normalize_diff(diffs, cursor_pos);
+      var ndiffs = norm[1];
+      var cursor_pointer = norm[0];
+      var d2 = ndiffs[cursor_pointer];
+      var d_next = ndiffs[cursor_pointer + 1];
+      if (d2 == null) {
+        return diffs;
+      } else if (d2[0] !== DIFF_EQUAL) {
+        return diffs;
+      } else {
+        if (d_next != null && d2[1] + d_next[1] === d_next[1] + d2[1]) {
+          ndiffs.splice(cursor_pointer, 2, d_next, d2);
+          return merge_tuples(ndiffs, cursor_pointer, 2);
+        } else if (d_next != null && d_next[1].indexOf(d2[1]) === 0) {
+          ndiffs.splice(cursor_pointer, 2, [d_next[0], d2[1]], [0, d2[1]]);
+          var suffix = d_next[1].slice(d2[1].length);
+          if (suffix.length > 0) {
+            ndiffs.splice(cursor_pointer + 2, 0, [d_next[0], suffix]);
+          }
+          return merge_tuples(ndiffs, cursor_pointer, 3);
+        } else {
+          return diffs;
+        }
+      }
+    }
+    function fix_emoji(diffs) {
+      var compact = false;
+      var starts_with_pair_end = function(str) {
+        return str.charCodeAt(0) >= 56320 && str.charCodeAt(0) <= 57343;
+      };
+      var ends_with_pair_start = function(str) {
+        return str.charCodeAt(str.length - 1) >= 55296 && str.charCodeAt(str.length - 1) <= 56319;
+      };
+      for (var i3 = 2; i3 < diffs.length; i3 += 1) {
+        if (diffs[i3 - 2][0] === DIFF_EQUAL && ends_with_pair_start(diffs[i3 - 2][1]) && diffs[i3 - 1][0] === DIFF_DELETE && starts_with_pair_end(diffs[i3 - 1][1]) && diffs[i3][0] === DIFF_INSERT && starts_with_pair_end(diffs[i3][1])) {
+          compact = true;
+          diffs[i3 - 1][1] = diffs[i3 - 2][1].slice(-1) + diffs[i3 - 1][1];
+          diffs[i3][1] = diffs[i3 - 2][1].slice(-1) + diffs[i3][1];
+          diffs[i3 - 2][1] = diffs[i3 - 2][1].slice(0, -1);
+        }
+      }
+      if (!compact) {
+        return diffs;
+      }
+      var fixed_diffs = [];
+      for (var i3 = 0; i3 < diffs.length; i3 += 1) {
+        if (diffs[i3][1].length > 0) {
+          fixed_diffs.push(diffs[i3]);
+        }
+      }
+      return fixed_diffs;
+    }
+    function merge_tuples(diffs, start, length2) {
+      for (var i3 = start + length2 - 1; i3 >= 0 && i3 >= start - 1; i3--) {
+        if (i3 + 1 < diffs.length) {
+          var left_d = diffs[i3];
+          var right_d = diffs[i3 + 1];
+          if (left_d[0] === right_d[1]) {
+            diffs.splice(i3, 2, [left_d[0], left_d[1] + right_d[1]]);
+          }
+        }
+      }
+      return diffs;
+    }
+  }
+});
+
+// ../simple-mind-map/node_modules/object-keys/isArguments.js
+var require_isArguments = __commonJS({
+  "../simple-mind-map/node_modules/object-keys/isArguments.js"(exports, module) {
+    "use strict";
+    var toStr = Object.prototype.toString;
+    module.exports = function isArguments(value) {
+      var str = toStr.call(value);
+      var isArgs = str === "[object Arguments]";
+      if (!isArgs) {
+        isArgs = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && toStr.call(value.callee) === "[object Function]";
+      }
+      return isArgs;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/object-keys/implementation.js
+var require_implementation = __commonJS({
+  "../simple-mind-map/node_modules/object-keys/implementation.js"(exports, module) {
+    "use strict";
+    var keysShim;
+    if (!Object.keys) {
+      has = Object.prototype.hasOwnProperty;
+      toStr = Object.prototype.toString;
+      isArgs = require_isArguments();
+      isEnumerable = Object.prototype.propertyIsEnumerable;
+      hasDontEnumBug = !isEnumerable.call({ toString: null }, "toString");
+      hasProtoEnumBug = isEnumerable.call(function() {
+      }, "prototype");
+      dontEnums = [
+        "toString",
+        "toLocaleString",
+        "valueOf",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "constructor"
+      ];
+      equalsConstructorPrototype = function(o3) {
+        var ctor = o3.constructor;
+        return ctor && ctor.prototype === o3;
+      };
+      excludedKeys = {
+        $applicationCache: true,
+        $console: true,
+        $external: true,
+        $frame: true,
+        $frameElement: true,
+        $frames: true,
+        $innerHeight: true,
+        $innerWidth: true,
+        $onmozfullscreenchange: true,
+        $onmozfullscreenerror: true,
+        $outerHeight: true,
+        $outerWidth: true,
+        $pageXOffset: true,
+        $pageYOffset: true,
+        $parent: true,
+        $scrollLeft: true,
+        $scrollTop: true,
+        $scrollX: true,
+        $scrollY: true,
+        $self: true,
+        $webkitIndexedDB: true,
+        $webkitStorageInfo: true,
+        $window: true
+      };
+      hasAutomationEqualityBug = function() {
+        if (typeof window === "undefined") {
+          return false;
+        }
+        for (var k2 in window) {
+          try {
+            if (!excludedKeys["$" + k2] && has.call(window, k2) && window[k2] !== null && typeof window[k2] === "object") {
+              try {
+                equalsConstructorPrototype(window[k2]);
+              } catch (e2) {
+                return true;
+              }
+            }
+          } catch (e2) {
+            return true;
+          }
+        }
+        return false;
+      }();
+      equalsConstructorPrototypeIfNotBuggy = function(o3) {
+        if (typeof window === "undefined" || !hasAutomationEqualityBug) {
+          return equalsConstructorPrototype(o3);
+        }
+        try {
+          return equalsConstructorPrototype(o3);
+        } catch (e2) {
+          return false;
+        }
+      };
+      keysShim = function keys(object) {
+        var isObject = object !== null && typeof object === "object";
+        var isFunction = toStr.call(object) === "[object Function]";
+        var isArguments = isArgs(object);
+        var isString = isObject && toStr.call(object) === "[object String]";
+        var theKeys = [];
+        if (!isObject && !isFunction && !isArguments) {
+          throw new TypeError("Object.keys called on a non-object");
+        }
+        var skipProto = hasProtoEnumBug && isFunction;
+        if (isString && object.length > 0 && !has.call(object, 0)) {
+          for (var i3 = 0; i3 < object.length; ++i3) {
+            theKeys.push(String(i3));
+          }
+        }
+        if (isArguments && object.length > 0) {
+          for (var j2 = 0; j2 < object.length; ++j2) {
+            theKeys.push(String(j2));
+          }
+        } else {
+          for (var name in object) {
+            if (!(skipProto && name === "prototype") && has.call(object, name)) {
+              theKeys.push(String(name));
+            }
+          }
+        }
+        if (hasDontEnumBug) {
+          var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
+          for (var k2 = 0; k2 < dontEnums.length; ++k2) {
+            if (!(skipConstructor && dontEnums[k2] === "constructor") && has.call(object, dontEnums[k2])) {
+              theKeys.push(dontEnums[k2]);
+            }
+          }
+        }
+        return theKeys;
+      };
+    }
+    var has;
+    var toStr;
+    var isArgs;
+    var isEnumerable;
+    var hasDontEnumBug;
+    var hasProtoEnumBug;
+    var dontEnums;
+    var equalsConstructorPrototype;
+    var excludedKeys;
+    var hasAutomationEqualityBug;
+    var equalsConstructorPrototypeIfNotBuggy;
+    module.exports = keysShim;
+  }
+});
+
+// ../simple-mind-map/node_modules/object-keys/index.js
+var require_object_keys2 = __commonJS({
+  "../simple-mind-map/node_modules/object-keys/index.js"(exports, module) {
+    "use strict";
+    var slice2 = Array.prototype.slice;
+    var isArgs = require_isArguments();
+    var origKeys = Object.keys;
+    var keysShim = origKeys ? function keys(o3) {
+      return origKeys(o3);
+    } : require_implementation();
+    var originalKeys = Object.keys;
+    keysShim.shim = function shimObjectKeys() {
+      if (Object.keys) {
+        var keysWorksWithArguments = function() {
+          var args = Object.keys(arguments);
+          return args && args.length === arguments.length;
+        }(1, 2);
+        if (!keysWorksWithArguments) {
+          Object.keys = function keys(object) {
+            if (isArgs(object)) {
+              return originalKeys(slice2.call(object));
+            }
+            return originalKeys(object);
+          };
+        }
+      } else {
+        Object.keys = keysShim;
+      }
+      return Object.keys || keysShim;
+    };
+    module.exports = keysShim;
+  }
+});
+
+// ../simple-mind-map/node_modules/has-symbols/shams.js
+var require_shams = __commonJS({
+  "../simple-mind-map/node_modules/has-symbols/shams.js"(exports, module) {
+    "use strict";
+    module.exports = function hasSymbols() {
+      if (typeof Symbol !== "function" || typeof Object.getOwnPropertySymbols !== "function") {
         return false;
       }
-      return value;
-    }
-    function addField(type, value) {
-      var key;
-      if (options.compact) {
-        if (!currentElement[options[type + "Key"]] && (isArray2(options.alwaysArray) ? options.alwaysArray.indexOf(options[type + "Key"]) !== -1 : options.alwaysArray)) {
-          currentElement[options[type + "Key"]] = [];
+      if (typeof Symbol.iterator === "symbol") {
+        return true;
+      }
+      var obj = {};
+      var sym = Symbol("test");
+      var symObj = Object(sym);
+      if (typeof sym === "string") {
+        return false;
+      }
+      if (Object.prototype.toString.call(sym) !== "[object Symbol]") {
+        return false;
+      }
+      if (Object.prototype.toString.call(symObj) !== "[object Symbol]") {
+        return false;
+      }
+      var symVal = 42;
+      obj[sym] = symVal;
+      for (sym in obj) {
+        return false;
+      }
+      if (typeof Object.keys === "function" && Object.keys(obj).length !== 0) {
+        return false;
+      }
+      if (typeof Object.getOwnPropertyNames === "function" && Object.getOwnPropertyNames(obj).length !== 0) {
+        return false;
+      }
+      var syms = Object.getOwnPropertySymbols(obj);
+      if (syms.length !== 1 || syms[0] !== sym) {
+        return false;
+      }
+      if (!Object.prototype.propertyIsEnumerable.call(obj, sym)) {
+        return false;
+      }
+      if (typeof Object.getOwnPropertyDescriptor === "function") {
+        var descriptor = Object.getOwnPropertyDescriptor(obj, sym);
+        if (descriptor.value !== symVal || descriptor.enumerable !== true) {
+          return false;
         }
-        if (currentElement[options[type + "Key"]] && !isArray2(currentElement[options[type + "Key"]])) {
-          currentElement[options[type + "Key"]] = [currentElement[options[type + "Key"]]];
-        }
-        if (type + "Fn" in options && typeof value === "string") {
-          value = options[type + "Fn"](value, currentElement);
-        }
-        if (type === "instruction" && ("instructionFn" in options || "instructionNameFn" in options)) {
-          for (key in value) {
-            if (value.hasOwnProperty(key)) {
-              if ("instructionFn" in options) {
-                value[key] = options.instructionFn(value[key], key, currentElement);
-              } else {
-                var temp = value[key];
-                delete value[key];
-                value[options.instructionNameFn(key, temp, currentElement)] = temp;
-              }
-            }
+      }
+      return true;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/has-tostringtag/shams.js
+var require_shams2 = __commonJS({
+  "../simple-mind-map/node_modules/has-tostringtag/shams.js"(exports, module) {
+    "use strict";
+    var hasSymbols = require_shams();
+    module.exports = function hasToStringTagShams() {
+      return hasSymbols() && !!Symbol.toStringTag;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/has-symbols/index.js
+var require_has_symbols = __commonJS({
+  "../simple-mind-map/node_modules/has-symbols/index.js"(exports, module) {
+    "use strict";
+    var origSymbol = typeof Symbol !== "undefined" && Symbol;
+    var hasSymbolSham = require_shams();
+    module.exports = function hasNativeSymbols() {
+      if (typeof origSymbol !== "function") {
+        return false;
+      }
+      if (typeof Symbol !== "function") {
+        return false;
+      }
+      if (typeof origSymbol("foo") !== "symbol") {
+        return false;
+      }
+      if (typeof Symbol("bar") !== "symbol") {
+        return false;
+      }
+      return hasSymbolSham();
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/function-bind/implementation.js
+var require_implementation2 = __commonJS({
+  "../simple-mind-map/node_modules/function-bind/implementation.js"(exports, module) {
+    "use strict";
+    var ERROR_MESSAGE = "Function.prototype.bind called on incompatible ";
+    var slice2 = Array.prototype.slice;
+    var toStr = Object.prototype.toString;
+    var funcType = "[object Function]";
+    module.exports = function bind(that) {
+      var target = this;
+      if (typeof target !== "function" || toStr.call(target) !== funcType) {
+        throw new TypeError(ERROR_MESSAGE + target);
+      }
+      var args = slice2.call(arguments, 1);
+      var bound;
+      var binder = function() {
+        if (this instanceof bound) {
+          var result = target.apply(
+            this,
+            args.concat(slice2.call(arguments))
+          );
+          if (Object(result) === result) {
+            return result;
           }
-        }
-        if (isArray2(currentElement[options[type + "Key"]])) {
-          currentElement[options[type + "Key"]].push(value);
+          return this;
         } else {
-          currentElement[options[type + "Key"]] = value;
+          return target.apply(
+            that,
+            args.concat(slice2.call(arguments))
+          );
         }
-      } else {
-        if (!currentElement[options.elementsKey]) {
-          currentElement[options.elementsKey] = [];
+      };
+      var boundLength = Math.max(0, target.length - args.length);
+      var boundArgs = [];
+      for (var i3 = 0; i3 < boundLength; i3++) {
+        boundArgs.push("$" + i3);
+      }
+      bound = Function("binder", "return function (" + boundArgs.join(",") + "){ return binder.apply(this,arguments); }")(binder);
+      if (target.prototype) {
+        var Empty = function Empty2() {
+        };
+        Empty.prototype = target.prototype;
+        bound.prototype = new Empty();
+        Empty.prototype = null;
+      }
+      return bound;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/function-bind/index.js
+var require_function_bind = __commonJS({
+  "../simple-mind-map/node_modules/function-bind/index.js"(exports, module) {
+    "use strict";
+    var implementation = require_implementation2();
+    module.exports = Function.prototype.bind || implementation;
+  }
+});
+
+// ../simple-mind-map/node_modules/has/src/index.js
+var require_src = __commonJS({
+  "../simple-mind-map/node_modules/has/src/index.js"(exports, module) {
+    "use strict";
+    var bind = require_function_bind();
+    module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
+  }
+});
+
+// ../simple-mind-map/node_modules/get-intrinsic/index.js
+var require_get_intrinsic = __commonJS({
+  "../simple-mind-map/node_modules/get-intrinsic/index.js"(exports, module) {
+    "use strict";
+    var undefined2;
+    var $SyntaxError = SyntaxError;
+    var $Function = Function;
+    var $TypeError = TypeError;
+    var getEvalledConstructor = function(expressionSyntax) {
+      try {
+        return $Function('"use strict"; return (' + expressionSyntax + ").constructor;")();
+      } catch (e2) {
+      }
+    };
+    var $gOPD = Object.getOwnPropertyDescriptor;
+    if ($gOPD) {
+      try {
+        $gOPD({}, "");
+      } catch (e2) {
+        $gOPD = null;
+      }
+    }
+    var throwTypeError = function() {
+      throw new $TypeError();
+    };
+    var ThrowTypeError = $gOPD ? function() {
+      try {
+        arguments.callee;
+        return throwTypeError;
+      } catch (calleeThrows) {
+        try {
+          return $gOPD(arguments, "callee").get;
+        } catch (gOPDthrows) {
+          return throwTypeError;
         }
-        var element2 = {};
-        element2[options.typeKey] = type;
-        if (type === "instruction") {
-          for (key in value) {
-            if (value.hasOwnProperty(key)) {
-              break;
+      }
+    }() : throwTypeError;
+    var hasSymbols = require_has_symbols()();
+    var getProto = Object.getPrototypeOf || function(x3) {
+      return x3.__proto__;
+    };
+    var needsEval = {};
+    var TypedArray = typeof Uint8Array === "undefined" ? undefined2 : getProto(Uint8Array);
+    var INTRINSICS = {
+      "%AggregateError%": typeof AggregateError === "undefined" ? undefined2 : AggregateError,
+      "%Array%": Array,
+      "%ArrayBuffer%": typeof ArrayBuffer === "undefined" ? undefined2 : ArrayBuffer,
+      "%ArrayIteratorPrototype%": hasSymbols ? getProto([][Symbol.iterator]()) : undefined2,
+      "%AsyncFromSyncIteratorPrototype%": undefined2,
+      "%AsyncFunction%": needsEval,
+      "%AsyncGenerator%": needsEval,
+      "%AsyncGeneratorFunction%": needsEval,
+      "%AsyncIteratorPrototype%": needsEval,
+      "%Atomics%": typeof Atomics === "undefined" ? undefined2 : Atomics,
+      "%BigInt%": typeof BigInt === "undefined" ? undefined2 : BigInt,
+      "%BigInt64Array%": typeof BigInt64Array === "undefined" ? undefined2 : BigInt64Array,
+      "%BigUint64Array%": typeof BigUint64Array === "undefined" ? undefined2 : BigUint64Array,
+      "%Boolean%": Boolean,
+      "%DataView%": typeof DataView === "undefined" ? undefined2 : DataView,
+      "%Date%": Date,
+      "%decodeURI%": decodeURI,
+      "%decodeURIComponent%": decodeURIComponent,
+      "%encodeURI%": encodeURI,
+      "%encodeURIComponent%": encodeURIComponent,
+      "%Error%": Error,
+      "%eval%": eval,
+      // eslint-disable-line no-eval
+      "%EvalError%": EvalError,
+      "%Float32Array%": typeof Float32Array === "undefined" ? undefined2 : Float32Array,
+      "%Float64Array%": typeof Float64Array === "undefined" ? undefined2 : Float64Array,
+      "%FinalizationRegistry%": typeof FinalizationRegistry === "undefined" ? undefined2 : FinalizationRegistry,
+      "%Function%": $Function,
+      "%GeneratorFunction%": needsEval,
+      "%Int8Array%": typeof Int8Array === "undefined" ? undefined2 : Int8Array,
+      "%Int16Array%": typeof Int16Array === "undefined" ? undefined2 : Int16Array,
+      "%Int32Array%": typeof Int32Array === "undefined" ? undefined2 : Int32Array,
+      "%isFinite%": isFinite,
+      "%isNaN%": isNaN,
+      "%IteratorPrototype%": hasSymbols ? getProto(getProto([][Symbol.iterator]())) : undefined2,
+      "%JSON%": typeof JSON === "object" ? JSON : undefined2,
+      "%Map%": typeof Map === "undefined" ? undefined2 : Map,
+      "%MapIteratorPrototype%": typeof Map === "undefined" || !hasSymbols ? undefined2 : getProto((/* @__PURE__ */ new Map())[Symbol.iterator]()),
+      "%Math%": Math,
+      "%Number%": Number,
+      "%Object%": Object,
+      "%parseFloat%": parseFloat,
+      "%parseInt%": parseInt,
+      "%Promise%": typeof Promise === "undefined" ? undefined2 : Promise,
+      "%Proxy%": typeof Proxy === "undefined" ? undefined2 : Proxy,
+      "%RangeError%": RangeError,
+      "%ReferenceError%": ReferenceError,
+      "%Reflect%": typeof Reflect === "undefined" ? undefined2 : Reflect,
+      "%RegExp%": RegExp,
+      "%Set%": typeof Set === "undefined" ? undefined2 : Set,
+      "%SetIteratorPrototype%": typeof Set === "undefined" || !hasSymbols ? undefined2 : getProto((/* @__PURE__ */ new Set())[Symbol.iterator]()),
+      "%SharedArrayBuffer%": typeof SharedArrayBuffer === "undefined" ? undefined2 : SharedArrayBuffer,
+      "%String%": String,
+      "%StringIteratorPrototype%": hasSymbols ? getProto(""[Symbol.iterator]()) : undefined2,
+      "%Symbol%": hasSymbols ? Symbol : undefined2,
+      "%SyntaxError%": $SyntaxError,
+      "%ThrowTypeError%": ThrowTypeError,
+      "%TypedArray%": TypedArray,
+      "%TypeError%": $TypeError,
+      "%Uint8Array%": typeof Uint8Array === "undefined" ? undefined2 : Uint8Array,
+      "%Uint8ClampedArray%": typeof Uint8ClampedArray === "undefined" ? undefined2 : Uint8ClampedArray,
+      "%Uint16Array%": typeof Uint16Array === "undefined" ? undefined2 : Uint16Array,
+      "%Uint32Array%": typeof Uint32Array === "undefined" ? undefined2 : Uint32Array,
+      "%URIError%": URIError,
+      "%WeakMap%": typeof WeakMap === "undefined" ? undefined2 : WeakMap,
+      "%WeakRef%": typeof WeakRef === "undefined" ? undefined2 : WeakRef,
+      "%WeakSet%": typeof WeakSet === "undefined" ? undefined2 : WeakSet
+    };
+    try {
+      null.error;
+    } catch (e2) {
+      errorProto = getProto(getProto(e2));
+      INTRINSICS["%Error.prototype%"] = errorProto;
+    }
+    var errorProto;
+    var doEval = function doEval2(name) {
+      var value;
+      if (name === "%AsyncFunction%") {
+        value = getEvalledConstructor("async function () {}");
+      } else if (name === "%GeneratorFunction%") {
+        value = getEvalledConstructor("function* () {}");
+      } else if (name === "%AsyncGeneratorFunction%") {
+        value = getEvalledConstructor("async function* () {}");
+      } else if (name === "%AsyncGenerator%") {
+        var fn = doEval2("%AsyncGeneratorFunction%");
+        if (fn) {
+          value = fn.prototype;
+        }
+      } else if (name === "%AsyncIteratorPrototype%") {
+        var gen = doEval2("%AsyncGenerator%");
+        if (gen) {
+          value = getProto(gen.prototype);
+        }
+      }
+      INTRINSICS[name] = value;
+      return value;
+    };
+    var LEGACY_ALIASES = {
+      "%ArrayBufferPrototype%": ["ArrayBuffer", "prototype"],
+      "%ArrayPrototype%": ["Array", "prototype"],
+      "%ArrayProto_entries%": ["Array", "prototype", "entries"],
+      "%ArrayProto_forEach%": ["Array", "prototype", "forEach"],
+      "%ArrayProto_keys%": ["Array", "prototype", "keys"],
+      "%ArrayProto_values%": ["Array", "prototype", "values"],
+      "%AsyncFunctionPrototype%": ["AsyncFunction", "prototype"],
+      "%AsyncGenerator%": ["AsyncGeneratorFunction", "prototype"],
+      "%AsyncGeneratorPrototype%": ["AsyncGeneratorFunction", "prototype", "prototype"],
+      "%BooleanPrototype%": ["Boolean", "prototype"],
+      "%DataViewPrototype%": ["DataView", "prototype"],
+      "%DatePrototype%": ["Date", "prototype"],
+      "%ErrorPrototype%": ["Error", "prototype"],
+      "%EvalErrorPrototype%": ["EvalError", "prototype"],
+      "%Float32ArrayPrototype%": ["Float32Array", "prototype"],
+      "%Float64ArrayPrototype%": ["Float64Array", "prototype"],
+      "%FunctionPrototype%": ["Function", "prototype"],
+      "%Generator%": ["GeneratorFunction", "prototype"],
+      "%GeneratorPrototype%": ["GeneratorFunction", "prototype", "prototype"],
+      "%Int8ArrayPrototype%": ["Int8Array", "prototype"],
+      "%Int16ArrayPrototype%": ["Int16Array", "prototype"],
+      "%Int32ArrayPrototype%": ["Int32Array", "prototype"],
+      "%JSONParse%": ["JSON", "parse"],
+      "%JSONStringify%": ["JSON", "stringify"],
+      "%MapPrototype%": ["Map", "prototype"],
+      "%NumberPrototype%": ["Number", "prototype"],
+      "%ObjectPrototype%": ["Object", "prototype"],
+      "%ObjProto_toString%": ["Object", "prototype", "toString"],
+      "%ObjProto_valueOf%": ["Object", "prototype", "valueOf"],
+      "%PromisePrototype%": ["Promise", "prototype"],
+      "%PromiseProto_then%": ["Promise", "prototype", "then"],
+      "%Promise_all%": ["Promise", "all"],
+      "%Promise_reject%": ["Promise", "reject"],
+      "%Promise_resolve%": ["Promise", "resolve"],
+      "%RangeErrorPrototype%": ["RangeError", "prototype"],
+      "%ReferenceErrorPrototype%": ["ReferenceError", "prototype"],
+      "%RegExpPrototype%": ["RegExp", "prototype"],
+      "%SetPrototype%": ["Set", "prototype"],
+      "%SharedArrayBufferPrototype%": ["SharedArrayBuffer", "prototype"],
+      "%StringPrototype%": ["String", "prototype"],
+      "%SymbolPrototype%": ["Symbol", "prototype"],
+      "%SyntaxErrorPrototype%": ["SyntaxError", "prototype"],
+      "%TypedArrayPrototype%": ["TypedArray", "prototype"],
+      "%TypeErrorPrototype%": ["TypeError", "prototype"],
+      "%Uint8ArrayPrototype%": ["Uint8Array", "prototype"],
+      "%Uint8ClampedArrayPrototype%": ["Uint8ClampedArray", "prototype"],
+      "%Uint16ArrayPrototype%": ["Uint16Array", "prototype"],
+      "%Uint32ArrayPrototype%": ["Uint32Array", "prototype"],
+      "%URIErrorPrototype%": ["URIError", "prototype"],
+      "%WeakMapPrototype%": ["WeakMap", "prototype"],
+      "%WeakSetPrototype%": ["WeakSet", "prototype"]
+    };
+    var bind = require_function_bind();
+    var hasOwn = require_src();
+    var $concat = bind.call(Function.call, Array.prototype.concat);
+    var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
+    var $replace = bind.call(Function.call, String.prototype.replace);
+    var $strSlice = bind.call(Function.call, String.prototype.slice);
+    var $exec = bind.call(Function.call, RegExp.prototype.exec);
+    var rePropName = /[^%.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|%$))/g;
+    var reEscapeChar = /\\(\\)?/g;
+    var stringToPath = function stringToPath2(string3) {
+      var first = $strSlice(string3, 0, 1);
+      var last = $strSlice(string3, -1);
+      if (first === "%" && last !== "%") {
+        throw new $SyntaxError("invalid intrinsic syntax, expected closing `%`");
+      } else if (last === "%" && first !== "%") {
+        throw new $SyntaxError("invalid intrinsic syntax, expected opening `%`");
+      }
+      var result = [];
+      $replace(string3, rePropName, function(match, number, quote, subString) {
+        result[result.length] = quote ? $replace(subString, reEscapeChar, "$1") : number || match;
+      });
+      return result;
+    };
+    var getBaseIntrinsic = function getBaseIntrinsic2(name, allowMissing) {
+      var intrinsicName = name;
+      var alias;
+      if (hasOwn(LEGACY_ALIASES, intrinsicName)) {
+        alias = LEGACY_ALIASES[intrinsicName];
+        intrinsicName = "%" + alias[0] + "%";
+      }
+      if (hasOwn(INTRINSICS, intrinsicName)) {
+        var value = INTRINSICS[intrinsicName];
+        if (value === needsEval) {
+          value = doEval(intrinsicName);
+        }
+        if (typeof value === "undefined" && !allowMissing) {
+          throw new $TypeError("intrinsic " + name + " exists, but is not available. Please file an issue!");
+        }
+        return {
+          alias,
+          name: intrinsicName,
+          value
+        };
+      }
+      throw new $SyntaxError("intrinsic " + name + " does not exist!");
+    };
+    module.exports = function GetIntrinsic(name, allowMissing) {
+      if (typeof name !== "string" || name.length === 0) {
+        throw new $TypeError("intrinsic name must be a non-empty string");
+      }
+      if (arguments.length > 1 && typeof allowMissing !== "boolean") {
+        throw new $TypeError('"allowMissing" argument must be a boolean');
+      }
+      if ($exec(/^%?[^%]*%?$/, name) === null) {
+        throw new $SyntaxError("`%` may not be present anywhere but at the beginning and end of the intrinsic name");
+      }
+      var parts = stringToPath(name);
+      var intrinsicBaseName = parts.length > 0 ? parts[0] : "";
+      var intrinsic = getBaseIntrinsic("%" + intrinsicBaseName + "%", allowMissing);
+      var intrinsicRealName = intrinsic.name;
+      var value = intrinsic.value;
+      var skipFurtherCaching = false;
+      var alias = intrinsic.alias;
+      if (alias) {
+        intrinsicBaseName = alias[0];
+        $spliceApply(parts, $concat([0, 1], alias));
+      }
+      for (var i3 = 1, isOwn = true; i3 < parts.length; i3 += 1) {
+        var part = parts[i3];
+        var first = $strSlice(part, 0, 1);
+        var last = $strSlice(part, -1);
+        if ((first === '"' || first === "'" || first === "`" || (last === '"' || last === "'" || last === "`")) && first !== last) {
+          throw new $SyntaxError("property names with quotes must have matching quotes");
+        }
+        if (part === "constructor" || !isOwn) {
+          skipFurtherCaching = true;
+        }
+        intrinsicBaseName += "." + part;
+        intrinsicRealName = "%" + intrinsicBaseName + "%";
+        if (hasOwn(INTRINSICS, intrinsicRealName)) {
+          value = INTRINSICS[intrinsicRealName];
+        } else if (value != null) {
+          if (!(part in value)) {
+            if (!allowMissing) {
+              throw new $TypeError("base intrinsic for " + name + " exists, but the property is not available.");
             }
+            return void 0;
           }
-          element2[options.nameKey] = "instructionNameFn" in options ? options.instructionNameFn(key, value, currentElement) : key;
-          if (options.instructionHasAttributes) {
-            element2[options.attributesKey] = value[key][options.attributesKey];
-            if ("instructionFn" in options) {
-              element2[options.attributesKey] = options.instructionFn(element2[options.attributesKey], key, currentElement);
+          if ($gOPD && i3 + 1 >= parts.length) {
+            var desc = $gOPD(value, part);
+            isOwn = !!desc;
+            if (isOwn && "get" in desc && !("originalValue" in desc.get)) {
+              value = desc.get;
+            } else {
+              value = value[part];
             }
           } else {
-            if ("instructionFn" in options) {
-              value[key] = options.instructionFn(value[key], key, currentElement);
-            }
-            element2[options.instructionKey] = value[key];
+            isOwn = hasOwn(value, part);
+            value = value[part];
           }
-        } else {
-          if (type + "Fn" in options) {
-            value = options[type + "Fn"](value, currentElement);
+          if (isOwn && !skipFurtherCaching) {
+            INTRINSICS[intrinsicRealName] = value;
           }
-          element2[options[type + "Key"]] = value;
         }
-        if (options.addParent) {
-          element2[options.parentKey] = currentElement;
-        }
-        currentElement[options.elementsKey].push(element2);
+      }
+      return value;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/call-bind/index.js
+var require_call_bind = __commonJS({
+  "../simple-mind-map/node_modules/call-bind/index.js"(exports, module) {
+    "use strict";
+    var bind = require_function_bind();
+    var GetIntrinsic = require_get_intrinsic();
+    var $apply = GetIntrinsic("%Function.prototype.apply%");
+    var $call = GetIntrinsic("%Function.prototype.call%");
+    var $reflectApply = GetIntrinsic("%Reflect.apply%", true) || bind.call($call, $apply);
+    var $gOPD = GetIntrinsic("%Object.getOwnPropertyDescriptor%", true);
+    var $defineProperty = GetIntrinsic("%Object.defineProperty%", true);
+    var $max = GetIntrinsic("%Math.max%");
+    if ($defineProperty) {
+      try {
+        $defineProperty({}, "a", { value: 1 });
+      } catch (e2) {
+        $defineProperty = null;
       }
     }
-    function manipulateAttributes(attributes) {
-      if ("attributesFn" in options && attributes) {
-        attributes = options.attributesFn(attributes, currentElement);
-      }
-      if ((options.trim || "attributeValueFn" in options || "attributeNameFn" in options || options.nativeTypeAttributes) && attributes) {
-        var key;
-        for (key in attributes) {
-          if (attributes.hasOwnProperty(key)) {
-            if (options.trim)
-              attributes[key] = attributes[key].trim();
-            if (options.nativeTypeAttributes) {
-              attributes[key] = nativeType(attributes[key]);
-            }
-            if ("attributeValueFn" in options)
-              attributes[key] = options.attributeValueFn(attributes[key], key, currentElement);
-            if ("attributeNameFn" in options) {
-              var temp = attributes[key];
-              delete attributes[key];
-              attributes[options.attributeNameFn(key, attributes[key], currentElement)] = temp;
-            }
-          }
+    module.exports = function callBind(originalFunction) {
+      var func = $reflectApply(bind, $call, arguments);
+      if ($gOPD && $defineProperty) {
+        var desc = $gOPD(func, "length");
+        if (desc.configurable) {
+          $defineProperty(
+            func,
+            "length",
+            { value: 1 + $max(0, originalFunction.length - (arguments.length - 1)) }
+          );
         }
       }
-      return attributes;
+      return func;
+    };
+    var applyBind = function applyBind2() {
+      return $reflectApply(bind, $apply, arguments);
+    };
+    if ($defineProperty) {
+      $defineProperty(module.exports, "apply", { value: applyBind });
+    } else {
+      module.exports.apply = applyBind;
     }
-    function onInstruction(instruction) {
-      var attributes = {};
-      if (instruction.body && (instruction.name.toLowerCase() === "xml" || options.instructionHasAttributes)) {
-        var attrsRegExp = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|(\w+))\s*/g;
-        var match;
-        while ((match = attrsRegExp.exec(instruction.body)) !== null) {
-          attributes[match[1]] = match[2] || match[3] || match[4];
-        }
-        attributes = manipulateAttributes(attributes);
+  }
+});
+
+// ../simple-mind-map/node_modules/call-bind/callBound.js
+var require_callBound = __commonJS({
+  "../simple-mind-map/node_modules/call-bind/callBound.js"(exports, module) {
+    "use strict";
+    var GetIntrinsic = require_get_intrinsic();
+    var callBind = require_call_bind();
+    var $indexOf2 = callBind(GetIntrinsic("String.prototype.indexOf"));
+    module.exports = function callBoundIntrinsic(name, allowMissing) {
+      var intrinsic = GetIntrinsic(name, !!allowMissing);
+      if (typeof intrinsic === "function" && $indexOf2(name, ".prototype.") > -1) {
+        return callBind(intrinsic);
       }
-      if (instruction.name.toLowerCase() === "xml") {
-        if (options.ignoreDeclaration) {
+      return intrinsic;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/is-arguments/index.js
+var require_is_arguments = __commonJS({
+  "../simple-mind-map/node_modules/is-arguments/index.js"(exports, module) {
+    "use strict";
+    var hasToStringTag = require_shams2()();
+    var callBound = require_callBound();
+    var $toString2 = callBound("Object.prototype.toString");
+    var isStandardArguments = function isArguments(value) {
+      if (hasToStringTag && value && typeof value === "object" && Symbol.toStringTag in value) {
+        return false;
+      }
+      return $toString2(value) === "[object Arguments]";
+    };
+    var isLegacyArguments = function isArguments(value) {
+      if (isStandardArguments(value)) {
+        return true;
+      }
+      return value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && $toString2(value) !== "[object Array]" && $toString2(value.callee) === "[object Function]";
+    };
+    var supportsStandardArguments = function() {
+      return isStandardArguments(arguments);
+    }();
+    isStandardArguments.isLegacyArguments = isLegacyArguments;
+    module.exports = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
+  }
+});
+
+// ../simple-mind-map/node_modules/has-property-descriptors/index.js
+var require_has_property_descriptors = __commonJS({
+  "../simple-mind-map/node_modules/has-property-descriptors/index.js"(exports, module) {
+    "use strict";
+    var GetIntrinsic = require_get_intrinsic();
+    var $defineProperty = GetIntrinsic("%Object.defineProperty%", true);
+    var hasPropertyDescriptors = function hasPropertyDescriptors2() {
+      if ($defineProperty) {
+        try {
+          $defineProperty({}, "a", { value: 1 });
+          return true;
+        } catch (e2) {
+          return false;
+        }
+      }
+      return false;
+    };
+    hasPropertyDescriptors.hasArrayLengthDefineBug = function hasArrayLengthDefineBug() {
+      if (!hasPropertyDescriptors()) {
+        return null;
+      }
+      try {
+        return $defineProperty([], "length", { value: 1 }).length !== 1;
+      } catch (e2) {
+        return true;
+      }
+    };
+    module.exports = hasPropertyDescriptors;
+  }
+});
+
+// ../simple-mind-map/node_modules/define-properties/index.js
+var require_define_properties = __commonJS({
+  "../simple-mind-map/node_modules/define-properties/index.js"(exports, module) {
+    "use strict";
+    var keys = require_object_keys2();
+    var hasSymbols = typeof Symbol === "function" && typeof Symbol("foo") === "symbol";
+    var toStr = Object.prototype.toString;
+    var concat2 = Array.prototype.concat;
+    var origDefineProperty = Object.defineProperty;
+    var isFunction = function(fn) {
+      return typeof fn === "function" && toStr.call(fn) === "[object Function]";
+    };
+    var hasPropertyDescriptors = require_has_property_descriptors()();
+    var supportsDescriptors = origDefineProperty && hasPropertyDescriptors;
+    var defineProperty = function(object, name, value, predicate) {
+      if (name in object) {
+        if (predicate === true) {
+          if (object[name] === value) {
+            return;
+          }
+        } else if (!isFunction(predicate) || !predicate()) {
           return;
         }
-        currentElement[options.declarationKey] = {};
-        if (Object.keys(attributes).length) {
-          currentElement[options.declarationKey][options.attributesKey] = attributes;
-        }
-        if (options.addParent) {
-          currentElement[options.declarationKey][options.parentKey] = currentElement;
-        }
+      }
+      if (supportsDescriptors) {
+        origDefineProperty(object, name, {
+          configurable: true,
+          enumerable: false,
+          value,
+          writable: true
+        });
       } else {
-        if (options.ignoreInstruction) {
-          return;
+        object[name] = value;
+      }
+    };
+    var defineProperties = function(object, map3) {
+      var predicates = arguments.length > 2 ? arguments[2] : {};
+      var props = keys(map3);
+      if (hasSymbols) {
+        props = concat2.call(props, Object.getOwnPropertySymbols(map3));
+      }
+      for (var i3 = 0; i3 < props.length; i3 += 1) {
+        defineProperty(object, props[i3], map3[props[i3]], predicates[props[i3]]);
+      }
+    };
+    defineProperties.supportsDescriptors = !!supportsDescriptors;
+    module.exports = defineProperties;
+  }
+});
+
+// ../simple-mind-map/node_modules/object-is/implementation.js
+var require_implementation3 = __commonJS({
+  "../simple-mind-map/node_modules/object-is/implementation.js"(exports, module) {
+    "use strict";
+    var numberIsNaN = function(value) {
+      return value !== value;
+    };
+    module.exports = function is2(a3, b2) {
+      if (a3 === 0 && b2 === 0) {
+        return 1 / a3 === 1 / b2;
+      }
+      if (a3 === b2) {
+        return true;
+      }
+      if (numberIsNaN(a3) && numberIsNaN(b2)) {
+        return true;
+      }
+      return false;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/object-is/polyfill.js
+var require_polyfill = __commonJS({
+  "../simple-mind-map/node_modules/object-is/polyfill.js"(exports, module) {
+    "use strict";
+    var implementation = require_implementation3();
+    module.exports = function getPolyfill() {
+      return typeof Object.is === "function" ? Object.is : implementation;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/object-is/shim.js
+var require_shim = __commonJS({
+  "../simple-mind-map/node_modules/object-is/shim.js"(exports, module) {
+    "use strict";
+    var getPolyfill = require_polyfill();
+    var define2 = require_define_properties();
+    module.exports = function shimObjectIs() {
+      var polyfill = getPolyfill();
+      define2(Object, { is: polyfill }, {
+        is: function testObjectIs() {
+          return Object.is !== polyfill;
         }
-        if (options.trim) {
-          instruction.body = instruction.body.trim();
-        }
-        var value = {};
-        if (options.instructionHasAttributes && Object.keys(attributes).length) {
-          value[instruction.name] = {};
-          value[instruction.name][options.attributesKey] = attributes;
-        } else {
-          value[instruction.name] = instruction.body;
-        }
-        addField("instruction", value);
+      });
+      return polyfill;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/object-is/index.js
+var require_object_is = __commonJS({
+  "../simple-mind-map/node_modules/object-is/index.js"(exports, module) {
+    "use strict";
+    var define2 = require_define_properties();
+    var callBind = require_call_bind();
+    var implementation = require_implementation3();
+    var getPolyfill = require_polyfill();
+    var shim = require_shim();
+    var polyfill = callBind(getPolyfill(), Object);
+    define2(polyfill, {
+      getPolyfill,
+      implementation,
+      shim
+    });
+    module.exports = polyfill;
+  }
+});
+
+// ../simple-mind-map/node_modules/is-regex/index.js
+var require_is_regex = __commonJS({
+  "../simple-mind-map/node_modules/is-regex/index.js"(exports, module) {
+    "use strict";
+    var callBound = require_callBound();
+    var hasToStringTag = require_shams2()();
+    var has;
+    var $exec;
+    var isRegexMarker;
+    var badStringifier;
+    if (hasToStringTag) {
+      has = callBound("Object.prototype.hasOwnProperty");
+      $exec = callBound("RegExp.prototype.exec");
+      isRegexMarker = {};
+      throwRegexMarker = function() {
+        throw isRegexMarker;
+      };
+      badStringifier = {
+        toString: throwRegexMarker,
+        valueOf: throwRegexMarker
+      };
+      if (typeof Symbol.toPrimitive === "symbol") {
+        badStringifier[Symbol.toPrimitive] = throwRegexMarker;
       }
     }
-    function onStartElement(name, attributes) {
-      var element2;
-      if (typeof name === "object") {
-        attributes = name.attributes;
-        name = name.name;
+    var throwRegexMarker;
+    var $toString2 = callBound("Object.prototype.toString");
+    var gOPD = Object.getOwnPropertyDescriptor;
+    var regexClass = "[object RegExp]";
+    module.exports = hasToStringTag ? function isRegex(value) {
+      if (!value || typeof value !== "object") {
+        return false;
       }
-      attributes = manipulateAttributes(attributes);
-      if ("elementNameFn" in options) {
-        name = options.elementNameFn(name, currentElement);
+      var descriptor = gOPD(value, "lastIndex");
+      var hasLastIndexDataProperty = descriptor && has(descriptor, "value");
+      if (!hasLastIndexDataProperty) {
+        return false;
       }
-      if (options.compact) {
-        element2 = {};
-        if (!options.ignoreAttributes && attributes && Object.keys(attributes).length) {
-          element2[options.attributesKey] = {};
-          var key;
-          for (key in attributes) {
-            if (attributes.hasOwnProperty(key)) {
-              element2[options.attributesKey][key] = attributes[key];
-            }
-          }
-        }
-        if (!(name in currentElement) && (isArray2(options.alwaysArray) ? options.alwaysArray.indexOf(name) !== -1 : options.alwaysArray)) {
-          currentElement[name] = [];
-        }
-        if (currentElement[name] && !isArray2(currentElement[name])) {
-          currentElement[name] = [currentElement[name]];
-        }
-        if (isArray2(currentElement[name])) {
-          currentElement[name].push(element2);
-        } else {
-          currentElement[name] = element2;
-        }
-      } else {
-        if (!currentElement[options.elementsKey]) {
-          currentElement[options.elementsKey] = [];
-        }
-        element2 = {};
-        element2[options.typeKey] = "element";
-        element2[options.nameKey] = name;
-        if (!options.ignoreAttributes && attributes && Object.keys(attributes).length) {
-          element2[options.attributesKey] = attributes;
-        }
-        if (options.alwaysChildren) {
-          element2[options.elementsKey] = [];
-        }
-        currentElement[options.elementsKey].push(element2);
+      try {
+        $exec(value, badStringifier);
+      } catch (e2) {
+        return e2 === isRegexMarker;
       }
-      element2[options.parentKey] = currentElement;
-      currentElement = element2;
+    } : function isRegex(value) {
+      if (!value || typeof value !== "object" && typeof value !== "function") {
+        return false;
+      }
+      return $toString2(value) === regexClass;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/functions-have-names/index.js
+var require_functions_have_names = __commonJS({
+  "../simple-mind-map/node_modules/functions-have-names/index.js"(exports, module) {
+    "use strict";
+    var functionsHaveNames = function functionsHaveNames2() {
+      return typeof function f3() {
+      }.name === "string";
+    };
+    var gOPD = Object.getOwnPropertyDescriptor;
+    if (gOPD) {
+      try {
+        gOPD([], "length");
+      } catch (e2) {
+        gOPD = null;
+      }
     }
-    function onText(text3) {
-      if (options.ignoreText) {
-        return;
+    functionsHaveNames.functionsHaveConfigurableNames = function functionsHaveConfigurableNames() {
+      if (!functionsHaveNames() || !gOPD) {
+        return false;
       }
-      if (!text3.trim() && !options.captureSpacesBetweenElements) {
-        return;
+      var desc = gOPD(function() {
+      }, "name");
+      return !!desc && !!desc.configurable;
+    };
+    var $bind = Function.prototype.bind;
+    functionsHaveNames.boundFunctionsHaveNames = function boundFunctionsHaveNames() {
+      return functionsHaveNames() && typeof $bind === "function" && function f3() {
+      }.bind().name !== "";
+    };
+    module.exports = functionsHaveNames;
+  }
+});
+
+// ../simple-mind-map/node_modules/regexp.prototype.flags/implementation.js
+var require_implementation4 = __commonJS({
+  "../simple-mind-map/node_modules/regexp.prototype.flags/implementation.js"(exports, module) {
+    "use strict";
+    var functionsHaveConfigurableNames = require_functions_have_names().functionsHaveConfigurableNames();
+    var $Object = Object;
+    var $TypeError = TypeError;
+    module.exports = function flags() {
+      if (this != null && this !== $Object(this)) {
+        throw new $TypeError("RegExp.prototype.flags getter called on non-object");
       }
-      if (options.trim) {
-        text3 = text3.trim();
+      var result = "";
+      if (this.hasIndices) {
+        result += "d";
       }
-      if (options.nativeType) {
-        text3 = nativeType(text3);
+      if (this.global) {
+        result += "g";
       }
-      if (options.sanitize) {
-        text3 = text3.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      if (this.ignoreCase) {
+        result += "i";
       }
-      addField("text", text3);
-    }
-    function onComment(comment) {
-      if (options.ignoreComment) {
-        return;
+      if (this.multiline) {
+        result += "m";
       }
-      if (options.trim) {
-        comment = comment.trim();
+      if (this.dotAll) {
+        result += "s";
       }
-      addField("comment", comment);
-    }
-    function onEndElement(name) {
-      var parentElement = currentElement[options.parentKey];
-      if (!options.addParent) {
-        delete currentElement[options.parentKey];
+      if (this.unicode) {
+        result += "u";
       }
-      currentElement = parentElement;
-    }
-    function onCdata(cdata) {
-      if (options.ignoreCdata) {
-        return;
-      }
-      if (options.trim) {
-        cdata = cdata.trim();
-      }
-      addField("cdata", cdata);
-    }
-    function onDoctype(doctype) {
-      if (options.ignoreDoctype) {
-        return;
-      }
-      doctype = doctype.replace(/^ /, "");
-      if (options.trim) {
-        doctype = doctype.trim();
-      }
-      addField("doctype", doctype);
-    }
-    function onError(error) {
-      error.note = error;
-    }
-    module.exports = function(xml, userOptions) {
-      var parser2 = pureJsParser ? sax.parser(true, {}) : parser2 = new expat.Parser("UTF-8");
-      var result = {};
-      currentElement = result;
-      options = validateOptions(userOptions);
-      if (pureJsParser) {
-        parser2.opt = { strictEntities: true };
-        parser2.onopentag = onStartElement;
-        parser2.ontext = onText;
-        parser2.oncomment = onComment;
-        parser2.onclosetag = onEndElement;
-        parser2.onerror = onError;
-        parser2.oncdata = onCdata;
-        parser2.ondoctype = onDoctype;
-        parser2.onprocessinginstruction = onInstruction;
-      } else {
-        parser2.on("startElement", onStartElement);
-        parser2.on("text", onText);
-        parser2.on("comment", onComment);
-        parser2.on("endElement", onEndElement);
-        parser2.on("error", onError);
-      }
-      if (pureJsParser) {
-        parser2.write(xml).close();
-      } else {
-        if (!parser2.parse(xml)) {
-          throw new Error("XML parsing error: " + parser2.getError());
-        }
-      }
-      if (result[options.elementsKey]) {
-        var temp = result[options.elementsKey];
-        delete result[options.elementsKey];
-        result[options.elementsKey] = temp;
-        delete result.text;
+      if (this.sticky) {
+        result += "y";
       }
       return result;
     };
+    if (functionsHaveConfigurableNames && Object.defineProperty) {
+      Object.defineProperty(module.exports, "name", { value: "get flags" });
+    }
   }
 });
 
-// ../simple-mind-map/node_modules/xml-js/lib/xml2json.js
-var require_xml2json = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/xml2json.js"(exports, module) {
-    var helper = require_options_helper();
-    var xml2js = require_xml2js();
-    function validateOptions(userOptions) {
-      var options = helper.copyOptions(userOptions);
-      helper.ensureSpacesExists(options);
-      return options;
-    }
-    module.exports = function(xml, userOptions) {
-      var options, js, json, parentKey;
-      options = validateOptions(userOptions);
-      js = xml2js(xml, options);
-      parentKey = "compact" in options && options.compact ? "_parent" : "parent";
-      if ("addParent" in options && options.addParent) {
-        json = JSON.stringify(js, function(k2, v3) {
-          return k2 === parentKey ? "_" : v3;
-        }, options.spaces);
-      } else {
-        json = JSON.stringify(js, null, options.spaces);
-      }
-      return json.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
-    };
-  }
-});
-
-// ../simple-mind-map/node_modules/xml-js/lib/js2xml.js
-var require_js2xml = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/js2xml.js"(exports, module) {
-    var helper = require_options_helper();
-    var isArray2 = require_array_helper().isArray;
-    var currentElement;
-    var currentElementName;
-    function validateOptions(userOptions) {
-      var options = helper.copyOptions(userOptions);
-      helper.ensureFlagExists("ignoreDeclaration", options);
-      helper.ensureFlagExists("ignoreInstruction", options);
-      helper.ensureFlagExists("ignoreAttributes", options);
-      helper.ensureFlagExists("ignoreText", options);
-      helper.ensureFlagExists("ignoreComment", options);
-      helper.ensureFlagExists("ignoreCdata", options);
-      helper.ensureFlagExists("ignoreDoctype", options);
-      helper.ensureFlagExists("compact", options);
-      helper.ensureFlagExists("indentText", options);
-      helper.ensureFlagExists("indentCdata", options);
-      helper.ensureFlagExists("indentAttributes", options);
-      helper.ensureFlagExists("indentInstruction", options);
-      helper.ensureFlagExists("fullTagEmptyElement", options);
-      helper.ensureFlagExists("noQuotesForNativeAttributes", options);
-      helper.ensureSpacesExists(options);
-      if (typeof options.spaces === "number") {
-        options.spaces = Array(options.spaces + 1).join(" ");
-      }
-      helper.ensureKeyExists("declaration", options);
-      helper.ensureKeyExists("instruction", options);
-      helper.ensureKeyExists("attributes", options);
-      helper.ensureKeyExists("text", options);
-      helper.ensureKeyExists("comment", options);
-      helper.ensureKeyExists("cdata", options);
-      helper.ensureKeyExists("doctype", options);
-      helper.ensureKeyExists("type", options);
-      helper.ensureKeyExists("name", options);
-      helper.ensureKeyExists("elements", options);
-      helper.checkFnExists("doctype", options);
-      helper.checkFnExists("instruction", options);
-      helper.checkFnExists("cdata", options);
-      helper.checkFnExists("comment", options);
-      helper.checkFnExists("text", options);
-      helper.checkFnExists("instructionName", options);
-      helper.checkFnExists("elementName", options);
-      helper.checkFnExists("attributeName", options);
-      helper.checkFnExists("attributeValue", options);
-      helper.checkFnExists("attributes", options);
-      helper.checkFnExists("fullTagEmptyElement", options);
-      return options;
-    }
-    function writeIndentation(options, depth, firstLine) {
-      return (!firstLine && options.spaces ? "\n" : "") + Array(depth + 1).join(options.spaces);
-    }
-    function writeAttributes(attributes, options, depth) {
-      if (options.ignoreAttributes) {
-        return "";
-      }
-      if ("attributesFn" in options) {
-        attributes = options.attributesFn(attributes, currentElementName, currentElement);
-      }
-      var key, attr2, attrName, quote, result = [];
-      for (key in attributes) {
-        if (attributes.hasOwnProperty(key) && attributes[key] !== null && attributes[key] !== void 0) {
-          quote = options.noQuotesForNativeAttributes && typeof attributes[key] !== "string" ? "" : '"';
-          attr2 = "" + attributes[key];
-          attr2 = attr2.replace(/"/g, "&quot;");
-          attrName = "attributeNameFn" in options ? options.attributeNameFn(key, attr2, currentElementName, currentElement) : key;
-          result.push(options.spaces && options.indentAttributes ? writeIndentation(options, depth + 1, false) : " ");
-          result.push(attrName + "=" + quote + ("attributeValueFn" in options ? options.attributeValueFn(attr2, key, currentElementName, currentElement) : attr2) + quote);
-        }
-      }
-      if (attributes && Object.keys(attributes).length && options.spaces && options.indentAttributes) {
-        result.push(writeIndentation(options, depth, false));
-      }
-      return result.join("");
-    }
-    function writeDeclaration(declaration, options, depth) {
-      currentElement = declaration;
-      currentElementName = "xml";
-      return options.ignoreDeclaration ? "" : "<?xml" + writeAttributes(declaration[options.attributesKey], options, depth) + "?>";
-    }
-    function writeInstruction(instruction, options, depth) {
-      if (options.ignoreInstruction) {
-        return "";
-      }
-      var key;
-      for (key in instruction) {
-        if (instruction.hasOwnProperty(key)) {
-          break;
-        }
-      }
-      var instructionName = "instructionNameFn" in options ? options.instructionNameFn(key, instruction[key], currentElementName, currentElement) : key;
-      if (typeof instruction[key] === "object") {
-        currentElement = instruction;
-        currentElementName = instructionName;
-        return "<?" + instructionName + writeAttributes(instruction[key][options.attributesKey], options, depth) + "?>";
-      } else {
-        var instructionValue = instruction[key] ? instruction[key] : "";
-        if ("instructionFn" in options)
-          instructionValue = options.instructionFn(instructionValue, key, currentElementName, currentElement);
-        return "<?" + instructionName + (instructionValue ? " " + instructionValue : "") + "?>";
-      }
-    }
-    function writeComment(comment, options) {
-      return options.ignoreComment ? "" : "<!--" + ("commentFn" in options ? options.commentFn(comment, currentElementName, currentElement) : comment) + "-->";
-    }
-    function writeCdata(cdata, options) {
-      return options.ignoreCdata ? "" : "<![CDATA[" + ("cdataFn" in options ? options.cdataFn(cdata, currentElementName, currentElement) : cdata.replace("]]>", "]]]]><![CDATA[>")) + "]]>";
-    }
-    function writeDoctype(doctype, options) {
-      return options.ignoreDoctype ? "" : "<!DOCTYPE " + ("doctypeFn" in options ? options.doctypeFn(doctype, currentElementName, currentElement) : doctype) + ">";
-    }
-    function writeText(text3, options) {
-      if (options.ignoreText)
-        return "";
-      text3 = "" + text3;
-      text3 = text3.replace(/&amp;/g, "&");
-      text3 = text3.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      return "textFn" in options ? options.textFn(text3, currentElementName, currentElement) : text3;
-    }
-    function hasContent(element2, options) {
-      var i3;
-      if (element2.elements && element2.elements.length) {
-        for (i3 = 0; i3 < element2.elements.length; ++i3) {
-          switch (element2.elements[i3][options.typeKey]) {
-            case "text":
-              if (options.indentText) {
-                return true;
-              }
-              break;
-            case "cdata":
-              if (options.indentCdata) {
-                return true;
-              }
-              break;
-            case "instruction":
-              if (options.indentInstruction) {
-                return true;
-              }
-              break;
-            case "doctype":
-            case "comment":
-            case "element":
-              return true;
-            default:
-              return true;
-          }
-        }
-      }
-      return false;
-    }
-    function writeElement(element2, options, depth) {
-      currentElement = element2;
-      currentElementName = element2.name;
-      var xml = [], elementName = "elementNameFn" in options ? options.elementNameFn(element2.name, element2) : element2.name;
-      xml.push("<" + elementName);
-      if (element2[options.attributesKey]) {
-        xml.push(writeAttributes(element2[options.attributesKey], options, depth));
-      }
-      var withClosingTag = element2[options.elementsKey] && element2[options.elementsKey].length || element2[options.attributesKey] && element2[options.attributesKey]["xml:space"] === "preserve";
-      if (!withClosingTag) {
-        if ("fullTagEmptyElementFn" in options) {
-          withClosingTag = options.fullTagEmptyElementFn(element2.name, element2);
-        } else {
-          withClosingTag = options.fullTagEmptyElement;
-        }
-      }
-      if (withClosingTag) {
-        xml.push(">");
-        if (element2[options.elementsKey] && element2[options.elementsKey].length) {
-          xml.push(writeElements(element2[options.elementsKey], options, depth + 1));
-          currentElement = element2;
-          currentElementName = element2.name;
-        }
-        xml.push(options.spaces && hasContent(element2, options) ? "\n" + Array(depth + 1).join(options.spaces) : "");
-        xml.push("</" + elementName + ">");
-      } else {
-        xml.push("/>");
-      }
-      return xml.join("");
-    }
-    function writeElements(elements3, options, depth, firstLine) {
-      return elements3.reduce(function(xml, element2) {
-        var indent = writeIndentation(options, depth, firstLine && !xml);
-        switch (element2.type) {
-          case "element":
-            return xml + indent + writeElement(element2, options, depth);
-          case "comment":
-            return xml + indent + writeComment(element2[options.commentKey], options);
-          case "doctype":
-            return xml + indent + writeDoctype(element2[options.doctypeKey], options);
-          case "cdata":
-            return xml + (options.indentCdata ? indent : "") + writeCdata(element2[options.cdataKey], options);
-          case "text":
-            return xml + (options.indentText ? indent : "") + writeText(element2[options.textKey], options);
-          case "instruction":
-            var instruction = {};
-            instruction[element2[options.nameKey]] = element2[options.attributesKey] ? element2 : element2[options.instructionKey];
-            return xml + (options.indentInstruction ? indent : "") + writeInstruction(instruction, options, depth);
-        }
-      }, "");
-    }
-    function hasContentCompact(element2, options, anyContent) {
-      var key;
-      for (key in element2) {
-        if (element2.hasOwnProperty(key)) {
-          switch (key) {
-            case options.parentKey:
-            case options.attributesKey:
-              break;
-            case options.textKey:
-              if (options.indentText || anyContent) {
-                return true;
-              }
-              break;
-            case options.cdataKey:
-              if (options.indentCdata || anyContent) {
-                return true;
-              }
-              break;
-            case options.instructionKey:
-              if (options.indentInstruction || anyContent) {
-                return true;
-              }
-              break;
-            case options.doctypeKey:
-            case options.commentKey:
-              return true;
-            default:
-              return true;
-          }
-        }
-      }
-      return false;
-    }
-    function writeElementCompact(element2, name, options, depth, indent) {
-      currentElement = element2;
-      currentElementName = name;
-      var elementName = "elementNameFn" in options ? options.elementNameFn(name, element2) : name;
-      if (typeof element2 === "undefined" || element2 === null || element2 === "") {
-        return "fullTagEmptyElementFn" in options && options.fullTagEmptyElementFn(name, element2) || options.fullTagEmptyElement ? "<" + elementName + "></" + elementName + ">" : "<" + elementName + "/>";
-      }
-      var xml = [];
-      if (name) {
-        xml.push("<" + elementName);
-        if (typeof element2 !== "object") {
-          xml.push(">" + writeText(element2, options) + "</" + elementName + ">");
-          return xml.join("");
-        }
-        if (element2[options.attributesKey]) {
-          xml.push(writeAttributes(element2[options.attributesKey], options, depth));
-        }
-        var withClosingTag = hasContentCompact(element2, options, true) || element2[options.attributesKey] && element2[options.attributesKey]["xml:space"] === "preserve";
-        if (!withClosingTag) {
-          if ("fullTagEmptyElementFn" in options) {
-            withClosingTag = options.fullTagEmptyElementFn(name, element2);
-          } else {
-            withClosingTag = options.fullTagEmptyElement;
-          }
-        }
-        if (withClosingTag) {
-          xml.push(">");
-        } else {
-          xml.push("/>");
-          return xml.join("");
-        }
-      }
-      xml.push(writeElementsCompact(element2, options, depth + 1, false));
-      currentElement = element2;
-      currentElementName = name;
-      if (name) {
-        xml.push((indent ? writeIndentation(options, depth, false) : "") + "</" + elementName + ">");
-      }
-      return xml.join("");
-    }
-    function writeElementsCompact(element2, options, depth, firstLine) {
-      var i3, key, nodes, xml = [];
-      for (key in element2) {
-        if (element2.hasOwnProperty(key)) {
-          nodes = isArray2(element2[key]) ? element2[key] : [element2[key]];
-          for (i3 = 0; i3 < nodes.length; ++i3) {
-            switch (key) {
-              case options.declarationKey:
-                xml.push(writeDeclaration(nodes[i3], options, depth));
-                break;
-              case options.instructionKey:
-                xml.push((options.indentInstruction ? writeIndentation(options, depth, firstLine) : "") + writeInstruction(nodes[i3], options, depth));
-                break;
-              case options.attributesKey:
-              case options.parentKey:
-                break;
-              case options.textKey:
-                xml.push((options.indentText ? writeIndentation(options, depth, firstLine) : "") + writeText(nodes[i3], options));
-                break;
-              case options.cdataKey:
-                xml.push((options.indentCdata ? writeIndentation(options, depth, firstLine) : "") + writeCdata(nodes[i3], options));
-                break;
-              case options.doctypeKey:
-                xml.push(writeIndentation(options, depth, firstLine) + writeDoctype(nodes[i3], options));
-                break;
-              case options.commentKey:
-                xml.push(writeIndentation(options, depth, firstLine) + writeComment(nodes[i3], options));
-                break;
-              default:
-                xml.push(writeIndentation(options, depth, firstLine) + writeElementCompact(nodes[i3], key, options, depth, hasContentCompact(nodes[i3], options)));
+// ../simple-mind-map/node_modules/regexp.prototype.flags/polyfill.js
+var require_polyfill2 = __commonJS({
+  "../simple-mind-map/node_modules/regexp.prototype.flags/polyfill.js"(exports, module) {
+    "use strict";
+    var implementation = require_implementation4();
+    var supportsDescriptors = require_define_properties().supportsDescriptors;
+    var $gOPD = Object.getOwnPropertyDescriptor;
+    module.exports = function getPolyfill() {
+      if (supportsDescriptors && /a/mig.flags === "gim") {
+        var descriptor = $gOPD(RegExp.prototype, "flags");
+        if (descriptor && typeof descriptor.get === "function" && typeof RegExp.prototype.dotAll === "boolean" && typeof RegExp.prototype.hasIndices === "boolean") {
+          var calls = "";
+          var o3 = {};
+          Object.defineProperty(o3, "hasIndices", {
+            get: function() {
+              calls += "d";
             }
-            firstLine = firstLine && !xml.length;
+          });
+          Object.defineProperty(o3, "sticky", {
+            get: function() {
+              calls += "y";
+            }
+          });
+          if (calls === "dy") {
+            return descriptor.get;
           }
         }
       }
-      return xml.join("");
+      return implementation;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/regexp.prototype.flags/shim.js
+var require_shim2 = __commonJS({
+  "../simple-mind-map/node_modules/regexp.prototype.flags/shim.js"(exports, module) {
+    "use strict";
+    var supportsDescriptors = require_define_properties().supportsDescriptors;
+    var getPolyfill = require_polyfill2();
+    var gOPD = Object.getOwnPropertyDescriptor;
+    var defineProperty = Object.defineProperty;
+    var TypeErr = TypeError;
+    var getProto = Object.getPrototypeOf;
+    var regex = /a/;
+    module.exports = function shimFlags() {
+      if (!supportsDescriptors || !getProto) {
+        throw new TypeErr("RegExp.prototype.flags requires a true ES5 environment that supports property descriptors");
+      }
+      var polyfill = getPolyfill();
+      var proto = getProto(regex);
+      var descriptor = gOPD(proto, "flags");
+      if (!descriptor || descriptor.get !== polyfill) {
+        defineProperty(proto, "flags", {
+          configurable: true,
+          enumerable: false,
+          get: polyfill
+        });
+      }
+      return polyfill;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/regexp.prototype.flags/index.js
+var require_regexp_prototype = __commonJS({
+  "../simple-mind-map/node_modules/regexp.prototype.flags/index.js"(exports, module) {
+    "use strict";
+    var define2 = require_define_properties();
+    var callBind = require_call_bind();
+    var implementation = require_implementation4();
+    var getPolyfill = require_polyfill2();
+    var shim = require_shim2();
+    var flagsBound = callBind(getPolyfill());
+    define2(flagsBound, {
+      getPolyfill,
+      implementation,
+      shim
+    });
+    module.exports = flagsBound;
+  }
+});
+
+// ../simple-mind-map/node_modules/is-date-object/index.js
+var require_is_date_object = __commonJS({
+  "../simple-mind-map/node_modules/is-date-object/index.js"(exports, module) {
+    "use strict";
+    var getDay = Date.prototype.getDay;
+    var tryDateObject = function tryDateGetDayCall(value) {
+      try {
+        getDay.call(value);
+        return true;
+      } catch (e2) {
+        return false;
+      }
+    };
+    var toStr = Object.prototype.toString;
+    var dateClass = "[object Date]";
+    var hasToStringTag = require_shams2()();
+    module.exports = function isDateObject(value) {
+      if (typeof value !== "object" || value === null) {
+        return false;
+      }
+      return hasToStringTag ? tryDateObject(value) : toStr.call(value) === dateClass;
+    };
+  }
+});
+
+// ../simple-mind-map/node_modules/deep-equal/index.js
+var require_deep_equal = __commonJS({
+  "../simple-mind-map/node_modules/deep-equal/index.js"(exports, module) {
+    var objectKeys = require_object_keys2();
+    var isArguments = require_is_arguments();
+    var is2 = require_object_is();
+    var isRegex = require_is_regex();
+    var flags = require_regexp_prototype();
+    var isDate = require_is_date_object();
+    var getTime = Date.prototype.getTime;
+    function deepEqual(actual, expected, options) {
+      var opts = options || {};
+      if (opts.strict ? is2(actual, expected) : actual === expected) {
+        return true;
+      }
+      if (!actual || !expected || typeof actual !== "object" && typeof expected !== "object") {
+        return opts.strict ? is2(actual, expected) : actual == expected;
+      }
+      return objEquiv(actual, expected, opts);
     }
-    module.exports = function(js, options) {
-      options = validateOptions(options);
-      var xml = [];
-      currentElement = js;
-      currentElementName = "_root_";
-      if (options.compact) {
-        xml.push(writeElementsCompact(js, options, 0, true));
-      } else {
-        if (js[options.declarationKey]) {
-          xml.push(writeDeclaration(js[options.declarationKey], options, 0));
+    function isUndefinedOrNull(value) {
+      return value === null || value === void 0;
+    }
+    function isBuffer(x3) {
+      if (!x3 || typeof x3 !== "object" || typeof x3.length !== "number") {
+        return false;
+      }
+      if (typeof x3.copy !== "function" || typeof x3.slice !== "function") {
+        return false;
+      }
+      if (x3.length > 0 && typeof x3[0] !== "number") {
+        return false;
+      }
+      return true;
+    }
+    function objEquiv(a3, b2, opts) {
+      var i3, key;
+      if (typeof a3 !== typeof b2) {
+        return false;
+      }
+      if (isUndefinedOrNull(a3) || isUndefinedOrNull(b2)) {
+        return false;
+      }
+      if (a3.prototype !== b2.prototype) {
+        return false;
+      }
+      if (isArguments(a3) !== isArguments(b2)) {
+        return false;
+      }
+      var aIsRegex = isRegex(a3);
+      var bIsRegex = isRegex(b2);
+      if (aIsRegex !== bIsRegex) {
+        return false;
+      }
+      if (aIsRegex || bIsRegex) {
+        return a3.source === b2.source && flags(a3) === flags(b2);
+      }
+      if (isDate(a3) && isDate(b2)) {
+        return getTime.call(a3) === getTime.call(b2);
+      }
+      var aIsBuffer = isBuffer(a3);
+      var bIsBuffer = isBuffer(b2);
+      if (aIsBuffer !== bIsBuffer) {
+        return false;
+      }
+      if (aIsBuffer || bIsBuffer) {
+        if (a3.length !== b2.length) {
+          return false;
         }
-        if (js[options.elementsKey] && js[options.elementsKey].length) {
-          xml.push(writeElements(js[options.elementsKey], options, 0, !xml.length));
+        for (i3 = 0; i3 < a3.length; i3++) {
+          if (a3[i3] !== b2[i3]) {
+            return false;
+          }
+        }
+        return true;
+      }
+      if (typeof a3 !== typeof b2) {
+        return false;
+      }
+      try {
+        var ka = objectKeys(a3);
+        var kb = objectKeys(b2);
+      } catch (e2) {
+        return false;
+      }
+      if (ka.length !== kb.length) {
+        return false;
+      }
+      ka.sort();
+      kb.sort();
+      for (i3 = ka.length - 1; i3 >= 0; i3--) {
+        if (ka[i3] != kb[i3]) {
+          return false;
         }
       }
-      return xml.join("");
+      for (i3 = ka.length - 1; i3 >= 0; i3--) {
+        key = ka[i3];
+        if (!deepEqual(a3[key], b2[key], opts)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    module.exports = deepEqual;
+  }
+});
+
+// ../simple-mind-map/node_modules/extend/index.js
+var require_extend = __commonJS({
+  "../simple-mind-map/node_modules/extend/index.js"(exports, module) {
+    "use strict";
+    var hasOwn = Object.prototype.hasOwnProperty;
+    var toStr = Object.prototype.toString;
+    var defineProperty = Object.defineProperty;
+    var gOPD = Object.getOwnPropertyDescriptor;
+    var isArray2 = function isArray3(arr) {
+      if (typeof Array.isArray === "function") {
+        return Array.isArray(arr);
+      }
+      return toStr.call(arr) === "[object Array]";
+    };
+    var isPlainObject = function isPlainObject2(obj) {
+      if (!obj || toStr.call(obj) !== "[object Object]") {
+        return false;
+      }
+      var hasOwnConstructor = hasOwn.call(obj, "constructor");
+      var hasIsPrototypeOf = obj.constructor && obj.constructor.prototype && hasOwn.call(obj.constructor.prototype, "isPrototypeOf");
+      if (obj.constructor && !hasOwnConstructor && !hasIsPrototypeOf) {
+        return false;
+      }
+      var key;
+      for (key in obj) {
+      }
+      return typeof key === "undefined" || hasOwn.call(obj, key);
+    };
+    var setProperty = function setProperty2(target, options) {
+      if (defineProperty && options.name === "__proto__") {
+        defineProperty(target, options.name, {
+          enumerable: true,
+          configurable: true,
+          value: options.newValue,
+          writable: true
+        });
+      } else {
+        target[options.name] = options.newValue;
+      }
+    };
+    var getProperty = function getProperty2(obj, name) {
+      if (name === "__proto__") {
+        if (!hasOwn.call(obj, name)) {
+          return void 0;
+        } else if (gOPD) {
+          return gOPD(obj, name).value;
+        }
+      }
+      return obj[name];
+    };
+    module.exports = function extend2() {
+      var options, name, src, copy, copyIsArray, clone;
+      var target = arguments[0];
+      var i3 = 1;
+      var length2 = arguments.length;
+      var deep = false;
+      if (typeof target === "boolean") {
+        deep = target;
+        target = arguments[1] || {};
+        i3 = 2;
+      }
+      if (target == null || typeof target !== "object" && typeof target !== "function") {
+        target = {};
+      }
+      for (; i3 < length2; ++i3) {
+        options = arguments[i3];
+        if (options != null) {
+          for (name in options) {
+            src = getProperty(target, name);
+            copy = getProperty(options, name);
+            if (target !== copy) {
+              if (deep && copy && (isPlainObject(copy) || (copyIsArray = isArray2(copy)))) {
+                if (copyIsArray) {
+                  copyIsArray = false;
+                  clone = src && isArray2(src) ? src : [];
+                } else {
+                  clone = src && isPlainObject(src) ? src : {};
+                }
+                setProperty(target, { name, newValue: extend2(deep, clone, copy) });
+              } else if (typeof copy !== "undefined") {
+                setProperty(target, { name, newValue: copy });
+              }
+            }
+          }
+        }
+      }
+      return target;
     };
   }
 });
 
-// ../simple-mind-map/node_modules/xml-js/lib/json2xml.js
-var require_json2xml = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/json2xml.js"(exports, module) {
-    var js2xml = require_js2xml();
-    module.exports = function(json, options) {
-      if (json instanceof Buffer) {
-        json = json.toString();
+// ../simple-mind-map/node_modules/quill-delta/lib/op.js
+var require_op = __commonJS({
+  "../simple-mind-map/node_modules/quill-delta/lib/op.js"(exports, module) {
+    var equal = require_deep_equal();
+    var extend2 = require_extend();
+    var lib = {
+      attributes: {
+        compose: function(a3, b2, keepNull) {
+          if (typeof a3 !== "object")
+            a3 = {};
+          if (typeof b2 !== "object")
+            b2 = {};
+          var attributes = extend2(true, {}, b2);
+          if (!keepNull) {
+            attributes = Object.keys(attributes).reduce(function(copy, key2) {
+              if (attributes[key2] != null) {
+                copy[key2] = attributes[key2];
+              }
+              return copy;
+            }, {});
+          }
+          for (var key in a3) {
+            if (a3[key] !== void 0 && b2[key] === void 0) {
+              attributes[key] = a3[key];
+            }
+          }
+          return Object.keys(attributes).length > 0 ? attributes : void 0;
+        },
+        diff: function(a3, b2) {
+          if (typeof a3 !== "object")
+            a3 = {};
+          if (typeof b2 !== "object")
+            b2 = {};
+          var attributes = Object.keys(a3).concat(Object.keys(b2)).reduce(function(attributes2, key) {
+            if (!equal(a3[key], b2[key])) {
+              attributes2[key] = b2[key] === void 0 ? null : b2[key];
+            }
+            return attributes2;
+          }, {});
+          return Object.keys(attributes).length > 0 ? attributes : void 0;
+        },
+        transform: function(a3, b2, priority) {
+          if (typeof a3 !== "object")
+            return b2;
+          if (typeof b2 !== "object")
+            return void 0;
+          if (!priority)
+            return b2;
+          var attributes = Object.keys(b2).reduce(function(attributes2, key) {
+            if (a3[key] === void 0)
+              attributes2[key] = b2[key];
+            return attributes2;
+          }, {});
+          return Object.keys(attributes).length > 0 ? attributes : void 0;
+        }
+      },
+      iterator: function(ops) {
+        return new Iterator(ops);
+      },
+      length: function(op) {
+        if (typeof op["delete"] === "number") {
+          return op["delete"];
+        } else if (typeof op.retain === "number") {
+          return op.retain;
+        } else {
+          return typeof op.insert === "string" ? op.insert.length : 1;
+        }
       }
-      var js = null;
-      if (typeof json === "string") {
-        try {
-          js = JSON.parse(json);
-        } catch (e2) {
-          throw new Error("The JSON structure is invalid");
+    };
+    function Iterator(ops) {
+      this.ops = ops;
+      this.index = 0;
+      this.offset = 0;
+    }
+    Iterator.prototype.hasNext = function() {
+      return this.peekLength() < Infinity;
+    };
+    Iterator.prototype.next = function(length2) {
+      if (!length2)
+        length2 = Infinity;
+      var nextOp = this.ops[this.index];
+      if (nextOp) {
+        var offset = this.offset;
+        var opLength = lib.length(nextOp);
+        if (length2 >= opLength - offset) {
+          length2 = opLength - offset;
+          this.index += 1;
+          this.offset = 0;
+        } else {
+          this.offset += length2;
+        }
+        if (typeof nextOp["delete"] === "number") {
+          return { "delete": length2 };
+        } else {
+          var retOp = {};
+          if (nextOp.attributes) {
+            retOp.attributes = nextOp.attributes;
+          }
+          if (typeof nextOp.retain === "number") {
+            retOp.retain = length2;
+          } else if (typeof nextOp.insert === "string") {
+            retOp.insert = nextOp.insert.substr(offset, length2);
+          } else {
+            retOp.insert = nextOp.insert;
+          }
+          return retOp;
         }
       } else {
-        js = json;
+        return { retain: Infinity };
       }
-      return js2xml(js, options);
     };
+    Iterator.prototype.peek = function() {
+      return this.ops[this.index];
+    };
+    Iterator.prototype.peekLength = function() {
+      if (this.ops[this.index]) {
+        return lib.length(this.ops[this.index]) - this.offset;
+      } else {
+        return Infinity;
+      }
+    };
+    Iterator.prototype.peekType = function() {
+      if (this.ops[this.index]) {
+        if (typeof this.ops[this.index]["delete"] === "number") {
+          return "delete";
+        } else if (typeof this.ops[this.index].retain === "number") {
+          return "retain";
+        } else {
+          return "insert";
+        }
+      }
+      return "retain";
+    };
+    Iterator.prototype.rest = function() {
+      if (!this.hasNext()) {
+        return [];
+      } else if (this.offset === 0) {
+        return this.ops.slice(this.index);
+      } else {
+        var offset = this.offset;
+        var index3 = this.index;
+        var next2 = this.next();
+        var rest = this.ops.slice(this.index);
+        this.offset = offset;
+        this.index = index3;
+        return [next2].concat(rest);
+      }
+    };
+    module.exports = lib;
   }
 });
 
-// ../simple-mind-map/node_modules/xml-js/lib/index.js
-var require_lib = __commonJS({
-  "../simple-mind-map/node_modules/xml-js/lib/index.js"(exports, module) {
-    var xml2js = require_xml2js();
-    var xml2json = require_xml2json();
-    var js2xml = require_js2xml();
-    var json2xml = require_json2xml();
-    module.exports = {
-      xml2js,
-      xml2json,
-      js2xml,
-      json2xml
+// ../simple-mind-map/node_modules/quill-delta/lib/delta.js
+var require_delta = __commonJS({
+  "../simple-mind-map/node_modules/quill-delta/lib/delta.js"(exports, module) {
+    var diff = require_diff();
+    var equal = require_deep_equal();
+    var extend2 = require_extend();
+    var op = require_op();
+    var NULL_CHARACTER = String.fromCharCode(0);
+    var Delta2 = function(ops) {
+      if (Array.isArray(ops)) {
+        this.ops = ops;
+      } else if (ops != null && Array.isArray(ops.ops)) {
+        this.ops = ops.ops;
+      } else {
+        this.ops = [];
+      }
     };
+    Delta2.prototype.insert = function(text3, attributes) {
+      var newOp = {};
+      if (text3.length === 0)
+        return this;
+      newOp.insert = text3;
+      if (attributes != null && typeof attributes === "object" && Object.keys(attributes).length > 0) {
+        newOp.attributes = attributes;
+      }
+      return this.push(newOp);
+    };
+    Delta2.prototype["delete"] = function(length2) {
+      if (length2 <= 0)
+        return this;
+      return this.push({ "delete": length2 });
+    };
+    Delta2.prototype.retain = function(length2, attributes) {
+      if (length2 <= 0)
+        return this;
+      var newOp = { retain: length2 };
+      if (attributes != null && typeof attributes === "object" && Object.keys(attributes).length > 0) {
+        newOp.attributes = attributes;
+      }
+      return this.push(newOp);
+    };
+    Delta2.prototype.push = function(newOp) {
+      var index3 = this.ops.length;
+      var lastOp = this.ops[index3 - 1];
+      newOp = extend2(true, {}, newOp);
+      if (typeof lastOp === "object") {
+        if (typeof newOp["delete"] === "number" && typeof lastOp["delete"] === "number") {
+          this.ops[index3 - 1] = { "delete": lastOp["delete"] + newOp["delete"] };
+          return this;
+        }
+        if (typeof lastOp["delete"] === "number" && newOp.insert != null) {
+          index3 -= 1;
+          lastOp = this.ops[index3 - 1];
+          if (typeof lastOp !== "object") {
+            this.ops.unshift(newOp);
+            return this;
+          }
+        }
+        if (equal(newOp.attributes, lastOp.attributes)) {
+          if (typeof newOp.insert === "string" && typeof lastOp.insert === "string") {
+            this.ops[index3 - 1] = { insert: lastOp.insert + newOp.insert };
+            if (typeof newOp.attributes === "object")
+              this.ops[index3 - 1].attributes = newOp.attributes;
+            return this;
+          } else if (typeof newOp.retain === "number" && typeof lastOp.retain === "number") {
+            this.ops[index3 - 1] = { retain: lastOp.retain + newOp.retain };
+            if (typeof newOp.attributes === "object")
+              this.ops[index3 - 1].attributes = newOp.attributes;
+            return this;
+          }
+        }
+      }
+      if (index3 === this.ops.length) {
+        this.ops.push(newOp);
+      } else {
+        this.ops.splice(index3, 0, newOp);
+      }
+      return this;
+    };
+    Delta2.prototype.chop = function() {
+      var lastOp = this.ops[this.ops.length - 1];
+      if (lastOp && lastOp.retain && !lastOp.attributes) {
+        this.ops.pop();
+      }
+      return this;
+    };
+    Delta2.prototype.filter = function(predicate) {
+      return this.ops.filter(predicate);
+    };
+    Delta2.prototype.forEach = function(predicate) {
+      this.ops.forEach(predicate);
+    };
+    Delta2.prototype.map = function(predicate) {
+      return this.ops.map(predicate);
+    };
+    Delta2.prototype.partition = function(predicate) {
+      var passed = [], failed = [];
+      this.forEach(function(op2) {
+        var target = predicate(op2) ? passed : failed;
+        target.push(op2);
+      });
+      return [passed, failed];
+    };
+    Delta2.prototype.reduce = function(predicate, initial) {
+      return this.ops.reduce(predicate, initial);
+    };
+    Delta2.prototype.changeLength = function() {
+      return this.reduce(function(length2, elem) {
+        if (elem.insert) {
+          return length2 + op.length(elem);
+        } else if (elem.delete) {
+          return length2 - elem.delete;
+        }
+        return length2;
+      }, 0);
+    };
+    Delta2.prototype.length = function() {
+      return this.reduce(function(length2, elem) {
+        return length2 + op.length(elem);
+      }, 0);
+    };
+    Delta2.prototype.slice = function(start, end) {
+      start = start || 0;
+      if (typeof end !== "number")
+        end = Infinity;
+      var ops = [];
+      var iter = op.iterator(this.ops);
+      var index3 = 0;
+      while (index3 < end && iter.hasNext()) {
+        var nextOp;
+        if (index3 < start) {
+          nextOp = iter.next(start - index3);
+        } else {
+          nextOp = iter.next(end - index3);
+          ops.push(nextOp);
+        }
+        index3 += op.length(nextOp);
+      }
+      return new Delta2(ops);
+    };
+    Delta2.prototype.compose = function(other) {
+      var thisIter = op.iterator(this.ops);
+      var otherIter = op.iterator(other.ops);
+      var ops = [];
+      var firstOther = otherIter.peek();
+      if (firstOther != null && typeof firstOther.retain === "number" && firstOther.attributes == null) {
+        var firstLeft = firstOther.retain;
+        while (thisIter.peekType() === "insert" && thisIter.peekLength() <= firstLeft) {
+          firstLeft -= thisIter.peekLength();
+          ops.push(thisIter.next());
+        }
+        if (firstOther.retain - firstLeft > 0) {
+          otherIter.next(firstOther.retain - firstLeft);
+        }
+      }
+      var delta = new Delta2(ops);
+      while (thisIter.hasNext() || otherIter.hasNext()) {
+        if (otherIter.peekType() === "insert") {
+          delta.push(otherIter.next());
+        } else if (thisIter.peekType() === "delete") {
+          delta.push(thisIter.next());
+        } else {
+          var length2 = Math.min(thisIter.peekLength(), otherIter.peekLength());
+          var thisOp = thisIter.next(length2);
+          var otherOp = otherIter.next(length2);
+          if (typeof otherOp.retain === "number") {
+            var newOp = {};
+            if (typeof thisOp.retain === "number") {
+              newOp.retain = length2;
+            } else {
+              newOp.insert = thisOp.insert;
+            }
+            var attributes = op.attributes.compose(thisOp.attributes, otherOp.attributes, typeof thisOp.retain === "number");
+            if (attributes)
+              newOp.attributes = attributes;
+            delta.push(newOp);
+            if (!otherIter.hasNext() && equal(delta.ops[delta.ops.length - 1], newOp)) {
+              var rest = new Delta2(thisIter.rest());
+              return delta.concat(rest).chop();
+            }
+          } else if (typeof otherOp["delete"] === "number" && typeof thisOp.retain === "number") {
+            delta.push(otherOp);
+          }
+        }
+      }
+      return delta.chop();
+    };
+    Delta2.prototype.concat = function(other) {
+      var delta = new Delta2(this.ops.slice());
+      if (other.ops.length > 0) {
+        delta.push(other.ops[0]);
+        delta.ops = delta.ops.concat(other.ops.slice(1));
+      }
+      return delta;
+    };
+    Delta2.prototype.diff = function(other, index3) {
+      if (this.ops === other.ops) {
+        return new Delta2();
+      }
+      var strings = [this, other].map(function(delta2) {
+        return delta2.map(function(op2) {
+          if (op2.insert != null) {
+            return typeof op2.insert === "string" ? op2.insert : NULL_CHARACTER;
+          }
+          var prep = delta2 === other ? "on" : "with";
+          throw new Error("diff() called " + prep + " non-document");
+        }).join("");
+      });
+      var delta = new Delta2();
+      var diffResult = diff(strings[0], strings[1], index3);
+      var thisIter = op.iterator(this.ops);
+      var otherIter = op.iterator(other.ops);
+      diffResult.forEach(function(component) {
+        var length2 = component[1].length;
+        while (length2 > 0) {
+          var opLength = 0;
+          switch (component[0]) {
+            case diff.INSERT:
+              opLength = Math.min(otherIter.peekLength(), length2);
+              delta.push(otherIter.next(opLength));
+              break;
+            case diff.DELETE:
+              opLength = Math.min(length2, thisIter.peekLength());
+              thisIter.next(opLength);
+              delta["delete"](opLength);
+              break;
+            case diff.EQUAL:
+              opLength = Math.min(thisIter.peekLength(), otherIter.peekLength(), length2);
+              var thisOp = thisIter.next(opLength);
+              var otherOp = otherIter.next(opLength);
+              if (equal(thisOp.insert, otherOp.insert)) {
+                delta.retain(opLength, op.attributes.diff(thisOp.attributes, otherOp.attributes));
+              } else {
+                delta.push(otherOp)["delete"](opLength);
+              }
+              break;
+          }
+          length2 -= opLength;
+        }
+      });
+      return delta.chop();
+    };
+    Delta2.prototype.eachLine = function(predicate, newline) {
+      newline = newline || "\n";
+      var iter = op.iterator(this.ops);
+      var line = new Delta2();
+      var i3 = 0;
+      while (iter.hasNext()) {
+        if (iter.peekType() !== "insert")
+          return;
+        var thisOp = iter.peek();
+        var start = op.length(thisOp) - iter.peekLength();
+        var index3 = typeof thisOp.insert === "string" ? thisOp.insert.indexOf(newline, start) - start : -1;
+        if (index3 < 0) {
+          line.push(iter.next());
+        } else if (index3 > 0) {
+          line.push(iter.next(index3));
+        } else {
+          if (predicate(line, iter.next(1).attributes || {}, i3) === false) {
+            return;
+          }
+          i3 += 1;
+          line = new Delta2();
+        }
+      }
+      if (line.length() > 0) {
+        predicate(line, {}, i3);
+      }
+    };
+    Delta2.prototype.transform = function(other, priority) {
+      priority = !!priority;
+      if (typeof other === "number") {
+        return this.transformPosition(other, priority);
+      }
+      var thisIter = op.iterator(this.ops);
+      var otherIter = op.iterator(other.ops);
+      var delta = new Delta2();
+      while (thisIter.hasNext() || otherIter.hasNext()) {
+        if (thisIter.peekType() === "insert" && (priority || otherIter.peekType() !== "insert")) {
+          delta.retain(op.length(thisIter.next()));
+        } else if (otherIter.peekType() === "insert") {
+          delta.push(otherIter.next());
+        } else {
+          var length2 = Math.min(thisIter.peekLength(), otherIter.peekLength());
+          var thisOp = thisIter.next(length2);
+          var otherOp = otherIter.next(length2);
+          if (thisOp["delete"]) {
+            continue;
+          } else if (otherOp["delete"]) {
+            delta.push(otherOp);
+          } else {
+            delta.retain(length2, op.attributes.transform(thisOp.attributes, otherOp.attributes, priority));
+          }
+        }
+      }
+      return delta.chop();
+    };
+    Delta2.prototype.transformPosition = function(index3, priority) {
+      priority = !!priority;
+      var thisIter = op.iterator(this.ops);
+      var offset = 0;
+      while (thisIter.hasNext() && offset <= index3) {
+        var length2 = thisIter.peekLength();
+        var nextType = thisIter.peekType();
+        thisIter.next();
+        if (nextType === "delete") {
+          index3 -= Math.min(length2, index3 - offset);
+          continue;
+        } else if (nextType === "insert" && (offset < index3 || !priority)) {
+          index3 += length2;
+        }
+        offset += length2;
+      }
+      return index3;
+    };
+    module.exports = Delta2;
   }
 });
 
@@ -36626,6 +38888,10 @@ var require_lib = __commonJS({
 var constant_exports = {};
 __export(constant_exports, {
   CONSTANTS: () => CONSTANTS,
+  ERROR_TYPES: () => ERROR_TYPES,
+  a4Size: () => a4Size,
+  commonCaches: () => commonCaches,
+  cssContent: () => cssContent,
   initRootNodePositionMap: () => initRootNodePositionMap,
   layoutList: () => layoutList,
   layoutValueList: () => layoutValueList,
@@ -36769,7 +39035,7 @@ var themeList = [
   {
     name: "\u7B80\u7EA6\u9ED1",
     value: "simpleBlack",
-    dark: true
+    dark: false
   },
   {
     name: "\u8BFE\u7A0B\u7EFF",
@@ -36948,8 +39214,46 @@ var nodeDataNoStylePropList = [
   "richText",
   "resetRichText",
   "uid",
-  "activeStyle"
+  "activeStyle",
+  "associativeLineTargets",
+  "associativeLineTargetControlOffsets",
+  "associativeLinePoint",
+  "associativeLineText"
 ];
+var commonCaches = {
+  measureCustomNodeContentSizeEl: null,
+  measureRichtextNodeTextSizeEl: null
+};
+var ERROR_TYPES = {
+  READ_CLIPBOARD_ERROR: "read_clipboard_error",
+  PARSE_PASTE_DATA_ERROR: "parse_paste_data_error",
+  CUSTOM_HANDLE_CLIPBOARD_TEXT_ERROR: "custom_handle_clipboard_text_error",
+  LOAD_CLIPBOARD_IMAGE_ERROR: "load_clipboard_image_error",
+  BEFORE_TEXT_EDIT_ERROR: "before_text_edit_error",
+  EXPORT_ERROR: "export_error"
+};
+var a4Size = {
+  width: 592.28,
+  height: 841.89
+};
+var cssContent = `
+  /* \u9F20\u6807hover\u548C\u6FC0\u6D3B\u65F6\u6E32\u67D3\u7684\u77E9\u5F62 */
+  .smm-hover-node{
+    display: none;
+    opacity: 0.6;
+    stroke-width: 1;
+  }
+
+  .smm-node:hover .smm-hover-node{
+    display: block;
+  }
+
+  .smm-node.active .smm-hover-node{
+    display: block;
+    opacity: 1;
+    stroke-width: 2;
+  }
+`;
 
 // ../simple-mind-map/src/core/view/View.js
 var View = class {
@@ -36981,6 +39285,8 @@ var View = class {
       this.fit();
     });
     this.mindMap.svg.on("dblclick", () => {
+      if (!this.mindMap.opt.enableDblclickReset)
+        return;
       this.reset();
     });
     this.mindMap.event.on("mousedown", () => {
@@ -37010,14 +39316,18 @@ var View = class {
         mousewheelAction,
         mouseScaleCenterUseMousePosition,
         mousewheelMoveStep,
-        mousewheelZoomActionReverse
+        mousewheelZoomActionReverse,
+        disableMouseWheelZoom
       } = this.mindMap.opt;
       if (customHandleMousewheel && typeof customHandleMousewheel === "function") {
         return customHandleMousewheel(e2);
       }
       if (mousewheelAction === CONSTANTS.MOUSE_WHEEL_ACTION.ZOOM) {
-        let cx2 = mouseScaleCenterUseMousePosition ? e2.clientX : void 0;
-        let cy2 = mouseScaleCenterUseMousePosition ? e2.clientY : void 0;
+        if (disableMouseWheelZoom)
+          return;
+        const { x: clientX, y: clientY } = this.mindMap.toPos(e2.clientX, e2.clientY);
+        let cx2 = mouseScaleCenterUseMousePosition ? clientX : void 0;
+        let cy2 = mouseScaleCenterUseMousePosition ? clientY : void 0;
         switch (dir) {
           case CONSTANTS.DIR.UP:
           case CONSTANTS.DIR.LEFT:
@@ -37078,27 +39388,37 @@ var View = class {
   }
   //  平移x,y方向
   translateXY(x3, y4) {
+    if (x3 === 0 && y4 === 0)
+      return;
     this.x += x3;
     this.y += y4;
     this.transform();
   }
   //  平移x方向
   translateX(step) {
+    if (step === 0)
+      return;
     this.x += step;
     this.transform();
   }
   //  平移x方式到
   translateXTo(x3) {
+    if (x3 === 0)
+      return;
     this.x = x3;
     this.transform();
   }
   //  平移y方向
   translateY(step) {
+    if (step === 0)
+      return;
     this.y += step;
     this.transform();
   }
   //  平移y方向到
   translateYTo(y4) {
+    if (y4 === 0)
+      return;
     this.y = y4;
     this.transform();
   }
@@ -37223,6 +39543,7 @@ var Event2 = class extends import_eventemitter3.default {
     this.mindMap = opt.mindMap;
     this.isLeftMousedown = false;
     this.isRightMousedown = false;
+    this.isMiddleMousedown = false;
     this.mousedownPos = {
       x: 0,
       y: 0
@@ -37297,6 +39618,8 @@ var Event2 = class extends import_eventemitter3.default {
       this.isLeftMousedown = true;
     } else if (e2.which === 3) {
       this.isRightMousedown = true;
+    } else if (e2.which === 2) {
+      this.isMiddleMousedown = true;
     }
     this.mousedownPos.x = e2.clientX;
     this.mousedownPos.y = e2.clientY;
@@ -37310,7 +39633,7 @@ var Event2 = class extends import_eventemitter3.default {
     this.mousemoveOffset.x = e2.clientX - this.mousedownPos.x;
     this.mousemoveOffset.y = e2.clientY - this.mousedownPos.y;
     this.emit("mousemove", e2, this);
-    if (useLeftKeySelectionRightKeyDrag ? this.isRightMousedown : this.isLeftMousedown) {
+    if (this.isMiddleMousedown || (useLeftKeySelectionRightKeyDrag ? this.isRightMousedown : this.isLeftMousedown)) {
       e2.preventDefault();
       this.emit("drag", e2, this);
     }
@@ -37319,6 +39642,7 @@ var Event2 = class extends import_eventemitter3.default {
   onMouseup(e2) {
     this.isLeftMousedown = false;
     this.isRightMousedown = false;
+    this.isMiddleMousedown = false;
     this.emit("mouseup", e2, this);
   }
   //  鼠标滚动
@@ -37376,7 +39700,13 @@ var import_deepmerge = __toESM(require_cjs());
 
 // ../simple-mind-map/src/core/render/node/Style.js
 var rootProp = ["paddingX", "paddingY"];
-var backgroundStyleProps = ["backgroundColor", "backgroundImage", "backgroundRepeat", "backgroundPosition", "backgroundSize"];
+var backgroundStyleProps = [
+  "backgroundColor",
+  "backgroundImage",
+  "backgroundRepeat",
+  "backgroundPosition",
+  "backgroundSize"
+];
 var Style = class {
   //   设置背景样式
   static setBackgroundStyle(el2, themeConfig) {
@@ -37387,9 +39717,15 @@ var Style = class {
         Style.cacheStyle[prop] = style[prop];
       });
     }
-    let { backgroundColor, backgroundImage, backgroundRepeat, backgroundPosition, backgroundSize } = themeConfig;
+    let {
+      backgroundColor,
+      backgroundImage,
+      backgroundRepeat,
+      backgroundPosition,
+      backgroundSize
+    } = themeConfig;
     el2.style.backgroundColor = backgroundColor;
-    if (backgroundImage) {
+    if (backgroundImage && backgroundImage !== "none") {
       el2.style.backgroundImage = `url(${backgroundImage})`;
       el2.style.backgroundRepeat = backgroundRepeat;
       el2.style.backgroundPosition = backgroundPosition;
@@ -37412,7 +39748,7 @@ var Style = class {
     this.ctx = ctx;
   }
   //  合并样式
-  merge(prop, root2, isActive) {
+  merge(prop, root2) {
     let themeConfig = this.ctx.mindMap.themeConfig;
     let defaultConfig = themeConfig.node;
     if (root2 || rootProp.includes(prop)) {
@@ -37424,18 +39760,11 @@ var Style = class {
     } else if (this.ctx.layerIndex === 1) {
       defaultConfig = themeConfig.second;
     }
-    if (isActive !== void 0 ? isActive : this.ctx.nodeData.data.isActive) {
-      if (this.ctx.nodeData.data.activeStyle && this.ctx.nodeData.data.activeStyle[prop] !== void 0) {
-        return this.ctx.nodeData.data.activeStyle[prop];
-      } else if (defaultConfig.active && defaultConfig.active[prop]) {
-        return defaultConfig.active[prop];
-      }
-    }
     return this.getSelfStyle(prop) !== void 0 ? this.getSelfStyle(prop) : defaultConfig[prop];
   }
   //  获取某个样式值
-  getStyle(prop, root2, isActive) {
-    return this.merge(prop, root2, isActive);
+  getStyle(prop, root2) {
+    return this.merge(prop, root2);
   }
   //  获取自身自定义样式
   getSelfStyle(prop) {
@@ -37530,13 +39859,19 @@ var Style = class {
   }
   //  展开收起按钮
   iconBtn(node3, node22, fillNode) {
-    let { color, fill } = this.ctx.mindMap.opt.expandBtnStyle || {
+    let { color, fill, fontSize, fontColor } = this.ctx.mindMap.opt.expandBtnStyle || {
       color: "#808080",
-      fill: "#fff"
+      fill: "#fff",
+      fontSize: 12,
+      strokeColor: "#333333",
+      fontColor: "#333333"
     };
     node3.fill({ color });
     node22.fill({ color });
     fillNode.fill({ color: fill });
+    if (this.ctx.mindMap.opt.isShowExpandNum) {
+      node3.attr({ "font-size": fontSize, "font-color": fontColor });
+    }
   }
   // 是否设置了自定义的样式
   hasCustomStyle() {
@@ -37547,6 +39882,13 @@ var Style = class {
       }
     });
     return res;
+  }
+  // hover和激活节点
+  hoverNode(node3) {
+    const { hoverRectColor } = this.ctx.mindMap.opt;
+    node3.radius(5).fill("none").stroke({
+      color: hoverRectColor
+    });
   }
 };
 Style.cacheStyle = null;
@@ -41347,14 +43689,14 @@ var Queue = class {
     item.next = null;
   }
   shift() {
-    const remove = this._first;
-    if (!remove)
+    const remove2 = this._first;
+    if (!remove2)
       return null;
-    this._first = remove.next;
+    this._first = remove2.next;
     if (this._first)
       this._first.prev = null;
     this._last = this._first ? this._last : null;
-    return remove.value;
+    return remove2.value;
   }
 };
 var Animator = {
@@ -43193,10 +45535,9 @@ var Shape2 = class {
   //  创建形状节点
   createShape() {
     const shape = this.node.getShape();
-    let { width: width2, height: height2 } = this.node;
     let node3 = null;
     if (shape === CONSTANTS.SHAPE.RECTANGLE) {
-      node3 = new Rect().size(width2, height2);
+      node3 = this.createRect();
     } else if (shape === CONSTANTS.SHAPE.DIAMOND) {
       node3 = this.createDiamond();
     } else if (shape === CONSTANTS.SHAPE.PARALLELOGRAM) {
@@ -43216,9 +45557,37 @@ var Shape2 = class {
     }
     return node3;
   }
+  // 获取节点减去节点边框宽度、hover节点边框宽度后的尺寸
+  getNodeSize() {
+    const borderWidth = this.node.getBorderWidth();
+    let { width: width2, height: height2 } = this.node;
+    width2 -= borderWidth;
+    height2 -= borderWidth;
+    return {
+      width: width2,
+      height: height2
+    };
+  }
+  // 创建矩形
+  createRect() {
+    let { width: width2, height: height2 } = this.getNodeSize();
+    let borderRadius = this.node.style.merge("borderRadius");
+    return new Path().plot(`
+      M${borderRadius},0
+      L${width2 - borderRadius},0
+      C${width2 - borderRadius},0 ${width2},${0} ${width2},${borderRadius}
+      L${width2},${height2 - borderRadius}
+      C${width2},${height2 - borderRadius} ${width2},${height2} ${width2 - borderRadius},${height2}
+      L${borderRadius},${height2}
+      C${borderRadius},${height2} ${0},${height2} ${0},${height2 - borderRadius}
+      L${0},${borderRadius}
+      C${0},${borderRadius} ${0},${0} ${borderRadius},${0}
+      Z
+    `);
+  }
   //  创建菱形
   createDiamond() {
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     let halfWidth = width2 / 2;
     let halfHeight = height2 / 2;
     let topX = halfWidth;
@@ -43240,7 +45609,7 @@ var Shape2 = class {
   createParallelogram() {
     let { paddingX } = this.node.getPaddingVale();
     paddingX = paddingX || this.node.shapePadding.paddingX;
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     return new Polygon().plot([
       [paddingX, 0],
       [width2, 0],
@@ -43250,7 +45619,7 @@ var Shape2 = class {
   }
   //  创建圆角矩形
   createRoundedRectangle() {
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     let halfHeight = height2 / 2;
     return new Path().plot(`
       M${halfHeight},0
@@ -43263,7 +45632,7 @@ var Shape2 = class {
   //  创建八角矩形
   createOctagonalRectangle() {
     let w2 = 5;
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     return new Polygon().plot([
       [0, w2],
       [w2, 0],
@@ -43279,7 +45648,7 @@ var Shape2 = class {
   createOuterTriangularRectangle() {
     let { paddingX } = this.node.getPaddingVale();
     paddingX = paddingX || this.node.shapePadding.paddingX;
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     return new Polygon().plot([
       [paddingX, 0],
       [width2 - paddingX, 0],
@@ -43293,7 +45662,7 @@ var Shape2 = class {
   createInnerTriangularRectangle() {
     let { paddingX } = this.node.getPaddingVale();
     paddingX = paddingX || this.node.shapePadding.paddingX;
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     return new Polygon().plot([
       [0, 0],
       [width2, 0],
@@ -43305,7 +45674,7 @@ var Shape2 = class {
   }
   //  创建椭圆
   createEllipse() {
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     let halfWidth = width2 / 2;
     let halfHeight = height2 / 2;
     return new Path().plot(`
@@ -43317,7 +45686,7 @@ var Shape2 = class {
   }
   //  创建圆
   createCircle() {
-    let { width: width2, height: height2 } = this.node;
+    let { width: width2, height: height2 } = this.getNodeSize();
     let halfWidth = width2 / 2;
     let halfHeight = height2 / 2;
     return new Path().plot(`
@@ -43737,6 +46106,116 @@ var loadImage = (imgFile) => {
     };
   });
 };
+var removeHTMLEntities = (str) => {
+  ;
+  [["&nbsp;", "&#160;"]].forEach((item) => {
+    str = str.replaceAll(item[0], item[1]);
+  });
+  return str;
+};
+var getType = (data2) => {
+  return Object.prototype.toString.call(data2).slice(7, -1);
+};
+var isUndef = (data2) => {
+  return data2 === null || data2 === void 0 || data2 === "";
+};
+var removeHtmlStyle = (html2) => {
+  return html2.replaceAll(/(<[^\s]+)\s+style=["'][^'"]+["']\s*(>)/g, "$1$2");
+};
+var addHtmlStyle = (html2, tag, style) => {
+  const reg = new RegExp(`(<${tag}[^>]*)(>[^<>]*</${tag}>)`, "g");
+  return html2.replaceAll(reg, `$1 style="${style}"$2`);
+};
+var checkIsRichTextEl = null;
+var checkIsRichText = (str) => {
+  if (!checkIsRichTextEl) {
+    checkIsRichTextEl = document.createElement("div");
+  }
+  checkIsRichTextEl.innerHTML = str;
+  for (let c4 = checkIsRichTextEl.childNodes, i3 = c4.length; i3--; ) {
+    if (c4[i3].nodeType == 1)
+      return true;
+  }
+  return false;
+};
+var replaceHtmlTextEl = null;
+var replaceHtmlText = (html2, searchText, replaceText) => {
+  if (!replaceHtmlTextEl) {
+    replaceHtmlTextEl = document.createElement("div");
+  }
+  replaceHtmlTextEl.innerHTML = html2;
+  let walk2 = (root2) => {
+    let childNodes = root2.childNodes;
+    childNodes.forEach((node3) => {
+      if (node3.nodeType === 1) {
+        walk2(node3);
+      } else if (node3.nodeType === 3) {
+        root2.replaceChild(
+          document.createTextNode(
+            node3.nodeValue.replaceAll(searchText, replaceText)
+          ),
+          node3
+        );
+      }
+    });
+  };
+  walk2(replaceHtmlTextEl);
+  return replaceHtmlTextEl.innerHTML;
+};
+var isWhite = (color) => {
+  color = String(color).replaceAll(/\s+/g, "");
+  return ["#fff", "#ffffff", "#FFF", "#FFFFFF", "rgb(255,255,255)"].includes(
+    color
+  ) || /rgba\(255,255,255,[^)]+\)/.test(color);
+};
+var isTransparent = (color) => {
+  color = String(color).replaceAll(/\s+/g, "");
+  return ["", "transparent"].includes(color) || /rgba\(\d+,\d+,\d+,0\)/.test(color);
+};
+var getVisibleColorFromTheme = (themeConfig) => {
+  let { lineColor, root: root2, second, node: node3 } = themeConfig;
+  let list2 = [
+    lineColor,
+    root2.fillColor,
+    root2.color,
+    second.fillColor,
+    second.color,
+    node3.fillColor,
+    node3.color,
+    root2.borderColor,
+    second.borderColor,
+    node3.borderColor
+  ];
+  for (let i3 = 0; i3 < list2.length; i3++) {
+    let color = list2[i3];
+    if (!isTransparent(color) && !isWhite(color)) {
+      return color;
+    }
+  }
+};
+var getObjectChangedProps = (oldObject, newObject) => {
+  const res = {};
+  Object.keys(newObject).forEach((prop) => {
+    const oldVal = oldObject[prop];
+    const newVal = newObject[prop];
+    if (getType(oldVal) !== getType(newVal)) {
+      res[prop] = newVal;
+      return;
+    }
+    if (getType(oldVal) === "Object") {
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        res[prop] = newVal;
+        return;
+      }
+    } else {
+      if (oldVal !== newVal) {
+        res[prop] = newVal;
+        return;
+      }
+    }
+  });
+  return res;
+};
 
 // ../simple-mind-map/src/core/render/node/nodeGeneralization.js
 function checkHasGeneralization() {
@@ -43769,13 +46248,14 @@ function createGeneralizationNode() {
   }
 }
 function updateGeneralization() {
+  if (this.isGeneralization)
+    return;
   this.removeGeneralization();
   this.createGeneralizationNode();
 }
 function renderGeneralization() {
-  if (this.isGeneralization) {
+  if (this.isGeneralization)
     return;
-  }
   if (!this.checkHasGeneralization()) {
     this.removeGeneralization();
     this._generalizationNodeWidth = 0;
@@ -43796,6 +46276,8 @@ function renderGeneralization() {
   this._generalizationNode.render();
 }
 function removeGeneralization() {
+  if (this.isGeneralization)
+    return;
   if (this._generalizationLine) {
     this._generalizationLine.remove();
     this._generalizationLine = null;
@@ -43810,6 +46292,8 @@ function removeGeneralization() {
   }
 }
 function hideGeneralization() {
+  if (this.isGeneralization)
+    return;
   if (this._generalizationLine) {
     this._generalizationLine.hide();
   }
@@ -43818,6 +46302,8 @@ function hideGeneralization() {
   }
 }
 function showGeneralization() {
+  if (this.isGeneralization)
+    return;
   if (this._generalizationLine) {
     this._generalizationLine.show();
   }
@@ -43838,10 +46324,12 @@ var nodeGeneralization_default = {
 // ../simple-mind-map/src/svg/btns.js
 var open2 = `<svg t="1618141562310" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13476" width="200" height="200"><path d="M475.136 327.168v147.968h-147.968v74.24h147.968v147.968h74.24v-147.968h147.968v-74.24h-147.968v-147.968h-74.24z m36.864-222.208c225.28 0 407.04 181.76 407.04 407.04s-181.76 407.04-407.04 407.04-407.04-181.76-407.04-407.04 181.76-407.04 407.04-407.04z m0-74.24c-265.216 0-480.768 215.552-480.768 480.768s215.552 480.768 480.768 480.768 480.768-215.552 480.768-480.768-215.552-480.768-480.768-480.768z" p-id="13477"></path></svg>`;
 var close = `<svg t="1618141589243" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13611" width="200" height="200"><path d="M512 105.472c225.28 0 407.04 181.76 407.04 407.04s-181.76 407.04-407.04 407.04-407.04-181.76-407.04-407.04 181.76-407.04 407.04-407.04z m0-74.24c-265.216 0-480.768 215.552-480.768 480.768s215.552 480.768 480.768 480.768 480.768-215.552 480.768-480.768-215.552-480.768-480.768-480.768z" p-id="13612"></path><path d="M252.928 474.624h518.144v74.24h-518.144z" p-id="13613"></path></svg>`;
+var remove = `<svg width="14px" height="14px" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="13611" width="200" height="200"><path fill="#ffffff" d="M512 105.472c225.28 0 407.04 181.76 407.04 407.04s-181.76 407.04-407.04 407.04-407.04-181.76-407.04-407.04 181.76-407.04 407.04-407.04z m0-74.24c-265.216 0-480.768 215.552-480.768 480.768s215.552 480.768 480.768 480.768 480.768-215.552 480.768-480.768-215.552-480.768-480.768-480.768z" p-id="13612"></path><path fill="#ffffff" d="M252.928 474.624h518.144v74.24h-518.144z" p-id="13613"></path></svg>`;
 var imgAdjust = `<svg width="12px" height="12px" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path fill="#ffffff" d="M1008.128 614.4a25.6 25.6 0 0 0-27.648 5.632l-142.848 142.848L259.072 186.88 401.92 43.52A25.6 25.6 0 0 0 384 0h-358.4a25.6 25.6 0 0 0-25.6 25.6v358.4a25.6 25.6 0 0 0 43.52 17.92l143.36-142.848 578.048 578.048-142.848 142.848a25.6 25.6 0 0 0 17.92 43.52h358.4a25.6 25.6 0 0 0 25.6-25.6v-358.4a25.6 25.6 0 0 0-15.872-25.088z"  /></svg>`;
 var btns_default = {
   open: open2,
   close,
+  remove,
   imgAdjust
 };
 
@@ -43850,12 +46338,22 @@ function createExpandNodeContent() {
   if (this._openExpandNode) {
     return;
   }
-  let { open: open3, close: close2 } = this.mindMap.opt.expandBtnIcon || {};
-  this._openExpandNode = SVG(open3 || btns_default.open).size(
-    this.expandBtnSize,
-    this.expandBtnSize
-  );
-  this._openExpandNode.x(0).y(-this.expandBtnSize / 2);
+  let { close: close2, open: open3 } = this.mindMap.opt.expandBtnIcon || {};
+  if (this.mindMap.opt.isShowExpandNum) {
+    this._openExpandNode = SVG().text().size(this.expandBtnSize, this.expandBtnSize);
+    this._openExpandNode.attr({
+      "text-anchor": "middle",
+      "dominant-baseline": "middle",
+      x: this.expandBtnSize / 2,
+      y: 2
+    });
+  } else {
+    this._openExpandNode = SVG(open3 || btns_default.open).size(
+      this.expandBtnSize,
+      this.expandBtnSize
+    );
+    this._openExpandNode.x(0).y(-this.expandBtnSize / 2);
+  }
   this._closeExpandNode = SVG(close2 || btns_default.close).size(
     this.expandBtnSize,
     this.expandBtnSize
@@ -43867,6 +46365,12 @@ function createExpandNodeContent() {
     this._openExpandNode,
     this._closeExpandNode,
     this._fillExpandNode
+  );
+}
+function sumNode(data2 = []) {
+  return data2.reduce(
+    (total, cur) => total + this.sumNode(cur.children || []),
+    data2.length
   );
 }
 function updateExpandBtnNode() {
@@ -43885,8 +46389,22 @@ function updateExpandBtnNode() {
     node3 = this._closeExpandNode;
     this._lastExpandBtnType = true;
   }
-  if (this._expandBtn)
+  if (this._expandBtn) {
+    let { isShowExpandNum, expandBtnStyle, expandBtnNumHandler } = this.mindMap.opt;
+    if (isShowExpandNum) {
+      if (!expand) {
+        this._fillExpandNode.stroke({
+          color: expandBtnStyle.strokeColor
+        });
+        let count = this.sumNode(this.nodeData.children);
+        count = expandBtnNumHandler(count);
+        node3.text(count);
+      } else {
+        this._fillExpandNode.stroke("none");
+      }
+    }
     this._expandBtn.add(this._fillExpandNode).add(node3);
+  }
 }
 function updateExpandBtnPos() {
   if (!this._expandBtn) {
@@ -43962,15 +46480,16 @@ var nodeExpandBtn_default = {
   renderExpandBtn,
   removeExpandBtn,
   showExpandBtn,
-  hideExpandBtn
+  hideExpandBtn,
+  sumNode
 };
 
 // ../simple-mind-map/src/core/render/node/nodeCommandWraps.js
 function setData(data2 = {}) {
   this.mindMap.execCommand("SET_NODE_DATA", this, data2);
 }
-function setText(text3, richText) {
-  this.mindMap.execCommand("SET_NODE_TEXT", this, text3, richText);
+function setText(text3, richText, resetRichText) {
+  this.mindMap.execCommand("SET_NODE_TEXT", this, text3, richText, resetRichText);
 }
 function setImage(imgData) {
   this.mindMap.execCommand("SET_NODE_IMAGE", this, imgData);
@@ -43990,8 +46509,11 @@ function setTag(tag) {
 function setShape(shape) {
   this.mindMap.execCommand("SET_NODE_SHAPE", this, shape);
 }
-function setStyle(prop, value, isActive) {
-  this.mindMap.execCommand("SET_NODE_STYLE", this, prop, value, isActive);
+function setStyle(prop, value) {
+  this.mindMap.execCommand("SET_NODE_STYLE", this, prop, value);
+}
+function setStyles(style) {
+  this.mindMap.execCommand("SET_NODE_STYLES", this, style);
 }
 var nodeCommandWraps_default = {
   setData,
@@ -44002,7 +46524,8 @@ var nodeCommandWraps_default = {
   setNote,
   setTag,
   setShape,
-  setStyle
+  setStyle,
+  setStyles
 };
 
 // ../simple-mind-map/src/svg/icons.js
@@ -44341,7 +46864,10 @@ function createIconNode() {
   }
   let iconSize = this.mindMap.themeConfig.iconSize;
   return _data.icon.map((item) => {
-    let src = icons_default.getNodeIconListIcon(item, this.mindMap.opt.iconList || []);
+    let src = icons_default.getNodeIconListIcon(
+      item,
+      this.mindMap.opt.iconList || []
+    );
     let node3 = null;
     if (/^<svg/.test(src)) {
       node3 = SVG(src);
@@ -44349,6 +46875,9 @@ function createIconNode() {
       node3 = new Image2().load(src);
     }
     node3.size(iconSize, iconSize);
+    node3.on("click", (e2) => {
+      this.mindMap.emit("node_icon_click", this, item, e2);
+    });
     return {
       node: node3,
       width: iconSize,
@@ -44357,6 +46886,7 @@ function createIconNode() {
   });
 }
 function createRichTextNode() {
+  const { textAutoWrapWidth } = this.mindMap.opt;
   let g2 = new G();
   let recoverText = false;
   if (this.nodeData.data.resetRichText) {
@@ -44369,29 +46899,45 @@ function createRichTextNode() {
     }
   }
   if (recoverText) {
-    let text3 = getTextFromHtml(this.nodeData.data.text);
-    this.nodeData.data.text = `<p><span style="${this.style.createStyleText()}">${text3}</span></p>`;
+    let text3 = this.nodeData.data.text;
+    let isRichText = checkIsRichText(text3);
+    let style = this.style.createStyleText();
+    if (isRichText) {
+      text3 = removeHtmlStyle(text3);
+      text3 = addHtmlStyle(text3, "span", style);
+    } else {
+      text3 = `<p><span style="${style}">${text3}</span></p>`;
+    }
+    this.nodeData.data.text = text3;
   }
   let html2 = `<div>${this.nodeData.data.text}</div>`;
-  let div = document.createElement("div");
+  if (!commonCaches.measureRichtextNodeTextSizeEl) {
+    commonCaches.measureRichtextNodeTextSizeEl = document.createElement("div");
+    commonCaches.measureRichtextNodeTextSizeEl.style.position = "fixed";
+    commonCaches.measureRichtextNodeTextSizeEl.style.left = "-999999px";
+    this.mindMap.el.appendChild(commonCaches.measureRichtextNodeTextSizeEl);
+  }
+  let div = commonCaches.measureRichtextNodeTextSizeEl;
   div.innerHTML = html2;
-  div.style.cssText = `position: fixed; left: -999999px;`;
   let el2 = div.children[0];
   el2.classList.add("smm-richtext-node-wrap");
   el2.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  el2.style.maxWidth = this.mindMap.opt.textAutoWrapWidth + "px";
-  this.mindMap.el.appendChild(div);
+  el2.style.maxWidth = textAutoWrapWidth + "px";
   let { width: width2, height: height2 } = el2.getBoundingClientRect();
+  if (height2 <= 0) {
+    div.innerHTML = "<p>abc123\u6211\u548C\u4F60</p>";
+    let elTmp = div.children[0];
+    elTmp.classList.add("smm-richtext-node-wrap");
+    height2 = elTmp.getBoundingClientRect().height;
+  }
   width2 = Math.ceil(width2) + 1;
   height2 = Math.ceil(height2);
   g2.attr("data-width", width2);
   g2.attr("data-height", height2);
-  html2 = div.innerHTML;
-  this.mindMap.el.removeChild(div);
   let foreignObject = new ForeignObject();
   foreignObject.width(width2);
   foreignObject.height(height2);
-  foreignObject.add(SVG(html2));
+  foreignObject.add(div.children[0]);
   g2.add(foreignObject);
   return {
     node: g2,
@@ -44404,12 +46950,8 @@ function createTextNode() {
     return this.createRichTextNode();
   }
   let g2 = new G();
-  let fontSize = this.getStyle("fontSize", false, this.nodeData.data.isActive);
-  let lineHeight = this.getStyle(
-    "lineHeight",
-    false,
-    this.nodeData.data.isActive
-  );
+  let fontSize = this.getStyle("fontSize", false);
+  let lineHeight = this.getStyle("lineHeight", false);
   let textStyle = this.style.getTextFontStyle();
   let textArr = this.nodeData.data.text.split(/\n/gim);
   let maxWidth = this.mindMap.opt.textAutoWrapWidth;
@@ -44516,7 +47058,7 @@ function createNoteNode() {
     if (!this.noteEl) {
       this.noteEl = document.createElement("div");
       this.noteEl.style.cssText = `
-          position: absolute;
+          position: fixed;
           padding: 10px;
           border-radius: 5px;
           box-shadow: 0 2px 5px rgb(0 0 0 / 10%);
@@ -44524,7 +47066,8 @@ function createNoteNode() {
           background-color: #fff;
           z-index: ${this.mindMap.opt.nodeNoteTooltipZIndex}
       `;
-      document.body.appendChild(this.noteEl);
+      const targetNode = this.mindMap.opt.customInnerElsAppendTo || document.body;
+      targetNode.appendChild(this.noteEl);
     }
     this.noteEl.innerText = this.nodeData.data.note;
   }
@@ -44555,20 +47098,19 @@ function createNoteNode() {
     height: iconSize
   };
 }
-var warpEl = null;
 function measureCustomNodeContentSize(content3) {
-  if (!warpEl) {
-    warpEl = document.createElement("div");
-    warpEl.style.cssText = `
+  if (!commonCaches.measureCustomNodeContentSizeEl) {
+    commonCaches.measureCustomNodeContentSizeEl = document.createElement("div");
+    commonCaches.measureCustomNodeContentSizeEl.style.cssText = `
       position: fixed;
       left: -99999px;
       top: -99999px;
     `;
-    this.mindMap.el.appendChild(warpEl);
+    this.mindMap.el.appendChild(commonCaches.measureCustomNodeContentSizeEl);
   }
-  warpEl.innerHTML = "";
-  warpEl.appendChild(content3);
-  let rect = warpEl.getBoundingClientRect();
+  commonCaches.measureCustomNodeContentSizeEl.innerHTML = "";
+  commonCaches.measureCustomNodeContentSizeEl.appendChild(content3);
+  let rect = commonCaches.measureCustomNodeContentSizeEl.getBoundingClientRect();
   return {
     width: rect.width,
     height: rect.height
@@ -44588,6 +47130,57 @@ var nodeCreateContents_default = {
   createNoteNode,
   measureCustomNodeContentSize,
   isUseCustomNodeContent
+};
+
+// ../simple-mind-map/src/core/render/node/nodeExpandBtnPlaceholderRect.js
+function renderExpandBtnPlaceholderRect() {
+  if (!this.nodeData.children || this.nodeData.children.length <= 0 || this.isRoot) {
+    return;
+  }
+  if (!this.mindMap.opt.alwaysShowExpandBtn) {
+    let { width: width2, height: height2 } = this;
+    if (!this._unVisibleRectRegionNode) {
+      this._unVisibleRectRegionNode = new Rect();
+      this._unVisibleRectRegionNode.fill({
+        color: "transparent"
+      });
+    }
+    this.group.add(this._unVisibleRectRegionNode);
+    this.renderer.layout.renderExpandBtnRect(
+      this._unVisibleRectRegionNode,
+      this.expandBtnSize,
+      width2,
+      height2,
+      this
+    );
+  }
+}
+function clearExpandBtnPlaceholderRect() {
+  if (!this._unVisibleRectRegionNode) {
+    return;
+  }
+  this._unVisibleRectRegionNode.remove();
+  this._unVisibleRectRegionNode = null;
+}
+function updateExpandBtnPlaceholderRect() {
+  if (this.needRerenderExpandBtnPlaceholderRect) {
+    this.needRerenderExpandBtnPlaceholderRect = false;
+    this.renderExpandBtnPlaceholderRect();
+  }
+  if (this.nodeData.children && this.nodeData.children.length > 0) {
+    if (!this._unVisibleRectRegionNode) {
+      this.renderExpandBtnPlaceholderRect();
+    }
+  } else {
+    if (this._unVisibleRectRegionNode) {
+      this.clearExpandBtnPlaceholderRect();
+    }
+  }
+}
+var nodeExpandBtnPlaceholderRect_default = {
+  renderExpandBtnPlaceholderRect,
+  clearExpandBtnPlaceholderRect,
+  updateExpandBtnPlaceholderRect
 };
 
 // ../simple-mind-map/src/core/render/node/Node.js
@@ -44620,6 +47213,7 @@ var Node2 = class {
     this.children = opt.children || [];
     this.group = null;
     this.shapeNode = null;
+    this.hoverNode = null;
     this._customNodeContent = null;
     this._imgData = null;
     this._iconData = null;
@@ -44652,11 +47246,15 @@ var Node2 = class {
     this.expandBtnSize = this.mindMap.opt.expandBtnSize;
     this.isMultipleChoice = false;
     this.needLayout = false;
+    this.isHide = false;
     Object.keys(nodeGeneralization_default).forEach((item) => {
       this[item] = nodeGeneralization_default[item].bind(this);
     });
     Object.keys(nodeExpandBtn_default).forEach((item) => {
       this[item] = nodeExpandBtn_default[item].bind(this);
+    });
+    Object.keys(nodeExpandBtnPlaceholderRect_default).forEach((item) => {
+      this[item] = nodeExpandBtnPlaceholderRect_default[item].bind(this);
     });
     Object.keys(nodeCommandWraps_default).forEach((item) => {
       this[item] = nodeCommandWraps_default[item].bind(this);
@@ -44773,30 +47371,42 @@ var Node2 = class {
     let { paddingX: shapePaddingX, paddingY: shapePaddingY } = this.shapeInstance.getShapePadding(_width, _height, paddingX, paddingY);
     this.shapePadding.paddingX = shapePaddingX;
     this.shapePadding.paddingY = shapePaddingY;
+    const borderWidth = this.getBorderWidth();
     return {
-      width: _width + paddingX * 2 + shapePaddingX * 2,
-      height: _height + paddingY * 2 + margin + shapePaddingY * 2
+      width: _width + paddingX * 2 + shapePaddingX * 2 + borderWidth,
+      height: _height + paddingY * 2 + margin + shapePaddingY * 2 + borderWidth
     };
   }
   //  定位节点内容
   layout() {
     this.group.clear();
+    const { hoverRectPadding } = this.mindMap.opt;
     let { width: width2, height: height2, textContentItemMargin } = this;
     let { paddingY } = this.getPaddingVale();
-    paddingY += this.shapePadding.paddingY;
+    const halfBorderWidth = this.getBorderWidth() / 2;
+    paddingY += this.shapePadding.paddingY + halfBorderWidth;
     this.shapeNode = this.shapeInstance.createShape();
+    this.shapeNode.addClass("smm-node-shape");
+    this.shapeNode.translate(halfBorderWidth, halfBorderWidth);
+    this.style.shape(this.shapeNode);
     this.group.add(this.shapeNode);
-    this.updateNodeShape();
     this.renderExpandBtnPlaceholderRect();
     if (this.isGeneralization && this.generalizationBelongNode) {
       this.group.addClass("generalization_" + this.generalizationBelongNode.uid);
     }
+    const addHoverNode = () => {
+      this.hoverNode = new Rect().size(width2 + hoverRectPadding * 2, height2 + hoverRectPadding * 2).x(-hoverRectPadding).y(-hoverRectPadding);
+      this.hoverNode.addClass("smm-hover-node");
+      this.style.hoverNode(this.hoverNode, width2, height2);
+      this.group.add(this.hoverNode);
+    };
     if (this.isUseCustomNodeContent()) {
       let foreignObject = new ForeignObject();
       foreignObject.width(width2);
       foreignObject.height(height2);
-      foreignObject.add(SVG(this._customNodeContent));
+      foreignObject.add(this._customNodeContent);
       this.group.add(foreignObject);
+      addHoverNode();
       return;
     }
     let imgHeight = 0;
@@ -44850,20 +47460,7 @@ var Node2 = class {
       imgHeight + paddingY + (imgHeight > 0 && this._rectInfo.textContentHeight > 0 ? this.blockContentMargin : 0)
     );
     this.group.add(textContentNested);
-  }
-  // 渲染展开收起按钮的隐藏占位元素
-  renderExpandBtnPlaceholderRect() {
-    if (!this.mindMap.opt.alwaysShowExpandBtn) {
-      let { width: width2, height: height2 } = this;
-      if (!this._unVisibleRectRegionNode) {
-        this._unVisibleRectRegionNode = new Rect();
-        this._unVisibleRectRegionNode.fill({
-          color: "transparent"
-        });
-      }
-      this.group.add(this._unVisibleRectRegionNode);
-      this.renderer.layout.renderExpandBtnRect(this._unVisibleRectRegionNode, this.expandBtnSize, width2, height2, this);
-    }
+    addHoverNode();
   }
   // 给节点绑定事件
   bindGroupEvent() {
@@ -44877,13 +47474,19 @@ var Node2 = class {
       this.active(e2);
     });
     this.group.on("mousedown", (e2) => {
-      if (this.isRoot && e2.which === 3) {
-        e2.stopPropagation();
+      const { readonly, enableCtrlKeyNodeSelection, useLeftKeySelectionRightKeyDrag } = this.mindMap.opt;
+      if (!readonly) {
+        if (this.isRoot) {
+          if (e2.which === 3 && !useLeftKeySelectionRightKeyDrag) {
+            e2.stopPropagation();
+          }
+        } else {
+          if (e2.which !== 2) {
+            e2.stopPropagation();
+          }
+        }
       }
-      if (!this.isRoot) {
-        e2.stopPropagation();
-      }
-      if (e2.ctrlKey && this.mindMap.opt.enableCtrlKeyNodeSelection) {
+      if (e2.ctrlKey && enableCtrlKeyNodeSelection) {
         this.isMultipleChoice = true;
         let isActive = this.nodeData.data.isActive;
         if (!isActive)
@@ -44899,13 +47502,13 @@ var Node2 = class {
         this.mindMap.emit(
           "node_active",
           isActive ? null : this,
-          this.mindMap.renderer.activeNodeList
+          [...this.mindMap.renderer.activeNodeList]
         );
       }
       this.mindMap.emit("node_mousedown", this, e2);
     });
     this.group.on("mouseup", (e2) => {
-      if (!this.isRoot) {
+      if (!this.isRoot && e2.which !== 2 && !this.mindMap.opt.readonly) {
         e2.stopPropagation();
       }
       this.mindMap.emit("node_mouseup", this, e2);
@@ -44928,11 +47531,15 @@ var Node2 = class {
       this.mindMap.emit("node_dblclick", this, e2);
     });
     this.group.on("contextmenu", (e2) => {
-      if (this.mindMap.opt.readonly || e2.ctrlKey) {
+      const { readonly, useLeftKeySelectionRightKeyDrag } = this.mindMap.opt;
+      if (readonly || e2.ctrlKey) {
         return;
       }
       e2.stopPropagation();
       e2.preventDefault();
+      if (!useLeftKeySelectionRightKeyDrag && this.mindMap.select.hasSelectRange()) {
+        return;
+      }
       if (this.nodeData.data.isActive) {
         this.renderer.clearActive();
       }
@@ -44953,16 +47560,15 @@ var Node2 = class {
     this.renderer.clearActive();
     this.mindMap.execCommand("SET_NODE_ACTIVE", this, true);
     this.renderer.addActiveNode(this);
-    this.mindMap.emit("node_active", this, this.renderer.activeNodeList);
+    this.mindMap.emit("node_active", this, [...this.renderer.activeNodeList]);
   }
   //  更新节点
-  update(isLayout = false) {
+  update() {
     if (!this.group) {
       return;
     }
-    let {
-      alwaysShowExpandBtn
-    } = this.mindMap.opt;
+    this.updateNodeActive();
+    let { alwaysShowExpandBtn } = this.mindMap.opt;
     if (alwaysShowExpandBtn) {
       if (this._expandBtn && this.nodeData.children.length <= 0) {
         this.removeExpandBtn();
@@ -44983,6 +47589,17 @@ var Node2 = class {
       return;
     this.group.translate(this.left - t3.translateX, this.top - t3.translateY);
   }
+  // 获取节点相当于画布的位置
+  getNodePosInClient(_left, _top) {
+    let drawTransform = this.mindMap.draw.transform();
+    let { scaleX, scaleY, translateX, translateY } = drawTransform;
+    let left = _left * scaleX + translateX;
+    let top = _top * scaleY + translateY;
+    return {
+      left,
+      top
+    };
+  }
   // 重新渲染节点，即重新创建节点内容、计算节点大小、计算节点内容布局、更新展开收起按钮，概要及位置
   reRender() {
     let sizeChange = this.getSize();
@@ -44990,56 +47607,46 @@ var Node2 = class {
     this.update();
     return sizeChange;
   }
-  // 更新节点形状样式
-  updateNodeShape() {
-    if (!this.shapeNode)
+  // 更新节点激活状态
+  updateNodeActive() {
+    if (!this.group)
       return;
-    const shape = this.getShape();
-    this.style[shape === CONSTANTS.SHAPE.RECTANGLE ? "rect" : "shape"](
-      this.shapeNode
-    );
+    const isActive = this.nodeData.data.isActive;
+    this.group[isActive ? "addClass" : "removeClass"]("active");
   }
   //  递归渲染
   render(callback = () => {
   }) {
     this.renderLine();
-    let isLayout = false;
     if (!this.group) {
-      isLayout = true;
       this.group = new G();
+      this.group.addClass("smm-node");
       this.group.css({
         cursor: "default"
       });
       this.bindGroupEvent();
       this.draw.add(this.group);
       this.layout();
-      this.update(isLayout);
+      this.update();
     } else {
       this.draw.add(this.group);
       if (this.needLayout) {
         this.needLayout = false;
         this.layout();
       }
-      if (this.needRerenderExpandBtnPlaceholderRect) {
-        this.needRerenderExpandBtnPlaceholderRect = false;
-        this.renderExpandBtnPlaceholderRect();
-      }
+      this.updateExpandBtnPlaceholderRect();
       this.update();
     }
     if (this.children && this.children.length && this.nodeData.data.expand !== false) {
       let index3 = 0;
-      asyncRun(
-        this.children.map((item) => {
-          return () => {
-            item.render(() => {
-              index3++;
-              if (index3 >= this.children.length) {
-                callback();
-              }
-            });
-          };
-        })
-      );
+      this.children.forEach((item) => {
+        item.render(() => {
+          index3++;
+          if (index3 >= this.children.length) {
+            callback();
+          }
+        });
+      });
     } else {
       callback();
     }
@@ -45059,13 +47666,9 @@ var Node2 = class {
     this.removeGeneralization();
     this.removeLine();
     if (this.children && this.children.length) {
-      asyncRun(
-        this.children.map((item) => {
-          return () => {
-            item.remove();
-          };
-        })
-      );
+      this.children.forEach((item) => {
+        item.remove();
+      });
     }
   }
   // 销毁节点，不但会从画布删除，而且原节点直接置空，后续无法再插回画布
@@ -45089,13 +47692,9 @@ var Node2 = class {
       });
     }
     if (this.children && this.children.length) {
-      asyncRun(
-        this.children.map((item) => {
-          return () => {
-            item.hide();
-          };
-        })
-      );
+      this.children.forEach((item) => {
+        item.hide();
+      });
     }
   }
   //  显示节点
@@ -45113,13 +47712,9 @@ var Node2 = class {
       });
     }
     if (this.children && this.children.length) {
-      asyncRun(
-        this.children.map((item) => {
-          return () => {
-            item.show();
-          };
-        })
-      );
+      this.children.forEach((item) => {
+        item.show();
+      });
     }
   }
   //  连线
@@ -45228,8 +47823,8 @@ var Node2 = class {
     };
   }
   //  获取某个样式
-  getStyle(prop, root2, isActive) {
-    let v3 = this.style.merge(prop, root2, isActive);
+  getStyle(prop, root2) {
+    let v3 = this.style.merge(prop, root2);
     return v3 === void 0 ? "" : v3;
   }
   //  获取自定义样式
@@ -45247,6 +47842,10 @@ var Node2 = class {
   getSelfInhertStyle(prop) {
     return this.getSelfStyle(prop) || // 自身
     this.getParentSelfStyle(prop);
+  }
+  // 获取节点非节点状态的边框大小
+  getBorderWidth() {
+    return this.style.merge("borderWidth", false) || 0;
   }
   //  获取数据
   getData(key) {
@@ -45324,7 +47923,10 @@ var Base2 = class {
   }
   // 检查当前来源是否需要重新计算节点大小
   checkIsNeedResizeSources() {
-    return [CONSTANTS.CHANGE_THEME, CONSTANTS.TRANSFORM_TO_NORMAL_NODE].includes(this.renderer.renderSource);
+    return [
+      CONSTANTS.CHANGE_THEME,
+      CONSTANTS.TRANSFORM_TO_NORMAL_NODE
+    ].includes(this.renderer.renderSource);
   }
   // 层级类型改变
   checkIsLayerTypeChange(oldIndex, newIndex) {
@@ -45346,7 +47948,10 @@ var Base2 = class {
     let newNode = null;
     if (data2 && data2._node && !this.renderer.reRender) {
       newNode = data2._node;
-      let isLayerTypeChange = this.checkIsLayerTypeChange(newNode.layerIndex, layerIndex);
+      let isLayerTypeChange = this.checkIsLayerTypeChange(
+        newNode.layerIndex,
+        layerIndex
+      );
       newNode.reset();
       newNode.layerIndex = layerIndex;
       this.cacheNode(data2._node.uid, newNode);
@@ -45358,7 +47963,10 @@ var Base2 = class {
     } else if (this.lru.has(data2.data.uid) && !this.renderer.reRender) {
       newNode = this.lru.get(data2.data.uid);
       let lastData = JSON.stringify(newNode.nodeData.data);
-      let isLayerTypeChange = this.checkIsLayerTypeChange(newNode.layerIndex, layerIndex);
+      let isLayerTypeChange = this.checkIsLayerTypeChange(
+        newNode.layerIndex,
+        layerIndex
+      );
       newNode.reset();
       newNode.nodeData = newNode.handleData(data2 || {});
       newNode.layerIndex = layerIndex;
@@ -45416,8 +48024,16 @@ var Base2 = class {
     if (!initRootNodePosition || !Array.isArray(initRootNodePosition) || initRootNodePosition.length < 2) {
       initRootNodePosition = [CENTER, CENTER];
     }
-    node3.left = this.formatPosition(initRootNodePosition[0], this.mindMap.width, node3.width);
-    node3.top = this.formatPosition(initRootNodePosition[1], this.mindMap.height, node3.height);
+    node3.left = this.formatPosition(
+      initRootNodePosition[0],
+      this.mindMap.width,
+      node3.width
+    );
+    node3.top = this.formatPosition(
+      initRootNodePosition[1],
+      this.mindMap.height,
+      node3.height
+    );
   }
   //  更新子节点属性
   updateChildren(children, prop, offset) {
@@ -45472,11 +48088,17 @@ var Base2 = class {
   }
   //   获取节点的marginX
   getMarginX(layerIndex) {
-    return layerIndex === 1 ? this.mindMap.themeConfig.second.marginX : this.mindMap.themeConfig.node.marginX;
+    const { themeConfig, opt } = this.mindMap;
+    const { second, node: node3 } = themeConfig;
+    const hoverRectPadding = opt.hoverRectPadding * 2;
+    return layerIndex === 1 ? second.marginX + hoverRectPadding : node3.marginX + hoverRectPadding;
   }
   //  获取节点的marginY
   getMarginY(layerIndex) {
-    return layerIndex === 1 ? this.mindMap.themeConfig.second.marginY : this.mindMap.themeConfig.node.marginY;
+    const { themeConfig, opt } = this.mindMap;
+    const { second, node: node3 } = themeConfig;
+    const hoverRectPadding = opt.hoverRectPadding * 2;
+    return layerIndex === 1 ? second.marginY + hoverRectPadding : node3.marginY + hoverRectPadding;
   }
   //  获取节点包括概要在内的宽度
   getNodeWidthWithGeneralization(node3) {
@@ -45743,7 +48365,7 @@ var LogicalStructure = class extends Base_default {
       y1 = nodeUseLineStyle && !node3.isRoot ? y1 + height2 / 2 : y1;
       y22 = nodeUseLineStyle ? y22 + item.height / 2 : y22;
       let nodeUseLineStylePath = nodeUseLineStyle ? ` L ${item.left + item.width},${y22}` : "";
-      if (node3.isRoot) {
+      if (node3.isRoot && !this.mindMap.themeConfig.rootLineKeepSameInCurve) {
         path = this.quadraticCurvePath(x1, y1, x22, y22) + nodeUseLineStylePath;
       } else {
         path = this.cubicBezierPath(x1, y1, x22, y22) + nodeUseLineStylePath;
@@ -46037,7 +48659,7 @@ var MindMap = class extends Base_default {
           nodeUseLineStylePath = ` L ${item.left + item.width},${y22}`;
         }
       }
-      if (node3.isRoot) {
+      if (node3.isRoot && !this.mindMap.themeConfig.rootLineKeepSameInCurve) {
         path = this.quadraticCurvePath(x1, y1, x22, y22) + nodeUseLineStylePath;
       } else {
         path = this.cubicBezierPath(x1, y1, x22, y22) + nodeUseLineStylePath;
@@ -47292,27 +49914,30 @@ var fishboneUtils_default = {
     },
     computedLeftTopValue({ layerIndex, node: node3, ctx }) {
       if (layerIndex >= 1 && node3.children) {
+        let marginY = ctx.getMarginY(layerIndex + 1);
         let startLeft = node3.left + node3.width * ctx.childIndent;
-        let totalTop = node3.top + node3.height + (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+        let totalTop = node3.top + node3.height + (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0) + marginY;
         node3.children.forEach((item) => {
           item.left = startLeft;
           item.top += totalTop;
-          totalTop += item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          totalTop += item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0) + marginY;
         });
       }
     },
-    adjustLeftTopValueBefore({ node: node3, parent, ctx }) {
+    adjustLeftTopValueBefore({ node: node3, parent, ctx, layerIndex }) {
       let len = node3.children.length;
+      let marginY = ctx.getMarginY(layerIndex + 1);
       if (parent && !parent.isRoot && len > 0) {
         let totalHeight = node3.children.reduce((h3, item) => {
-          return h3 + item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          return h3 + item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0) + marginY;
         }, 0);
         ctx.updateBrothersTop(node3, totalHeight);
       }
     },
     adjustLeftTopValueAfter({ parent, node: node3, ctx }) {
       if (parent && parent.isRoot) {
-        let totalHeight = node3.expandBtnSize;
+        let marginY = ctx.getMarginY(node3.layerIndex + 1);
+        let totalHeight = node3.expandBtnSize + marginY;
         node3.children.forEach((item) => {
           let nodeTotalHeight = ctx.getNodeAreaHeight(item);
           let _top = item.top;
@@ -47360,42 +49985,46 @@ var fishboneUtils_default = {
       }
     },
     computedLeftTopValue({ layerIndex, node: node3, ctx }) {
+      let marginY = ctx.getMarginY(layerIndex + 1);
       if (layerIndex === 1 && node3.children) {
         let startLeft = node3.left + node3.width * ctx.childIndent;
-        let totalTop = node3.top + node3.height + (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+        let totalTop = node3.top + node3.height + (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0) + marginY;
         node3.children.forEach((item) => {
           item.left = startLeft;
           item.top = totalTop + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
-          totalTop += item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          totalTop += item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0) + marginY;
         });
       }
       if (layerIndex > 1 && node3.children) {
         let startLeft = node3.left + node3.width * ctx.childIndent;
-        let totalTop = node3.top - (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0);
+        let totalTop = node3.top - (ctx.getNodeActChildrenLength(node3) > 0 ? node3.expandBtnSize : 0) - marginY;
         node3.children.forEach((item) => {
           item.left = startLeft;
           item.top = totalTop - item.height;
-          totalTop -= item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          totalTop -= item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0) + marginY;
         });
       }
     },
     adjustLeftTopValueBefore({ node: node3, ctx, layerIndex }) {
+      let marginY = ctx.getMarginY(layerIndex + 1);
       let len = node3.children.length;
       if (layerIndex > 2 && len > 0) {
         let totalHeight = node3.children.reduce((h3, item) => {
-          return h3 + item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0);
+          return h3 + item.height + (ctx.getNodeActChildrenLength(item) > 0 ? item.expandBtnSize : 0) + marginY;
         }, 0);
         ctx.updateBrothersTop(node3, -totalHeight);
       }
     },
     adjustLeftTopValueAfter({ parent, node: node3, ctx }) {
       if (parent && parent.isRoot) {
+        let marginY = ctx.getMarginY(node3.layerIndex + 1);
         let totalHeight = 0;
         let totalHeight2 = node3.expandBtnSize;
         node3.children.forEach((item) => {
           let hasChildren = ctx.getNodeActChildrenLength(item) > 0;
           let nodeTotalHeight = ctx.getNodeAreaHeight(item);
-          let offset = hasChildren > 0 ? nodeTotalHeight - item.height - (hasChildren ? item.expandBtnSize : 0) : 0;
+          let offset = hasChildren ? nodeTotalHeight - item.height - (hasChildren ? item.expandBtnSize : 0) : 0;
+          offset -= hasChildren ? marginY : 0;
           let _top = totalHeight + offset;
           let _left = item.left;
           item.top += _top;
@@ -47454,10 +50083,11 @@ var Fishbone = class extends Base_default {
             newNode.dir = index3 % 2 === 0 ? CONSTANTS.LAYOUT_GROW_DIR.TOP : CONSTANTS.LAYOUT_GROW_DIR.BOTTOM;
           }
           if (parent._node.isRoot) {
+            let marginY = this.getMarginY(layerIndex);
             if (this.checkIsTop(newNode)) {
-              newNode.top = parent._node.top - newNode.height;
+              newNode.top = parent._node.top - newNode.height - marginY;
             } else {
-              newNode.top = parent._node.top + parent._node.height;
+              newNode.top = parent._node.top + parent._node.height + marginY;
             }
           }
         }
@@ -47477,15 +50107,16 @@ var Fishbone = class extends Base_default {
       null,
       (node3, parent, isRoot, layerIndex) => {
         if (node3.isRoot) {
-          let topTotalLeft = node3.left + node3.width + node3.height;
-          let bottomTotalLeft = node3.left + node3.width + node3.height;
+          let marginX = this.getMarginX(layerIndex + 1);
+          let topTotalLeft = node3.left + node3.width + node3.height + marginX;
+          let bottomTotalLeft = node3.left + node3.width + node3.height + marginX;
           node3.children.forEach((item) => {
             if (this.checkIsTop(item)) {
               item.left = topTotalLeft;
-              topTotalLeft += item.width;
+              topTotalLeft += item.width + marginX;
             } else {
               item.left = bottomTotalLeft + 20;
-              bottomTotalLeft += item.width;
+              bottomTotalLeft += item.width + marginX;
             }
           });
         }
@@ -47548,7 +50179,8 @@ var Fishbone = class extends Base_default {
   getNodeAreaHeight(node3) {
     let totalHeight = 0;
     let loop = (node4) => {
-      totalHeight += node4.height + (this.getNodeActChildrenLength(node4) > 0 ? node4.expandBtnSize : 0);
+      let marginY = this.getMarginY(node4.layerIndex);
+      totalHeight += node4.height + (this.getNodeActChildrenLength(node4) > 0 ? node4.expandBtnSize : 0) + marginY;
       if (node4.children.length) {
         node4.children.forEach((item) => {
           loop(item);
@@ -47625,8 +50257,9 @@ var Fishbone = class extends Base_default {
         if (item.left > maxx) {
           maxx = item.left;
         }
+        let marginY = this.getMarginY(item.layerIndex);
         let nodeLineX = item.left;
-        let offset2 = node3.height / 2;
+        let offset2 = node3.height / 2 + marginY;
         let offsetX = offset2 / Math.tan(degToRad(this.mindMap.opt.fishboneDeg));
         let line2 = this.draw.path();
         if (this.checkIsTop(item)) {
@@ -47643,7 +50276,7 @@ var Fishbone = class extends Base_default {
         style && style(line2, node3);
       });
       let nodeHalfTop = node3.top + node3.height / 2;
-      let offset = node3.height / 2;
+      let offset = node3.height / 2 + this.getMarginY(node3.layerIndex + 1);
       let line = this.draw.path();
       line.plot(
         `M ${node3.left + node3.width},${nodeHalfTop} L ${maxx - offset / Math.tan(degToRad(this.mindMap.opt.fishboneDeg))},${nodeHalfTop}`
@@ -47767,11 +50400,9 @@ var TextEdit = class {
     this.mindMap = renderer.mindMap;
     this.currentNode = null;
     this.textEditNode = null;
-    this.hiddenInputEl = null;
     this.showTextEdit = false;
     this.cacheEditingText = "";
     this.bindEvent();
-    this.createHiddenInput();
   }
   //  事件
   bindEvent() {
@@ -47795,9 +50426,6 @@ var TextEdit = class {
     this.mindMap.on("before_node_active", () => {
       this.hideEditTextBox();
     });
-    this.mindMap.on("node_active", () => {
-      this.focusHiddenInput();
-    });
     this.mindMap.keyCommand.addShortcut("F2", () => {
       if (this.renderer.activeNodeList.length <= 0) {
         return;
@@ -47805,52 +50433,36 @@ var TextEdit = class {
       this.show(this.renderer.activeNodeList[0]);
     });
     this.mindMap.on("scale", this.onScale);
-  }
-  // 创建一个隐藏的文本输入框
-  createHiddenInput() {
-    if (this.hiddenInputEl)
-      return;
-    this.hiddenInputEl = document.createElement("input");
-    this.hiddenInputEl.type = "text";
-    this.hiddenInputEl.style.cssText = `
-      position: fixed;
-      left: -99999px;
-      top: -99999px;
-    `;
-    this.hiddenInputEl.addEventListener("paste", async (event) => {
-      event.preventDefault();
-      const text3 = (event.clipboardData || window.clipboardData).getData("text");
-      const files = event.clipboardData.files;
-      let img = null;
-      if (files.length > 0) {
-        for (let i3 = 0; i3 < files.length; i3++) {
-          if (/^image\//.test(files[i3].type)) {
-            img = files[i3];
-            break;
-          }
+    if (this.mindMap.opt.enableAutoEnterTextEditWhenKeydown) {
+      window.addEventListener("keydown", (e2) => {
+        const activeNodeList = this.mindMap.renderer.activeNodeList;
+        if (activeNodeList.length <= 0 || activeNodeList.length > 1)
+          return;
+        const node3 = activeNodeList[0];
+        if (node3 && this.checkIsAutoEnterTextEditKey(e2)) {
+          this.show(node3, e2, false, true);
         }
-      }
-      this.mindMap.emit("paste", {
-        text: text3,
-        img
       });
-    });
-    document.body.appendChild(this.hiddenInputEl);
+    }
   }
-  // 让隐藏的文本输入框聚焦
-  focusHiddenInput() {
-    if (this.hiddenInputEl)
-      this.hiddenInputEl.focus();
+  // 判断是否是自动进入文本编模式的按钮
+  checkIsAutoEnterTextEditKey(e2) {
+    const keyCode = e2.keyCode;
+    return (keyCode === 229 || keyCode >= 65 && keyCode <= 90 || keyCode >= 48 && keyCode <= 57) && !this.mindMap.keyCommand.hasCombinationKey(e2);
   }
   //  注册临时快捷键
   registerTmpShortcut() {
     this.mindMap.keyCommand.addShortcut("Enter", () => {
       this.hideEditTextBox();
     });
+    this.mindMap.keyCommand.addShortcut("Tab", () => {
+      this.hideEditTextBox();
+    });
   }
   //  显示文本编辑框
   // isInserting：是否是刚创建的节点
-  async show(node3, e2, isInserting = false) {
+  // isFromKeyDown：是否是在按键事件进入的编辑
+  async show(node3, e2, isInserting = false, isFromKeyDown = false) {
     if (node3.isUseCustomNodeContent()) {
       return;
     }
@@ -47861,6 +50473,7 @@ var TextEdit = class {
         isShow = await beforeTextEdit(node3, isInserting);
       } catch (error) {
         isShow = false;
+        this.mindMap.opt.errorHandler(ERROR_TYPES.BEFORE_TEXT_EDIT_ERROR, error);
       }
       if (!isShow)
         return;
@@ -47870,10 +50483,10 @@ var TextEdit = class {
     this.mindMap.view.translateXY(offsetLeft, offsetTop);
     let rect = node3._textData.node.node.getBoundingClientRect();
     if (this.mindMap.richText) {
-      this.mindMap.richText.showEditText(node3, rect, isInserting);
+      this.mindMap.richText.showEditText(node3, rect, isInserting, isFromKeyDown);
       return;
     }
-    this.showEditTextBox(node3, rect);
+    this.showEditTextBox(node3, rect, isInserting, isFromKeyDown);
   }
   // 处理画布缩放
   onScale() {
@@ -47889,7 +50502,10 @@ var TextEdit = class {
     this.show(this.currentNode);
   }
   //  显示文本编辑框
-  showEditTextBox(node3, rect) {
+  showEditTextBox(node3, rect, isInserting, isFromKeyDown) {
+    if (this.showTextEdit)
+      return;
+    const { nodeTextEditZIndex, textAutoWrapWidth, selectTextOnEnterEditText } = this.mindMap.opt;
     this.mindMap.emit("before_show_text_edit");
     this.registerTmpShortcut();
     if (!this.textEditNode) {
@@ -47902,7 +50518,16 @@ var TextEdit = class {
       this.textEditNode.addEventListener("click", (e2) => {
         e2.stopPropagation();
       });
-      document.body.appendChild(this.textEditNode);
+      this.textEditNode.addEventListener("mousedown", (e2) => {
+        e2.stopPropagation();
+      });
+      this.textEditNode.addEventListener("keydown", (e2) => {
+        if (this.checkIsAutoEnterTextEditKey(e2)) {
+          e2.stopPropagation();
+        }
+      });
+      const targetNode = this.mindMap.opt.customInnerElsAppendTo || document.body;
+      targetNode.appendChild(this.textEditNode);
     }
     let scale = this.mindMap.view.scale;
     let lineHeight = node3.style.merge("lineHeight");
@@ -47912,22 +50537,33 @@ var TextEdit = class {
     );
     let isMultiLine = node3._textData.node.attr("data-ismultiLine") === "true";
     node3.style.domText(this.textEditNode, scale, isMultiLine);
-    this.textEditNode.style.zIndex = this.mindMap.opt.nodeTextEditZIndex;
+    this.textEditNode.style.zIndex = nodeTextEditZIndex;
     this.textEditNode.innerHTML = textLines.join("<br>");
     this.textEditNode.style.minWidth = rect.width + 10 + "px";
     this.textEditNode.style.minHeight = rect.height + 6 + "px";
     this.textEditNode.style.left = rect.left + "px";
     this.textEditNode.style.top = rect.top + "px";
     this.textEditNode.style.display = "block";
-    this.textEditNode.style.maxWidth = this.mindMap.opt.textAutoWrapWidth * scale + "px";
+    this.textEditNode.style.maxWidth = textAutoWrapWidth * scale + "px";
     if (isMultiLine && lineHeight !== 1) {
       this.textEditNode.style.transform = `translateY(${-((lineHeight * fontSize - fontSize) / 2) * scale}px)`;
     }
     this.showTextEdit = true;
-    if (!this.cacheEditingText) {
+    if (isInserting || selectTextOnEnterEditText && !isFromKeyDown) {
       this.selectNodeText();
+    } else {
+      this.focus();
     }
     this.cacheEditingText = "";
+  }
+  // 聚焦
+  focus() {
+    let selection = window.getSelection();
+    let range = document.createRange();
+    range.selectNodeContents(this.textEditNode);
+    range.collapse();
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
   //  选中文本
   selectNodeText() {
@@ -48000,6 +50636,8 @@ var default_default = {
   // 连线风格
   lineStyle: "straight",
   // 针对logicalStructure、mindMap两种结构。曲线（curve）、直线（straight）、直连（direct）
+  // 曲线连接时，根节点和其他节点的连接线样式保持统一，默认根节点为 ( 型，其他节点为 { 型，设为true后，都为 { 型
+  rootLineKeepSameInCurve: true,
   // 概要连线的粗细
   generalizationLineWidth: 1,
   // 概要连线的颜色
@@ -48050,12 +50688,7 @@ var default_default = {
     borderWidth: 0,
     borderDasharray: "none",
     borderRadius: 5,
-    textDecoration: "none",
-    active: {
-      borderColor: "rgb(57, 80, 96)",
-      borderWidth: 3,
-      borderDasharray: "none"
-    }
+    textDecoration: "none"
   },
   // 二级节点样式
   second: {
@@ -48073,12 +50706,7 @@ var default_default = {
     borderWidth: 1,
     borderDasharray: "none",
     borderRadius: 5,
-    textDecoration: "none",
-    active: {
-      borderColor: "rgb(57, 80, 96)",
-      borderWidth: 3,
-      borderDasharray: "none"
-    }
+    textDecoration: "none"
   },
   // 三级及以下节点样式
   node: {
@@ -48096,12 +50724,7 @@ var default_default = {
     borderWidth: 0,
     borderRadius: 5,
     borderDasharray: "none",
-    textDecoration: "none",
-    active: {
-      borderColor: "rgb(57, 80, 96)",
-      borderWidth: 3,
-      borderDasharray: "none"
-    }
+    textDecoration: "none"
   },
   // 概要节点样式
   generalization: {
@@ -48119,12 +50742,7 @@ var default_default = {
     borderWidth: 1,
     borderDasharray: "none",
     borderRadius: 5,
-    textDecoration: "none",
-    active: {
-      borderColor: "rgb(57, 80, 96)",
-      borderWidth: 3,
-      borderDasharray: "none"
-    }
+    textDecoration: "none"
   }
 };
 var supportActiveStyle = [
@@ -48153,7 +50771,8 @@ var nodeSizeIndependenceList = [
   "backgroundImage",
   "backgroundRepeat",
   "backgroundPosition",
-  "backgroundSize"
+  "backgroundSize",
+  "rootLineKeepSameInCurve"
 ];
 var checkIsNodeSizeIndependenceConfig = (config) => {
   let keys = Object.keys(config);
@@ -48231,9 +50850,6 @@ var Render = class {
         this.mindMap.execCommand("CLEAR_ACTIVE_NODE");
       }
     });
-    this.mindMap.on("paste", (data2) => {
-      this.onPaste(data2);
-    });
   }
   //  注册命令
   registerCommands() {
@@ -48265,6 +50881,8 @@ var Render = class {
     this.mindMap.command.add("CUT_NODE", this.cutNode);
     this.setNodeStyle = this.setNodeStyle.bind(this);
     this.mindMap.command.add("SET_NODE_STYLE", this.setNodeStyle);
+    this.setNodeStyles = this.setNodeStyles.bind(this);
+    this.mindMap.command.add("SET_NODE_STYLES", this.setNodeStyles);
     this.setNodeActive = this.setNodeActive.bind(this);
     this.mindMap.command.add("SET_NODE_ACTIVE", this.setNodeActive);
     this.clearAllActive = this.clearAllActive.bind(this);
@@ -48341,7 +50959,7 @@ var Render = class {
     this.copy = this.copy.bind(this);
     this.mindMap.keyCommand.addShortcut("Control+c", this.copy);
     this.mindMap.keyCommand.addShortcut("Control+v", () => {
-      this.textEdit.focusHiddenInput();
+      this.onPaste();
     });
     this.cut = this.cut.bind(this);
     this.mindMap.keyCommand.addShortcut("Control+x", this.cut);
@@ -48392,7 +51010,7 @@ var Render = class {
         }
       });
     });
-    this.mindMap.emit("node_active", null, this.activeNodeList);
+    this.mindMap.emit("node_active", null, [...this.activeNodeList]);
   }
   //  清除当前激活的节点
   clearActive() {
@@ -48447,7 +51065,7 @@ var Render = class {
           this.addActiveNode(node3);
           node3.showExpandBtn();
           setTimeout(() => {
-            node3.updateNodeShape();
+            node3.updateNodeActive();
           }, 0);
         }
       },
@@ -48456,6 +51074,7 @@ var Render = class {
       0,
       0
     );
+    this.mindMap.emit("node_active", null, [...this.activeNodeList]);
   }
   //  回退
   back(step) {
@@ -48482,11 +51101,12 @@ var Render = class {
     return Array.isArray(appointNodes) ? appointNodes : [appointNodes];
   }
   //  插入同级节点，多个节点只会操作第一个节点
-  insertNode(openEdit = true, appointNodes = [], appointData = null) {
+  insertNode(openEdit = true, appointNodes = [], appointData = null, appointChildren = []) {
     appointNodes = this.formatAppointNodes(appointNodes);
     if (this.activeNodeList.length <= 0 && appointNodes.length <= 0) {
       return;
     }
+    this.textEdit.hideEditTextBox();
     let {
       defaultInsertSecondLevelNodeText,
       defaultInsertBelowSecondLevelNodeText
@@ -48514,17 +51134,18 @@ var Render = class {
           resetRichText: isRichText,
           ...appointData || {}
         },
-        children: []
+        children: [...appointChildren]
       });
       this.mindMap.render();
     }
   }
   //  插入子节点
-  insertChildNode(openEdit = true, appointNodes = [], appointData = null) {
+  insertChildNode(openEdit = true, appointNodes = [], appointData = null, appointChildren = []) {
     appointNodes = this.formatAppointNodes(appointNodes);
     if (this.activeNodeList.length <= 0 && appointNodes.length <= 0) {
       return;
     }
+    this.textEdit.hideEditTextBox();
     let {
       defaultInsertSecondLevelNodeText,
       defaultInsertBelowSecondLevelNodeText
@@ -48548,7 +51169,7 @@ var Render = class {
           resetRichText: isRichText,
           ...appointData || {}
         },
-        children: []
+        children: [...appointChildren]
       });
       node3.nodeData.data.expand = true;
       if (node3.isRoot) {
@@ -48608,12 +51229,25 @@ var Render = class {
   // 复制节点
   copy() {
     this.beingCopyData = this.copyNode();
+    this.setCoptyDataToClipboard(this.beingCopyData);
   }
   // 剪切节点
   cut() {
     this.mindMap.execCommand("CUT_NODE", (copyData) => {
       this.beingCopyData = copyData;
+      this.setCoptyDataToClipboard(copyData);
     });
+  }
+  // 将粘贴或剪切的数据设置到用户剪切板中
+  setCoptyDataToClipboard(data2) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(
+        JSON.stringify({
+          simpleMindMap: true,
+          data: data2
+        })
+      );
+    }
   }
   // 粘贴节点
   paste() {
@@ -48622,7 +51256,28 @@ var Render = class {
     }
   }
   // 粘贴事件
-  async onPaste({ text: text3, img }) {
+  async onPaste() {
+    const { errorHandler } = this.mindMap.opt;
+    let text3 = null;
+    let img = null;
+    if (navigator.clipboard) {
+      try {
+        text3 = await navigator.clipboard.readText();
+        const items = await navigator.clipboard.read();
+        if (items && items.length > 0) {
+          for (const clipboardItem of items) {
+            for (const type of clipboardItem.types) {
+              if (/^image\//.test(type)) {
+                img = await clipboardItem.getType(type);
+                break;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        errorHandler(ERROR_TYPES.READ_CLIPBOARD_ERROR, error);
+      }
+    }
     const imgSize = img ? img.size : 0;
     if (this.beingPasteText !== text3 || this.beingPasteImgSize !== imgSize) {
       this.currentBeingPasteType = CONSTANTS.PASTE_TYPE.CLIP_BOARD;
@@ -48635,9 +51290,48 @@ var Render = class {
     }
     if (this.currentBeingPasteType === CONSTANTS.PASTE_TYPE.CLIP_BOARD) {
       if (text3) {
-        this.mindMap.execCommand("INSERT_CHILD_NODE", false, [], {
-          text: text3
-        });
+        let smmData = null;
+        let useDefault = true;
+        if (this.mindMap.opt.customHandleClipboardText) {
+          try {
+            const res = await this.mindMap.opt.customHandleClipboardText(text3);
+            if (!isUndef(res)) {
+              useDefault = false;
+              if (typeof res === "object" && res.simpleMindMap) {
+                smmData = res.data;
+              } else {
+                text3 = String(res);
+              }
+            }
+          } catch (error) {
+            errorHandler(ERROR_TYPES.CUSTOM_HANDLE_CLIPBOARD_TEXT_ERROR, error);
+          }
+        }
+        if (useDefault) {
+          try {
+            const parsedData = JSON.parse(text3);
+            if (parsedData && parsedData.simpleMindMap) {
+              smmData = parsedData.data;
+            }
+          } catch (error) {
+            errorHandler(ERROR_TYPES.PARSE_PASTE_DATA_ERROR, error);
+          }
+        }
+        if (smmData) {
+          this.mindMap.execCommand(
+            "INSERT_CHILD_NODE",
+            false,
+            [],
+            {
+              ...smmData.data
+            },
+            [...smmData.children]
+          );
+        } else {
+          this.mindMap.execCommand("INSERT_CHILD_NODE", false, [], {
+            text: text3
+          });
+        }
       }
       if (img) {
         try {
@@ -48653,7 +51347,7 @@ var Render = class {
             });
           }
         } catch (error) {
-          console.log(error);
+          errorHandler(ERROR_TYPES.LOAD_CLIPBOARD_IMAGE_ERROR, error);
         }
       }
     } else {
@@ -48762,7 +51456,7 @@ var Render = class {
         }
       }
     }
-    this.mindMap.emit("node_active", null, this.activeNodeList);
+    this.mindMap.emit("node_active", null, [...this.activeNodeList]);
     this.mindMap.render();
   }
   //  移除某个指定节点
@@ -48791,7 +51485,7 @@ var Render = class {
     let copyData = copyNodeTree({}, node3, true);
     this.removeActiveNode(node3);
     this.removeOneNode(node3);
-    this.mindMap.emit("node_active", null, this.activeNodeList);
+    this.mindMap.emit("node_active", null, [...this.activeNodeList]);
     this.mindMap.render();
     if (callback && typeof callback === "function") {
       callback(copyData);
@@ -48804,7 +51498,7 @@ var Render = class {
     }
     this.removeActiveNode(node3);
     this.removeOneNode(node3);
-    this.mindMap.emit("node_active", null, this.activeNodeList);
+    this.mindMap.emit("node_active", null, [...this.activeNodeList]);
     toNode.nodeData.children.push(node3.nodeData);
     this.mindMap.render();
     if (toNode.isRoot) {
@@ -48822,20 +51516,10 @@ var Render = class {
     this.mindMap.render();
   }
   //  设置节点样式
-  setNodeStyle(node3, prop, value, isActive) {
-    let data2 = {};
-    if (isActive) {
-      data2 = {
-        activeStyle: {
-          ...node3.nodeData.data.activeStyle || {},
-          [prop]: value
-        }
-      };
-    } else {
-      data2 = {
-        [prop]: value
-      };
-    }
+  setNodeStyle(node3, prop, value) {
+    let data2 = {
+      [prop]: value
+    };
     if (this.mindMap.richText) {
       let config = this.mindMap.richText.normalStyleToRichTextStyle({
         [prop]: value
@@ -48852,6 +51536,30 @@ var Render = class {
       (node3.parent || node3).renderLine(true);
     }
   }
+  //  设置节点多个样式
+  setNodeStyles(node3, style) {
+    let data2 = { ...style };
+    if (this.mindMap.richText) {
+      let config = this.mindMap.richText.normalStyleToRichTextStyle(style);
+      if (Object.keys(config).length > 0) {
+        this.mindMap.richText.showEditText(node3);
+        this.mindMap.richText.formatAllText(config);
+        this.mindMap.richText.hideEditText([node3]);
+      }
+    }
+    this.setNodeDataRender(node3, data2);
+    let props = Object.keys(style);
+    let hasLineStyleProps = false;
+    props.forEach((key) => {
+      if (lineStyleProps.includes(key)) {
+        hasLineStyleProps = true;
+      }
+    });
+    if (hasLineStyleProps) {
+      ;
+      (node3.parent || node3).renderLine(true);
+    }
+  }
   //  设置节点是否激活
   setNodeActive(node3, active) {
     this.setNodeData(node3, {
@@ -48862,7 +51570,7 @@ var Render = class {
     } else {
       node3.hideExpandBtn();
     }
-    node3.updateNodeShape();
+    node3.updateNodeActive();
   }
   //  设置节点是否展开
   setNodeExpand(node3, expand) {
@@ -48953,14 +51661,16 @@ var Render = class {
     );
   }
   //  设置节点文本
-  setNodeText(node3, text3, richText) {
+  setNodeText(node3, text3, richText, resetRichText) {
     this.setNodeDataRender(node3, {
       text: text3,
-      richText
+      richText,
+      resetRichText
     });
   }
   //  设置节点图片
-  setNodeImage(node3, { url, title, width: width2, height: height2, custom = false }) {
+  setNodeImage(node3, data2) {
+    const { url, title, width: width2, height: height2, custom = false } = data2 || { url: "", title: "", width: 0, height: 0, custom: false };
     this.setNodeDataRender(node3, {
       image: url,
       imageTitle: title || "",
@@ -49071,7 +51781,8 @@ var Render = class {
     });
   }
   // 定位到指定节点
-  goTargetNode(node3) {
+  goTargetNode(node3, callback = () => {
+  }) {
     let uid = typeof node3 === "string" ? node3 : node3.nodeData.data.uid;
     if (!uid)
       return;
@@ -49080,6 +51791,7 @@ var Render = class {
       if (targetNode) {
         targetNode.active();
         this.moveNodeToCenter(targetNode);
+        callback();
       }
     });
   }
@@ -49090,14 +51802,17 @@ var Render = class {
     });
   }
   //  设置节点数据，并判断是否渲染
-  setNodeDataRender(node3, data2) {
+  setNodeDataRender(node3, data2, notRender = false) {
     this.setNodeData(node3, data2);
     let changed = node3.reRender();
     if (changed) {
       if (node3.isGeneralization) {
         node3.generalizationBelongNode.updateGeneralization();
       }
-      this.mindMap.render();
+      if (!notRender)
+        this.mindMap.render();
+    } else {
+      this.mindMap.emit("node_tree_render_end");
     }
   }
   //  移动节点到画布中心
@@ -49185,12 +51900,7 @@ var freshGreen_default = (0, import_deepmerge2.default)(default_default, {
   generalization: {
     fillColor: "#fff",
     borderColor: "#333",
-    color: "#333",
-    active: {
-      borderColor: "rgb(57, 80, 96)",
-      borderWidth: 3,
-      borderDasharray: "none"
-    }
+    color: "#333"
   }
 });
 
@@ -49207,10 +51917,7 @@ var blueSky_default = (0, import_deepmerge3.default)(default_default, {
   generalizationLineColor: "#333",
   // 根节点样式
   root: {
-    fillColor: "rgb(115, 161, 191)",
-    active: {
-      borderColor: "rgb(57, 80, 96)"
-    }
+    fillColor: "rgb(115, 161, 191)"
   },
   // 二级节点样式
   second: {
@@ -49218,27 +51925,18 @@ var blueSky_default = (0, import_deepmerge3.default)(default_default, {
     color: "#333",
     borderColor: "rgb(115, 161, 191)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(57, 80, 96)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(57, 80, 96)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "#333",
-    color: "#333",
-    active: {
-      borderColor: "rgb(57, 80, 96)"
-    }
+    color: "#333"
   }
 });
 
@@ -49255,10 +51953,7 @@ var brainImpairedPink_default = (0, import_deepmerge4.default)(default_default, 
   generalizationLineColor: "#333",
   // 根节点样式
   root: {
-    fillColor: "rgb(191, 115, 148)",
-    active: {
-      borderColor: "rgb(96, 57, 74)"
-    }
+    fillColor: "rgb(191, 115, 148)"
   },
   // 二级节点样式
   second: {
@@ -49266,27 +51961,18 @@ var brainImpairedPink_default = (0, import_deepmerge4.default)(default_default, 
     color: "#333",
     borderColor: "rgb(191, 115, 148)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(96, 57, 74)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(96, 57, 74)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "#333",
-    color: "#333",
-    active: {
-      borderColor: "rgb(96, 57, 74)"
-    }
+    color: "#333"
   }
 });
 
@@ -49303,10 +51989,7 @@ var romanticPurple_default = (0, import_deepmerge5.default)(default_default, {
   generalizationLineColor: "#333",
   // 根节点样式
   root: {
-    fillColor: "rgb(123, 115, 191)",
-    active: {
-      borderColor: "rgb(61, 57, 96)"
-    }
+    fillColor: "rgb(123, 115, 191)"
   },
   // 二级节点样式
   second: {
@@ -49314,27 +51997,18 @@ var romanticPurple_default = (0, import_deepmerge5.default)(default_default, {
     color: "#333",
     borderColor: "rgb(123, 115, 191)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(61, 57, 96)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(61, 57, 96)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "#333",
-    color: "#333",
-    active: {
-      borderColor: "rgb(61, 57, 96)"
-    }
+    color: "#333"
   }
 });
 
@@ -49351,10 +52025,7 @@ var freshRed_default = (0, import_deepmerge6.default)(default_default, {
   generalizationLineColor: "#333",
   // 根节点样式
   root: {
-    fillColor: "rgb(191, 115, 115)",
-    active: {
-      borderColor: "rgb(96, 57, 57)"
-    }
+    fillColor: "rgb(191, 115, 115)"
   },
   // 二级节点样式
   second: {
@@ -49362,27 +52033,18 @@ var freshRed_default = (0, import_deepmerge6.default)(default_default, {
     color: "#333",
     borderColor: "rgb(191, 115, 115)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(96, 57, 57)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(96, 57, 57)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "#333",
-    color: "#333",
-    active: {
-      borderColor: "rgb(96, 57, 57)"
-    }
+    color: "#333"
   }
 });
 
@@ -49399,10 +52061,7 @@ var earthYellow_default = (0, import_deepmerge7.default)(default_default, {
   generalizationLineColor: "#333",
   // 根节点样式
   root: {
-    fillColor: "rgb(191, 147, 115)",
-    active: {
-      borderColor: "rgb(96, 73, 57)"
-    }
+    fillColor: "rgb(191, 147, 115)"
   },
   // 二级节点样式
   second: {
@@ -49410,27 +52069,18 @@ var earthYellow_default = (0, import_deepmerge7.default)(default_default, {
     color: "#333",
     borderColor: "rgb(191, 147, 115)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(96, 73, 57)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(96, 73, 57)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "#333",
-    color: "#333",
-    active: {
-      borderColor: "rgb(96, 73, 57)"
-    }
+    color: "#333"
   }
 });
 
@@ -49451,16 +52101,13 @@ var classic_default = (0, import_deepmerge8.default)(default_default, {
   backgroundImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAIAAAACDbGyAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoTWFjaW50b3NoKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDowQzg5QTQ0NDhENzgxMUUzOENGREE4QTg0RDgzRTZDNyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDowQzg5QTQ0NThENzgxMUUzOENGREE4QTg0RDgzRTZDNyI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkMwOEQ1NDRGOEQ3NzExRTM4Q0ZEQThBODREODNFNkM3IiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOkMwOEQ1NDUwOEQ3NzExRTM4Q0ZEQThBODREODNFNkM3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+e9P33AAAACVJREFUeNpisXJ0YUACTAyoAMr/+eM7EGGRZ4FQ7BycEAZAgAEAHbEGtkoQm/wAAAAASUVORK5CYII=",
   // 背景重复
   backgroundRepeat: "repeat",
+  backgroundSize: "auto",
   // 根节点样式
   root: {
     fillColor: "rgb(233, 223, 152)",
     color: "#333",
     fontSize: 24,
-    borderRadius: 21,
-    active: {
-      fillColor: "rgb(254, 219, 0)",
-      borderColor: "transparent"
-    }
+    borderRadius: 21
   },
   // 二级节点样式
   second: {
@@ -49468,31 +52115,19 @@ var classic_default = (0, import_deepmerge8.default)(default_default, {
     borderColor: "transparent",
     color: "#333",
     fontSize: 16,
-    borderRadius: 10,
-    active: {
-      fillColor: "rgb(254, 219, 0)",
-      borderColor: "transparent"
-    }
+    borderRadius: 10
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
     color: "#fff",
-    fontWeight: "bold",
-    active: {
-      fillColor: "rgb(254, 219, 0)",
-      borderColor: "transparent"
-    }
+    fontWeight: "bold"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "transparent",
-    color: "#333",
-    active: {
-      fillColor: "rgb(254, 219, 0)",
-      borderColor: "transparent"
-    }
+    color: "#333"
   }
 });
 
@@ -49514,10 +52149,7 @@ var classic2_default = (0, import_deepmerge9.default)(default_default, {
     fillColor: "rgb(18, 187, 55)",
     color: "#fff",
     fontSize: 24,
-    borderRadius: 10,
-    active: {
-      borderColor: "rgb(51, 51, 51)"
-    }
+    borderRadius: 10
   },
   // 二级节点样式
   second: {
@@ -49525,28 +52157,19 @@ var classic2_default = (0, import_deepmerge9.default)(default_default, {
     borderColor: "transparent",
     color: "#1a1a1a",
     fontSize: 18,
-    borderRadius: 10,
-    active: {
-      borderColor: "rgb(51, 51, 51)"
-    }
+    borderRadius: 10
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "#1a1a1a",
-    active: {
-      borderColor: "rgb(51, 51, 51)"
-    }
+    color: "#1a1a1a"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "rgb(51, 51, 51)",
     borderWidth: 2,
-    color: "#1a1a1a",
-    active: {
-      borderColor: "rgb(18, 187, 55)"
-    }
+    color: "#1a1a1a"
   }
 });
 
@@ -49570,10 +52193,7 @@ var classic3_default = (0, import_deepmerge10.default)(default_default, {
     fontSize: 24,
     borderRadius: 10,
     borderColor: "rgb(249, 199, 84)",
-    borderWidth: 1,
-    active: {
-      borderColor: "rgb(94, 202, 110)"
-    }
+    borderWidth: 1
   },
   // 二级节点样式
   second: {
@@ -49582,28 +52202,19 @@ var classic3_default = (0, import_deepmerge10.default)(default_default, {
     borderWidth: 1,
     color: "#1a1a1a",
     fontSize: 18,
-    borderRadius: 10,
-    active: {
-      borderColor: "rgb(94, 202, 110)"
-    }
+    borderRadius: 10
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "#1a1a1a",
-    active: {
-      borderColor: "rgb(94, 202, 110)"
-    }
+    color: "#1a1a1a"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "#1a1a1a",
     color: "#1a1a1a",
-    borderWidth: 2,
-    active: {
-      borderColor: "rgb(94, 202, 110)"
-    }
+    borderWidth: 2
   }
 });
 
@@ -49627,10 +52238,7 @@ var classic4_default = (0, import_deepmerge11.default)(default_default, {
     fontSize: 24,
     borderRadius: 10,
     borderColor: "rgb(189, 197, 201)",
-    borderWidth: 2,
-    active: {
-      borderColor: "rgb(169, 218, 218)"
-    }
+    borderWidth: 2
   },
   // 二级节点样式
   second: {
@@ -49639,10 +52247,7 @@ var classic4_default = (0, import_deepmerge11.default)(default_default, {
     borderWidth: 2,
     color: "#fff",
     fontSize: 18,
-    borderRadius: 10,
-    active: {
-      borderColor: "rgb(56, 123, 233)"
-    }
+    borderRadius: 10
   },
   // 三级及以下节点样式
   node: {
@@ -49650,20 +52255,14 @@ var classic4_default = (0, import_deepmerge11.default)(default_default, {
     color: "rgb(30, 53, 86)",
     borderColor: "rgb(30, 53, 86)",
     borderWidth: 1,
-    marginY: 20,
-    active: {
-      borderColor: "rgb(169, 218, 218)"
-    }
+    marginY: 20
   },
   // 概要节点样式
   generalization: {
     fillColor: "rgb(56, 123, 233)",
     borderColor: "rgb(56, 123, 233)",
     color: "#fff",
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(169, 218, 218)"
-    }
+    borderWidth: 0
   }
 });
 
@@ -49685,10 +52284,7 @@ var dark_default = (0, import_deepmerge12.default)(default_default, {
     fillColor: "rgb(28, 178, 43)",
     color: "#fff",
     fontSize: 24,
-    borderRadius: 10,
-    active: {
-      borderColor: "rgb(17, 68, 23)"
-    }
+    borderRadius: 10
   },
   // 二级节点样式
   second: {
@@ -49696,27 +52292,18 @@ var dark_default = (0, import_deepmerge12.default)(default_default, {
     color: "rgb(147,148,149)",
     fontSize: 18,
     borderRadius: 10,
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(17, 68, 23)"
-    }
+    borderWidth: 0
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(147, 148, 149)",
-    active: {
-      borderColor: "rgb(17, 68, 23)"
-    }
+    color: "rgb(147, 148, 149)"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "transparent",
-    color: "#333",
-    active: {
-      borderColor: "rgb(17, 68, 23)"
-    }
+    color: "#333"
   }
 });
 
@@ -49734,10 +52321,7 @@ var classicGreen_default = (0, import_deepmerge13.default)(default_default, {
   // 根节点样式
   root: {
     fillColor: "rgb(253, 244, 217)",
-    color: "#222",
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    color: "#222"
   },
   // 二级节点样式
   second: {
@@ -49745,28 +52329,19 @@ var classicGreen_default = (0, import_deepmerge13.default)(default_default, {
     color: "#222",
     borderColor: "rgb(242, 200, 104)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "rgb(123, 199, 120)",
     borderColor: "transparent",
     borderWidth: 2,
-    color: "#fff",
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    color: "#fff"
   }
 });
 
@@ -49786,10 +52361,7 @@ var classicBlue_default = (0, import_deepmerge14.default)(default_default, {
   // 根节点样式
   root: {
     fillColor: "rgb(255, 255, 255)",
-    color: "#222",
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    color: "#222"
   },
   // 二级节点样式
   second: {
@@ -49797,27 +52369,18 @@ var classicBlue_default = (0, import_deepmerge14.default)(default_default, {
     color: "#222",
     borderColor: "rgb(255, 255, 255)",
     borderWidth: 1,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#333",
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    color: "#333"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "rgb(51, 51, 51)",
-    color: "#333",
-    active: {
-      borderColor: "rgb(94, 199, 248)"
-    }
+    color: "#333"
   }
 });
 
@@ -49837,10 +52400,7 @@ var minions_default = (0, import_deepmerge15.default)(default_default, {
   root: {
     fillColor: "rgb(55, 165, 255)",
     borderColor: "rgb(51, 51, 51)",
-    borderWidth: 3,
-    active: {
-      borderColor: "rgb(255, 160, 36)"
-    }
+    borderWidth: 3
   },
   // 二级节点样式
   second: {
@@ -49848,27 +52408,18 @@ var minions_default = (0, import_deepmerge15.default)(default_default, {
     color: "#222",
     borderColor: "rgb(51, 51, 51)",
     borderWidth: 3,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(55, 165, 255)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#222",
-    active: {
-      borderColor: "rgb(55, 165, 255)"
-    }
+    color: "#222"
   },
   // 概要节点样式
   generalization: {
     borderColor: "#222",
     borderWidth: 3,
-    color: "#222",
-    active: {
-      borderColor: "rgb(55, 165, 255)"
-    }
+    color: "#222"
   }
 });
 
@@ -49888,11 +52439,7 @@ var pinkGrape_default = (0, import_deepmerge16.default)(default_default, {
   root: {
     fillColor: "rgb(139, 109, 225)",
     borderColor: "",
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(243, 104, 138)",
-      borderWidth: 2
-    }
+    borderWidth: 0
   },
   // 二级节点样式
   second: {
@@ -49900,29 +52447,18 @@ var pinkGrape_default = (0, import_deepmerge16.default)(default_default, {
     color: "#fff",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(139, 109, 225)",
-      borderWidth: 2
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#222",
-    active: {
-      borderColor: "rgb(139, 109, 225)"
-    }
+    color: "#222"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "transparent",
-    color: "#222",
-    active: {
-      borderColor: "rgb(139, 109, 225)",
-      borderWidth: 2
-    }
+    color: "#222"
   }
 });
 
@@ -49942,11 +52478,7 @@ var mint_default = (0, import_deepmerge17.default)(default_default, {
   root: {
     fillColor: "rgb(0, 192, 184)",
     borderColor: "",
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(255, 160, 36)",
-      borderWidth: 3
-    }
+    borderWidth: 0
   },
   // 二级节点样式
   second: {
@@ -49954,27 +52486,18 @@ var mint_default = (0, import_deepmerge17.default)(default_default, {
     color: "#222",
     borderColor: "rgb(184, 235, 233)",
     borderWidth: 2,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(0, 192, 184)"
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#222",
-    active: {
-      borderColor: "rgb(0, 192, 184)"
-    }
+    color: "#222"
   },
   // 概要节点样式
   generalization: {
     fillColor: "rgb(90, 206, 241)",
     borderColor: "transparent",
-    color: "#fff",
-    active: {
-      borderColor: "rgb(0, 192, 184)"
-    }
+    color: "#fff"
   }
 });
 
@@ -49995,11 +52518,7 @@ var gold_default = (0, import_deepmerge18.default)(default_default, {
     fillColor: "rgb(51, 56, 62)",
     color: "rgb(247, 208, 160)",
     borderColor: "",
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(247, 208, 160)",
-      borderWidth: 3
-    }
+    borderWidth: 0
   },
   // 二级节点样式
   second: {
@@ -50007,28 +52526,18 @@ var gold_default = (0, import_deepmerge18.default)(default_default, {
     color: "rgb(81, 58, 42)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(51, 56, 62)",
-      borderWidth: 2
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#222",
-    active: {
-      borderColor: "rgb(0, 192, 184)"
-    }
+    color: "#222"
   },
   // 概要节点样式
   generalization: {
     fillColor: "rgb(127, 93, 64)",
     borderColor: "transparent",
-    color: "rgb(255, 214, 175)",
-    active: {
-      borderColor: "rgb(51, 56, 62)"
-    }
+    color: "rgb(255, 214, 175)"
   }
 });
 
@@ -50049,11 +52558,7 @@ var vitalityOrange_default = (0, import_deepmerge19.default)(default_default, {
     fillColor: "rgb(255, 112, 52)",
     color: "#fff",
     borderColor: "",
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(51, 51, 51)",
-      borderWidth: 3
-    }
+    borderWidth: 0
   },
   // 二级节点样式
   second: {
@@ -50061,28 +52566,18 @@ var vitalityOrange_default = (0, import_deepmerge19.default)(default_default, {
     color: "rgb(51, 51, 51)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(255, 112, 52)",
-      borderWidth: 2
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#222",
-    active: {
-      borderColor: "rgb(255, 112, 52)"
-    }
+    color: "#222"
   },
   // 概要节点样式
   generalization: {
     fillColor: "rgb(255, 222, 69)",
     borderColor: "transparent",
-    color: "rgb(51, 51, 51)",
-    active: {
-      borderColor: "rgb(255, 112, 52)"
-    }
+    color: "rgb(51, 51, 51)"
   }
 });
 
@@ -50103,11 +52598,7 @@ var greenLeaf_default = (0, import_deepmerge20.default)(default_default, {
     fillColor: "rgb(25, 193, 73)",
     color: "#fff",
     borderColor: "",
-    borderWidth: 0,
-    active: {
-      borderColor: "#222",
-      borderWidth: 3
-    }
+    borderWidth: 0
   },
   // 二级节点样式
   second: {
@@ -50115,29 +52606,19 @@ var greenLeaf_default = (0, import_deepmerge20.default)(default_default, {
     color: "rgb(69, 149, 96)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(25, 193, 73)",
-      borderWidth: 2
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "#222",
-    active: {
-      borderColor: "rgb(25, 193, 73)"
-    }
+    color: "#222"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "rgb(251, 158, 0)",
     borderWidth: 2,
-    color: "rgb(51, 51, 51)",
-    active: {
-      borderColor: "rgb(25, 193, 73)"
-    }
+    color: "rgb(51, 51, 51)"
   }
 });
 
@@ -50158,11 +52639,7 @@ var dark2_default = (0, import_deepmerge21.default)(default_default, {
     fillColor: "rgb(36, 179, 96)",
     color: "#fff",
     borderColor: "",
-    borderWidth: 0,
-    active: {
-      borderColor: "rgb(254, 199, 13)",
-      borderWidth: 3
-    }
+    borderWidth: 0
   },
   // 二级节点样式
   second: {
@@ -50170,29 +52647,19 @@ var dark2_default = (0, import_deepmerge21.default)(default_default, {
     color: "rgb(0, 0, 0)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 14,
-    active: {
-      borderColor: "rgb(36, 179, 96)",
-      borderWidth: 2
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "rgb(204, 204, 204)",
-    active: {
-      borderColor: "rgb(254, 199, 13)"
-    }
+    color: "rgb(204, 204, 204)"
   },
   // 概要节点样式
   generalization: {
     fillColor: "transparent",
     borderColor: "rgb(255, 119, 34)",
     borderWidth: 2,
-    color: "rgb(204, 204, 204)",
-    active: {
-      borderColor: "rgb(254, 199, 13)"
-    }
+    color: "rgb(204, 204, 204)"
   }
 });
 
@@ -50213,11 +52680,7 @@ var skyGreen_default = (0, import_deepmerge22.default)(default_default, {
     fillColor: "#fff",
     borderColor: "",
     borderWidth: 0,
-    color: "rgb(65, 89, 158)",
-    active: {
-      borderColor: "rgb(251, 227, 188)",
-      borderWidth: 3
-    }
+    color: "rgb(65, 89, 158)"
   },
   // 二级节点样式
   second: {
@@ -50225,28 +52688,18 @@ var skyGreen_default = (0, import_deepmerge22.default)(default_default, {
     color: "rgb(65, 89, 158)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 14,
-    active: {
-      borderColor: "#fff",
-      borderWidth: 2
-    }
+    fontSize: 14
   },
   // 三级及以下节点样式
   node: {
     fontSize: 12,
-    color: "rgb(65, 89, 158)",
-    active: {
-      borderColor: "rgb(251, 227, 188)"
-    }
+    color: "rgb(65, 89, 158)"
   },
   // 概要节点样式
   generalization: {
     fillColor: "#fff",
     borderColor: "transparent",
-    color: "rgb(65, 89, 158)",
-    active: {
-      borderColor: "rgb(251, 227, 188)"
-    }
+    color: "rgb(65, 89, 158)"
   }
 });
 
@@ -50266,10 +52719,7 @@ var simpleBlack_default = (0, import_deepmerge23.default)(default_default, {
     color: "rgb(34, 34, 34)",
     borderColor: "rgb(34, 34, 34)",
     borderWidth: 3,
-    fontSize: 24,
-    active: {
-      borderColor: "#a13600"
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50277,18 +52727,12 @@ var simpleBlack_default = (0, import_deepmerge23.default)(default_default, {
     color: "rgb(34, 34, 34)",
     borderColor: "rgb(34, 34, 34)",
     borderWidth: 3,
-    fontSize: 18,
-    active: {
-      borderColor: "#a13600"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(34, 34, 34)",
-    active: {
-      borderColor: "#a13600"
-    }
+    color: "rgb(34, 34, 34)"
   },
   // 概要节点样式
   generalization: {
@@ -50296,10 +52740,7 @@ var simpleBlack_default = (0, import_deepmerge23.default)(default_default, {
     fillColor: "transparent",
     borderColor: "rgb(34, 34, 34)",
     borderWidth: 2,
-    color: "rgb(34, 34, 34)",
-    active: {
-      borderColor: "#a13600"
-    }
+    color: "rgb(34, 34, 34)"
   }
 });
 
@@ -50319,11 +52760,7 @@ var courseGreen_default = (0, import_deepmerge24.default)(default_default, {
     color: "#fff",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "rgb(173, 91, 12)",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50331,18 +52768,12 @@ var courseGreen_default = (0, import_deepmerge24.default)(default_default, {
     color: "rgb(50, 113, 96)",
     borderColor: "rgb(113, 195, 169)",
     borderWidth: 2,
-    fontSize: 18,
-    active: {
-      borderColor: "rgb(173, 91, 12)"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(10, 59, 43)",
-    active: {
-      borderColor: "rgb(173, 91, 12)"
-    }
+    color: "rgb(10, 59, 43)"
   },
   // 概要节点样式
   generalization: {
@@ -50350,10 +52781,7 @@ var courseGreen_default = (0, import_deepmerge24.default)(default_default, {
     fillColor: "rgb(246, 238, 211)",
     borderColor: "",
     borderWidth: 0,
-    color: "rgb(173, 91, 12)",
-    active: {
-      borderColor: "rgb(113, 195, 169)"
-    }
+    color: "rgb(173, 91, 12)"
   }
 });
 
@@ -50373,11 +52801,7 @@ var coffee_default = (0, import_deepmerge25.default)(default_default, {
     color: "#fff",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "rgb(173, 123, 91)",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50385,18 +52809,12 @@ var coffee_default = (0, import_deepmerge25.default)(default_default, {
     color: "rgb(125, 86, 42)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 18,
-    active: {
-      borderColor: "rgb(173, 123, 91)"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(96, 71, 47)",
-    active: {
-      borderColor: "rgb(173, 123, 91)"
-    }
+    color: "rgb(96, 71, 47)"
   },
   // 概要节点样式
   generalization: {
@@ -50404,10 +52822,7 @@ var coffee_default = (0, import_deepmerge25.default)(default_default, {
     fillColor: "rgb(255, 249, 239)",
     borderColor: "rgb(173, 123, 91)",
     borderWidth: 2,
-    color: "rgb(122, 83, 44)",
-    active: {
-      borderColor: "rgb(202, 117, 79)"
-    }
+    color: "rgb(122, 83, 44)"
   }
 });
 
@@ -50429,11 +52844,7 @@ var redSpirit_default = (0, import_deepmerge26.default)(default_default, {
     color: "rgb(255, 233, 157)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "rgb(255, 233, 157)",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50441,18 +52852,12 @@ var redSpirit_default = (0, import_deepmerge26.default)(default_default, {
     color: "rgb(211, 58, 21)",
     borderColor: "rgb(222, 101, 85)",
     borderWidth: 2,
-    fontSize: 18,
-    active: {
-      borderColor: "rgb(255, 233, 157)"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(144, 71, 43)",
-    active: {
-      borderColor: "rgb(255, 233, 157)"
-    }
+    color: "rgb(144, 71, 43)"
   },
   // 概要节点样式
   generalization: {
@@ -50460,10 +52865,7 @@ var redSpirit_default = (0, import_deepmerge26.default)(default_default, {
     fillColor: "rgb(255, 247, 211)",
     borderColor: "rgb(255, 202, 162)",
     borderWidth: 2,
-    color: "rgb(187, 101, 69)",
-    active: {
-      borderColor: "rgb(222, 101, 85)"
-    }
+    color: "rgb(187, 101, 69)"
   }
 });
 
@@ -50485,11 +52887,7 @@ var blackHumour_default = (0, import_deepmerge27.default)(default_default, {
     color: "#fff",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "rgb(254, 199, 13)",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50497,19 +52895,12 @@ var blackHumour_default = (0, import_deepmerge27.default)(default_default, {
     color: "rgb(0, 0, 0)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 18,
-    active: {
-      borderColor: "rgb(36, 179, 96)",
-      borderWidth: 3
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(204, 204, 204)",
-    active: {
-      borderColor: "rgb(254, 199, 13)"
-    }
+    color: "rgb(204, 204, 204)"
   },
   // 概要节点样式
   generalization: {
@@ -50517,10 +52908,7 @@ var blackHumour_default = (0, import_deepmerge27.default)(default_default, {
     fillColor: "rgb(27, 31, 34)",
     borderColor: "rgb(255, 119, 34)",
     borderWidth: 2,
-    color: "rgb(204, 204, 204)",
-    active: {
-      borderColor: "rgb(36, 179, 96)"
-    }
+    color: "rgb(204, 204, 204)"
   }
 });
 
@@ -50542,11 +52930,7 @@ var lateNightOffice_default = (0, import_deepmerge28.default)(default_default, {
     color: "rgb(255, 255, 255)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "rgb(255, 119, 34)",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50554,19 +52938,12 @@ var lateNightOffice_default = (0, import_deepmerge28.default)(default_default, {
     color: "rgb(209, 210, 210)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 18,
-    active: {
-      borderColor: "rgb(255, 119, 34)",
-      borderWidth: 3
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(204, 204, 204)",
-    active: {
-      borderColor: "rgb(255, 119, 34)"
-    }
+    color: "rgb(204, 204, 204)"
   },
   // 概要节点样式
   generalization: {
@@ -50574,10 +52951,7 @@ var lateNightOffice_default = (0, import_deepmerge28.default)(default_default, {
     fillColor: "rgb(255, 119, 34)",
     borderColor: "",
     borderWidth: 2,
-    color: "#fff",
-    active: {
-      borderColor: "rgb(23, 153, 243)"
-    }
+    color: "#fff"
   }
 });
 
@@ -50599,11 +52973,7 @@ var blackGold_default = (0, import_deepmerge29.default)(default_default, {
     color: "rgb(111, 61, 6)",
     borderColor: "",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "#fff",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50611,18 +52981,12 @@ var blackGold_default = (0, import_deepmerge29.default)(default_default, {
     color: "rgb(225, 201, 158)",
     borderColor: "rgb(245, 224, 191)",
     borderWidth: 2,
-    fontSize: 18,
-    active: {
-      borderColor: "rgb(255, 208, 124)"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "rgb(231, 203, 155)",
-    active: {
-      borderColor: "rgb(255, 208, 124)"
-    }
+    color: "rgb(231, 203, 155)"
   },
   // 概要节点样式
   generalization: {
@@ -50630,10 +52994,7 @@ var blackGold_default = (0, import_deepmerge29.default)(default_default, {
     fillColor: "rgb(56, 45, 34)",
     borderColor: "rgb(104, 84, 61)",
     borderWidth: 2,
-    color: "rgb(242, 216, 176)",
-    active: {
-      borderColor: "rgb(255, 208, 124)"
-    }
+    color: "rgb(242, 216, 176)"
   }
 });
 
@@ -50655,11 +53016,7 @@ var avocado_default = (0, import_deepmerge30.default)(default_default, {
     color: "#fff",
     borderColor: "#94c143",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "#749336",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50667,18 +53024,12 @@ var avocado_default = (0, import_deepmerge30.default)(default_default, {
     color: "#749336",
     borderColor: "#aec668",
     borderWidth: 2,
-    fontSize: 18,
-    active: {
-      borderColor: "#749336"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "#749336",
-    active: {
-      borderColor: "#749336"
-    }
+    color: "#749336"
   },
   // 概要节点样式
   generalization: {
@@ -50686,10 +53037,7 @@ var avocado_default = (0, import_deepmerge30.default)(default_default, {
     fillColor: "#cee498",
     borderColor: "#aec668",
     borderWidth: 2,
-    color: "#749336",
-    active: {
-      borderColor: "#749336"
-    }
+    color: "#749336"
   }
 });
 
@@ -50711,11 +53059,7 @@ var autumn_default = (0, import_deepmerge31.default)(default_default, {
     color: "#fff",
     borderColor: "#e68112",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "#b0bc47",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50723,18 +53067,12 @@ var autumn_default = (0, import_deepmerge31.default)(default_default, {
     color: "#8c5416",
     borderColor: "#b0bc47",
     borderWidth: 2,
-    fontSize: 18,
-    active: {
-      borderColor: "#e68112"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "#8c5416",
-    active: {
-      borderColor: "#b0bc47"
-    }
+    color: "#8c5416"
   },
   // 概要节点样式
   generalization: {
@@ -50742,10 +53080,7 @@ var autumn_default = (0, import_deepmerge31.default)(default_default, {
     fillColor: "#ffd683",
     borderColor: "#b0bc47",
     borderWidth: 2,
-    color: "#8c5416",
-    active: {
-      borderColor: "#e68112"
-    }
+    color: "#8c5416"
   }
 });
 
@@ -50767,11 +53102,7 @@ var orangeJuice_default = (0, import_deepmerge32.default)(default_default, {
     color: "#110501",
     borderColor: "#ff6811",
     borderWidth: 0,
-    fontSize: 24,
-    active: {
-      borderColor: "#a9a4a9",
-      borderWidth: 3
-    }
+    fontSize: 24
   },
   // 二级节点样式
   second: {
@@ -50779,18 +53110,12 @@ var orangeJuice_default = (0, import_deepmerge32.default)(default_default, {
     color: "#a9a4a9",
     borderColor: "#ff6811",
     borderWidth: 2,
-    fontSize: 18,
-    active: {
-      borderColor: "#110501"
-    }
+    fontSize: 18
   },
   // 三级及以下节点样式
   node: {
     fontSize: 14,
-    color: "#a9a4a9",
-    active: {
-      borderColor: "#ff6811"
-    }
+    color: "#a9a4a9"
   },
   // 概要节点样式
   generalization: {
@@ -50798,10 +53123,7 @@ var orangeJuice_default = (0, import_deepmerge32.default)(default_default, {
     fillColor: "",
     borderColor: "#ff6811",
     borderWidth: 2,
-    color: "#a9a4a9",
-    active: {
-      borderColor: "#110501"
-    }
+    color: "#a9a4a9"
   }
 });
 
@@ -50989,6 +53311,10 @@ var KeyCommand = class {
       arr.push(e2.keyCode);
     }
     return arr;
+  }
+  // 判断是否按下了组合键
+  hasCombinationKey(e2) {
+    return e2.ctrlKey || e2.metaKey || e2.altKey || e2.shiftKey;
   }
   //  获取快捷键对应的键值数组
   getKeyCodeArr(key) {
@@ -51231,8 +53557,6 @@ var defaultOpt = {
   mouseScaleCenterUseMousePosition: true,
   // 最多显示几个标签
   maxTag: 5,
-  // 导出图片时的内边距
-  exportPadding: 20,
   // 展开收缩按钮尺寸
   expandBtnSize: 20,
   // 节点里图片和文字的间距
@@ -51284,7 +53608,9 @@ var defaultOpt = {
   // 展开收起按钮的颜色
   expandBtnStyle: {
     color: "#808080",
-    fill: "#fff"
+    fill: "#fff",
+    fontSize: 13,
+    strokeColor: "#333333"
   },
   // 自定义展开收起按钮的图标
   expandBtnIcon: {
@@ -51292,11 +53618,17 @@ var defaultOpt = {
     // svg字符串
     close: ""
   },
+  // 处理收起节点数量
+  expandBtnNumHandler: (num) => {
+    return num;
+  },
+  // 是否显示带数量的收起按钮
+  isShowExpandNum: true,
   // 是否只有当鼠标在画布内才响应快捷键事件
   enableShortcutOnlyWhenMouseInSvg: true,
   // 初始根节点的位置
   initRootNodePosition: null,
-  // 导出png、svg、pdf时的图形内边距
+  // 导出png、svg、pdf时的图形内边距，注意是单侧内边距
   exportPaddingX: 10,
   exportPaddingY: 10,
   // 节点文本编辑框的z-index
@@ -51337,7 +53669,61 @@ var defaultOpt = {
   // 是否开启自定义节点内容
   isUseCustomNodeContent: false,
   // 自定义返回节点内容的方法
-  customCreateNodeContent: null
+  customCreateNodeContent: null,
+  // 指定内部一些元素（节点文本编辑元素、节点备注显示元素、关联线文本编辑元素、节点图片调整按钮元素）添加到的位置，默认添加到document.body下
+  customInnerElsAppendTo: null,
+  // 拖拽元素时，指示元素新位置的块的最大高度
+  nodeDragPlaceholderMaxSize: 20,
+  // 是否在存在一个激活节点时，当按下中文、英文、数字按键时自动进入文本编辑模式
+  // 开启该特性后，需要给你的输入框绑定keydown事件，并禁止冒泡
+  enableAutoEnterTextEditWhenKeydown: false,
+  // 设置富文本节点编辑框和节点大小一致，形成伪原地编辑的效果
+  // 需要注意的是，只有当节点内只有文本、且形状是矩形才会有比较好的效果
+  richTextEditFakeInPlace: false,
+  // 自定义对剪贴板文本的处理。当按ctrl+v粘贴时会读取用户剪贴板中的文本和图片，默认只会判断文本是否是普通文本和simple-mind-map格式的节点数据，如果你想处理其他思维导图的数据，比如processon、zhixi等，那么可以传递一个函数，接受当前剪贴板中的文本为参数，返回处理后的数据，可以返回两种类型：
+  /*
+      1.返回一个纯文本，那么会直接以该文本创建一个子节点
+  
+      2.返回一个节点对象，格式如下：
+        {
+          // 代表是simple-mind-map格式的数据
+          simpleMindMap: true,
+          // 节点数据，同simple-mind-map节点数据格式
+          data: {
+            data: {
+              text: ''
+            },
+            children: []
+          }
+        }
+    */
+  // 如果你的处理逻辑存在异步逻辑，也可以返回一个promise
+  customHandleClipboardText: null,
+  // 禁止鼠标滚轮缩放，你仍旧可以使用api进行缩放
+  disableMouseWheelZoom: false,
+  // 错误处理函数
+  errorHandler: (code, error) => {
+    console.error(code, error);
+  },
+  // 设置导出图片和svg时，针对富文本节点内容，也就是嵌入到svg中的html节点的默认样式覆盖
+  // 如果不覆盖，会发生偏移问题
+  resetCss: `
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+  `,
+  // 开启鼠标双击复位思维导图位置及缩放
+  enableDblclickReset: false,
+  // 导出图片时canvas的缩放倍数，该配置会和window.devicePixelRatio值取最大值
+  minExportImgCanvasScale: 2,
+  // 节点鼠标hover和激活时显示的矩形边框的颜色
+  hoverRectColor: "rgb(94, 200, 248)",
+  // 节点鼠标hover和激活时显示的矩形边框距节点内容的距离
+  hoverRectPadding: 2,
+  // 双击节点进入节点文本编辑时是否默认选中文本，默认只在创建新节点时会选中
+  selectTextOnEnterEditText: false
 };
 
 // ../simple-mind-map/index.js
@@ -51346,12 +53732,19 @@ var MindMap2 = class {
   constructor(opt = {}) {
     this.opt = this.handleOpt((0, import_deepmerge33.default)(defaultOpt, opt));
     this.el = this.opt.el;
+    if (!this.el)
+      throw new Error("\u7F3A\u5C11\u5BB9\u5668\u5143\u7D20el");
     this.elRect = this.el.getBoundingClientRect();
     this.width = this.elRect.width;
     this.height = this.elRect.height;
+    if (this.width <= 0 || this.height <= 0)
+      throw new Error("\u5BB9\u5668\u5143\u7D20el\u7684\u5BBD\u9AD8\u4E0D\u80FD\u4E3A0");
+    this.cssEl = null;
+    this.addCss();
     this.svg = SVG().addTo(this.el).size(this.width, this.height);
     this.draw = this.svg.group();
     this.initTheme();
+    this.initCache();
     this.event = new Event_default({
       mindMap: this
     });
@@ -51379,11 +53772,23 @@ var MindMap2 = class {
   }
   //  配置参数处理
   handleOpt(opt) {
+    opt.data = simpleDeepClone(opt.data || {});
     if (!layoutValueList.includes(opt.layout)) {
       opt.layout = CONSTANTS.LAYOUT.LOGICAL_STRUCTURE;
     }
     opt.theme = opt.theme && themes_default[opt.theme] ? opt.theme : "default";
     return opt;
+  }
+  // 添加必要的css样式到页面
+  addCss() {
+    this.cssEl = document.createElement("style");
+    this.cssEl.type = "text/css";
+    this.cssEl.innerHTML = cssContent;
+    document.head.appendChild(this.cssEl);
+  }
+  // 移除css
+  removeCss() {
+    document.head.removeChild(this.cssEl);
   }
   //  渲染，部分渲染
   render(callback, source = "") {
@@ -51421,6 +53826,22 @@ var MindMap2 = class {
   off(event, fn) {
     this.event.off(event, fn);
   }
+  // 初始化缓存数据
+  initCache() {
+    Object.keys(commonCaches).forEach((key) => {
+      let type = getType(commonCaches[key]);
+      let value = "";
+      switch (type) {
+        case "Boolean":
+          value = false;
+          break;
+        default:
+          value = null;
+          break;
+      }
+      commonCaches[key] = value;
+    });
+  }
   //  设置主题
   initTheme() {
     this.themeConfig = (0, import_deepmerge33.default)(themes_default[this.opt.theme], this.opt.themeConfig);
@@ -51431,6 +53852,7 @@ var MindMap2 = class {
     this.renderer.clearAllActive();
     this.opt.theme = theme;
     this.render(null, CONSTANTS.CHANGE_THEME);
+    this.emit("view_theme_change", theme);
   }
   //  获取当前主题
   getTheme() {
@@ -51438,8 +53860,9 @@ var MindMap2 = class {
   }
   //  设置主题配置
   setThemeConfig(config) {
+    const changedConfig = getObjectChangedProps(this.themeConfig, config);
     this.opt.themeConfig = config;
-    let res = checkIsNodeSizeIndependenceConfig(config);
+    let res = checkIsNodeSizeIndependenceConfig(changedConfig);
     this.render(null, res ? "" : CONSTANTS.CHANGE_THEME);
   }
   //  获取自定义主题配置
@@ -51530,8 +53953,12 @@ var MindMap2 = class {
   }
   //  导出
   async export(...args) {
-    let result = await this.doExport.export(...args);
-    return result;
+    try {
+      let result = await this.doExport.export(...args);
+      return result;
+    } catch (error) {
+      this.opt.errorHandler(ERROR_TYPES.EXPORT_ERROR, error);
+    }
   }
   //  转换位置
   toPos(x3, y4) {
@@ -51561,12 +53988,13 @@ var MindMap2 = class {
     const elRect = this.el.getBoundingClientRect();
     draw.scale(1 / origTransform.scaleX, 1 / origTransform.scaleY);
     const rect = draw.rbox();
-    rect.width += paddingX;
-    rect.height += paddingY;
-    draw.translate(paddingX / 2, paddingY / 2);
+    rect.width += paddingX * 2;
+    rect.height += paddingY * 2;
+    draw.translate(paddingX, paddingY);
     svg2.size(rect.width, rect.height);
     draw.translate(-rect.x + elRect.left, -rect.y + elRect.top);
     let clone = svg2.clone();
+    clone.add(SVG(`<style>${cssContent}</style>`));
     if ((rect.width > origWidth || rect.height > origHeight) && this.watermark && this.watermark.hasWatermark()) {
       this.width = rect.width;
       this.height = rect.height;
@@ -51629,13 +54057,19 @@ var MindMap2 = class {
   }
   // 销毁
   destroy() {
+    ;
     [...MindMap2.pluginList].forEach((plugin) => {
+      if (this[plugin.instanceName].beforePluginDestroy) {
+        this[plugin.instanceName].beforePluginDestroy();
+      }
       this[plugin.instanceName] = null;
     });
     this.event.unbind();
     this.svg.remove();
     Style_default.removeBackgroundStyle(this.el);
+    this.el.innerHTML = "";
     this.el = null;
+    this.removeCss();
   }
 };
 MindMap2.pluginList = [];
@@ -51678,7 +54112,12 @@ var MiniMap = class {
    * boxHeight：小地图容器的高度
    */
   calculationMiniMap(boxWidth, boxHeight) {
-    let { svgHTML, rect, origWidth, origHeight, scaleX, scaleY } = this.mindMap.getSvgData();
+    let { svg: svg2, rect, origWidth, origHeight, scaleX, scaleY } = this.mindMap.getSvgData();
+    const elRect = this.mindMap.elRect;
+    rect.x -= elRect.left;
+    rect.x2 -= elRect.left;
+    rect.y -= elRect.top;
+    rect.y2 -= elRect.top;
     let boxRatio = boxWidth / boxHeight;
     let actWidth = 0;
     let actHeight = 0;
@@ -51704,12 +54143,22 @@ var MiniMap = class {
       right: 0,
       bottom: 0
     };
-    viewBoxStyle.left = Math.max(0, -_rectX / _rectWidth * actWidth) + miniMapBoxLeft + "px";
-    viewBoxStyle.right = Math.max(0, (_rectX2 - origWidth) / _rectWidth * actWidth) + miniMapBoxLeft + "px";
-    viewBoxStyle.top = Math.max(0, -_rectY / _rectHeight * actHeight) + miniMapBoxTop + "px";
-    viewBoxStyle.bottom = Math.max(0, (_rectY2 - origHeight) / _rectHeight * actHeight) + miniMapBoxTop + "px";
+    viewBoxStyle.left = Math.max(0, -_rectX / _rectWidth * actWidth) + miniMapBoxLeft;
+    viewBoxStyle.right = Math.max(0, (_rectX2 - origWidth) / _rectWidth * actWidth) + miniMapBoxLeft;
+    viewBoxStyle.top = Math.max(0, -_rectY / _rectHeight * actHeight) + miniMapBoxTop;
+    viewBoxStyle.bottom = Math.max(0, (_rectY2 - origHeight) / _rectHeight * actHeight) + miniMapBoxTop;
+    if (viewBoxStyle.top > miniMapBoxTop + actHeight) {
+      viewBoxStyle.top = miniMapBoxTop + actHeight;
+    }
+    if (viewBoxStyle.left > miniMapBoxLeft + actWidth) {
+      viewBoxStyle.left = miniMapBoxLeft + actWidth;
+    }
+    Object.keys(viewBoxStyle).forEach((key) => {
+      viewBoxStyle[key] = viewBoxStyle[key] + "px";
+    });
+    this.removeNodeContent(svg2);
     return {
-      svgHTML,
+      svgHTML: svg2.svg(),
       // 小地图html
       viewBoxStyle,
       // 视图框的位置信息
@@ -51720,6 +54169,25 @@ var MiniMap = class {
       miniMapBoxTop
       // 视图框的top值
     };
+  }
+  // 移除节点的内容
+  removeNodeContent(svg2) {
+    if (svg2.hasClass("smm-node")) {
+      let shape = svg2.findOne(".smm-node-shape");
+      let fill = shape.attr("fill");
+      if (isWhite(fill) || isTransparent(fill)) {
+        shape.attr("fill", getVisibleColorFromTheme(this.mindMap.themeConfig));
+      }
+      svg2.clear();
+      svg2.add(shape);
+      return;
+    }
+    let children = svg2.children();
+    if (children && children.length > 0) {
+      children.forEach((node3) => {
+        this.removeNodeContent(node3);
+      });
+    }
   }
   //  小地图鼠标按下事件
   onMousedown(e2) {
@@ -52041,6 +54509,311 @@ var KeyboardNavigation = class {
 };
 KeyboardNavigation.instanceName = "keyboardNavigation";
 var KeyboardNavigation_default = KeyboardNavigation;
+
+// ../simple-mind-map/src/parse/xmind.js
+var import_jszip = __toESM(require_jszip_min());
+var import_xml_js = __toESM(require_lib());
+var parseXmindFile = (file) => {
+  return new Promise((resolve2, reject) => {
+    import_jszip.default.loadAsync(file).then(
+      async (zip) => {
+        try {
+          let content3 = "";
+          let jsonFile = zip.files["content.json"];
+          let xmlFile = zip.files["content.xml"] || zip.files["/content.xml"];
+          if (jsonFile) {
+            let json = await jsonFile.async("string");
+            content3 = await transformXmind(json, zip.files);
+          } else if (xmlFile) {
+            let xml = await xmlFile.async("string");
+            let json = import_xml_js.default.xml2json(xml);
+            content3 = transformOldXmind(json);
+          }
+          if (content3) {
+            resolve2(content3);
+          } else {
+            reject(new Error("\u89E3\u6790\u5931\u8D25"));
+          }
+        } catch (error) {
+          reject(error);
+        }
+      },
+      (e2) => {
+        reject(e2);
+      }
+    );
+  });
+};
+var transformXmind = async (content3, files) => {
+  let data2 = JSON.parse(content3)[0];
+  let nodeTree = data2.rootTopic;
+  let newTree = {};
+  let waitLoadImageList = [];
+  let walk2 = async (node3, newNode) => {
+    newNode.data = {
+      // 节点内容
+      text: node3.title
+    };
+    if (node3.notes) {
+      let notesData = node3.notes.realHTML || node3.notes.plain;
+      newNode.data.note = notesData ? notesData.content || "" : "";
+    }
+    if (node3.href && /^https?:\/\//.test(node3.href)) {
+      newNode.data.hyperlink = node3.href;
+    }
+    if (node3.labels && node3.labels.length > 0) {
+      newNode.data.tag = node3.labels;
+    }
+    if (node3.image && /\.(jpg|jpeg|png|gif|webp)$/.test(node3.image.src)) {
+      let resolve2 = null;
+      let promise = new Promise((_resolve) => {
+        resolve2 = _resolve;
+      });
+      waitLoadImageList.push(promise);
+      try {
+        let imageType = /\.([^.]+)$/.exec(node3.image.src)[1];
+        let imageBase64 = `data:image/${imageType};base64,` + await files["resources/" + node3.image.src.split("/")[1]].async(
+          "base64"
+        );
+        newNode.data.image = imageBase64;
+        if (!node3.image.width && !node3.image.height) {
+          let imageSize = await getImageSize(imageBase64);
+          newNode.data.imageSize = {
+            width: imageSize.width,
+            height: imageSize.height
+          };
+        } else {
+          newNode.data.imageSize = {
+            width: node3.image.width,
+            height: node3.image.height
+          };
+        }
+        resolve2();
+      } catch (error) {
+        console.log(error);
+        resolve2();
+      }
+    }
+    newNode.children = [];
+    if (node3.children && node3.children.attached && node3.children.attached.length > 0) {
+      node3.children.attached.forEach((item) => {
+        let newChild = {};
+        newNode.children.push(newChild);
+        walk2(item, newChild);
+      });
+    }
+  };
+  walk2(nodeTree, newTree);
+  await Promise.all(waitLoadImageList);
+  return newTree;
+};
+var transformOldXmind = (content3) => {
+  let data2 = JSON.parse(content3);
+  let elements3 = data2.elements;
+  let root2 = null;
+  let getRoot = (arr) => {
+    if (!arr)
+      return;
+    for (let i3 = 0; i3 < arr.length; i3++) {
+      if (!root2 && arr[i3].name === "topic") {
+        root2 = arr[i3];
+        return;
+      }
+    }
+    arr.forEach((item) => {
+      getRoot(item.elements);
+    });
+  };
+  getRoot(elements3);
+  let newTree = {};
+  let getItemByName = (arr, name) => {
+    return arr.find((item) => {
+      return item.name === name;
+    });
+  };
+  let walk2 = (node3, newNode) => {
+    let nodeElements = node3.elements;
+    let nodeTitle = getItemByName(nodeElements, "title");
+    newNode.data = {
+      // 节点内容
+      text: nodeTitle && nodeTitle.elements && nodeTitle.elements[0].text
+    };
+    try {
+      let notesElement = getItemByName(nodeElements, "notes");
+      if (notesElement) {
+        newNode.data.note = notesElement.elements[0].elements[0].elements[0].text;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      if (node3.attributes && node3.attributes["xlink:href"] && /^https?:\/\//.test(node3.attributes["xlink:href"])) {
+        newNode.data.hyperlink = node3.attributes["xlink:href"];
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      let labelsElement = getItemByName(nodeElements, "labels");
+      if (labelsElement) {
+        newNode.data.tag = labelsElement.elements.map((item) => {
+          return item.elements[0].text;
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    newNode.children = [];
+    let _children = getItemByName(nodeElements, "children");
+    if (_children && _children.elements && _children.elements.length > 0) {
+      _children.elements.forEach((item) => {
+        if (item.name === "topics") {
+          (item.elements || []).forEach((item2) => {
+            let newChild = {};
+            newNode.children.push(newChild);
+            walk2(item2, newChild);
+          });
+        } else {
+          let newChild = {};
+          newNode.children.push(newChild);
+          walk2(item, newChild);
+        }
+      });
+    }
+  };
+  walk2(root2, newTree);
+  return newTree;
+};
+var transformToXmind = async (data2, name) => {
+  const id = "simpleMindMap_" + Date.now();
+  const imageList = [];
+  let newTree = {};
+  let waitLoadImageList = [];
+  let walk2 = async (node3, newNode, isRoot) => {
+    let newData = {
+      structureClass: "org.xmind.ui.logic.right",
+      title: getTextFromHtml(node3.data.text),
+      // 节点文本
+      children: {
+        attached: []
+      }
+    };
+    if (node3.data.note !== void 0) {
+      newData.notes = {
+        realHTML: {
+          content: node3.data.note
+        },
+        plain: {
+          content: node3.data.note
+        }
+      };
+    }
+    if (node3.data.hyperlink !== void 0) {
+      newData.href = node3.data.hyperlink;
+    }
+    if (node3.data.tag !== void 0) {
+      newData.labels = node3.data.tag || [];
+    }
+    if (node3.data.image) {
+      try {
+        let resolve2 = null;
+        let promise = new Promise((_resolve) => {
+          resolve2 = _resolve;
+        });
+        waitLoadImageList.push(promise);
+        let imgName = "";
+        let imgData = node3.data.image;
+        if (/^https?:\/\//.test(node3.data.image)) {
+          imgData = await imgToDataUrl(node3.data.image);
+        }
+        let dataUrlRes = parseDataUrl(imgData);
+        imgName = "image_" + imageList.length + "." + dataUrlRes.type;
+        imageList.push({
+          name: imgName,
+          data: dataUrlRes.base64
+        });
+        newData.image = {
+          src: "xap:resources/" + imgName,
+          width: node3.data.imageSize.width,
+          height: node3.data.imageSize.height
+        };
+        resolve2();
+      } catch (error) {
+        console.log(error);
+        resolve();
+      }
+    }
+    if (isRoot) {
+      newData.class = "topic";
+      newNode.id = id;
+      newNode.class = "sheet";
+      newNode.title = name;
+      newNode.extensions = [];
+      newNode.topicPositioning = "fixed";
+      newNode.topicOverlapping = "overlap";
+      newNode.coreVersion = "2.100.0";
+      newNode.rootTopic = newData;
+    } else {
+      Object.keys(newData).forEach((key) => {
+        newNode[key] = newData[key];
+      });
+    }
+    if (node3.children && node3.children.length > 0) {
+      node3.children.forEach((child) => {
+        let newChild = {};
+        walk2(child, newChild);
+        newData.children.attached.push(newChild);
+      });
+    }
+  };
+  walk2(data2, newTree, true);
+  await Promise.all(waitLoadImageList);
+  const contentData = [newTree];
+  const zip = new import_jszip.default();
+  zip.file("content.json", JSON.stringify(contentData));
+  zip.file(
+    "metadata.json",
+    `{"modifier":"","dataStructureVersion":"1","layoutEngineVersion":"2","activeSheetId":"${id}"}`
+  );
+  const manifestData = {
+    "file-entries": { "content.json": {}, "metadata.json": {} }
+  };
+  if (imageList.length > 0) {
+    imageList.forEach((item) => {
+      manifestData["file-entries"]["resources/" + item.name] = {};
+      const img = zip.folder("resources");
+      img.file(item.name, item.data, { base64: true });
+    });
+  }
+  zip.file("manifest.json", JSON.stringify(manifestData));
+  const zipData = await zip.generateAsync({ type: "blob" });
+  return zipData;
+};
+var xmind_default = {
+  parseXmindFile,
+  transformXmind,
+  transformOldXmind,
+  transformToXmind
+};
+
+// ../simple-mind-map/src/plugins/ExportXMind.js
+var ExportXMind = class {
+  //  构造函数
+  constructor(opt) {
+    this.mindMap = opt.mindMap;
+  }
+  // 导出xmind
+  async xmind(data2, name) {
+    const zipData = await xmind_default.transformToXmind(data2, name);
+    return zipData;
+  }
+  // 获取解析器
+  getXmind() {
+    return xmind_default;
+  }
+};
+ExportXMind.instanceName = "doExportXMind";
+var ExportXMind_default = ExportXMind;
 
 // ../simple-mind-map/node_modules/jspdf/dist/jspdf.es.min.js
 init_typeof();
@@ -60968,28 +63741,69 @@ var ExportPDF = class {
     this.mindMap = opt.mindMap;
   }
   //  导出为pdf
-  pdf(name, img) {
+  pdf(name, img, useMultiPageExport = false) {
+    if (useMultiPageExport) {
+      this.multiPageExport(name, img);
+    } else {
+      this.onePageExport(name, img);
+    }
+  }
+  // 单页导出
+  onePageExport(name, img) {
     let pdf = new jspdf_es_min_default("", "pt", "a4");
-    let a4Width = 595;
-    let a4Height = 841;
-    let a4Ratio = a4Width / a4Height;
+    let a4Ratio = a4Size.width / a4Size.height;
     let image = new Image();
     image.onload = () => {
       let imageWidth = image.width;
       let imageHeight = image.height;
       let imageRatio = imageWidth / imageHeight;
       let w2, h3;
-      if (imageWidth <= a4Width && imageHeight <= a4Height) {
+      if (imageWidth <= a4Size.width && imageHeight <= a4Size.height) {
         w2 = imageWidth;
         h3 = imageHeight;
       } else if (a4Ratio > imageRatio) {
-        w2 = imageRatio * a4Height;
-        h3 = a4Height;
+        w2 = imageRatio * a4Size.height;
+        h3 = a4Size.height;
       } else {
-        w2 = a4Width;
-        h3 = a4Width / imageRatio;
+        w2 = a4Size.width;
+        h3 = a4Size.width / imageRatio;
       }
-      pdf.addImage(img, "PNG", (a4Width - w2) / 2, (a4Height - h3) / 2, w2, h3);
+      pdf.addImage(img, "PNG", (a4Size.width - w2) / 2, (a4Size.height - h3) / 2, w2, h3);
+      pdf.save(name);
+    };
+    image.src = img;
+  }
+  // 多页导出
+  multiPageExport(name, img) {
+    let image = new Image();
+    image.onload = () => {
+      let imageWidth = image.width;
+      let imageHeight = image.height;
+      let pageHeight = imageWidth / a4Size.width * a4Size.height;
+      let leftHeight = imageHeight;
+      let position3 = 0;
+      let imgWidth = a4Size.width;
+      let imgHeight = a4Size.width / imageWidth * imageHeight;
+      let pdf = new jspdf_es_min_default("", "pt", "a4");
+      if (leftHeight < pageHeight) {
+        pdf.addImage(
+          img,
+          "PNG",
+          (a4Size.width - imgWidth) / 2,
+          (a4Size.height - imgHeight) / 2,
+          imgWidth,
+          imgHeight
+        );
+      } else {
+        while (leftHeight > 0) {
+          pdf.addImage(img, "PNG", 0, position3, imgWidth, imgHeight);
+          leftHeight -= pageHeight;
+          position3 -= a4Size.height;
+          if (leftHeight > 0) {
+            pdf.addPage();
+          }
+        }
+      }
       pdf.save(name);
     };
     image.src = img;
@@ -61318,7 +64132,6 @@ var Export = class {
   //  构造函数
   constructor(opt) {
     this.mindMap = opt.mindMap;
-    this.exportPadding = this.mindMap.opt.exportPadding;
   }
   //  导出
   async export(type, isDownload = true, name = "\u601D\u7EF4\u5BFC\u56FE", ...args) {
@@ -61342,6 +64155,9 @@ var Export = class {
     let imageList = svg2.find("image");
     let task = imageList.map(async (item) => {
       let imgUlr = item.attr("href") || item.attr("xlink:href");
+      if (/^data:/.test(imgUlr)) {
+        return;
+      }
       let imgData = await imgToDataUrl(imgUlr);
       item.attr("href", imgData);
     });
@@ -61355,30 +64171,40 @@ var Export = class {
     };
   }
   //   svg转png
-  svgToPng(svgSrc, transparent) {
+  svgToPng(svgSrc, transparent, checkRotate = () => {
+    return false;
+  }) {
     return new Promise((resolve2, reject) => {
       const img = new Image();
       img.setAttribute("crossOrigin", "anonymous");
       img.onload = async () => {
         try {
-          let canvas = document.createElement("canvas");
-          canvas.width = img.width + this.exportPadding * 2;
-          canvas.height = img.height + this.exportPadding * 2;
-          let ctx = canvas.getContext("2d");
-          if (!transparent) {
-            await this.drawBackgroundToCanvas(ctx, canvas.width, canvas.height);
+          const canvas = document.createElement("canvas");
+          const dpr = Math.max(window.devicePixelRatio, this.mindMap.opt.minExportImgCanvasScale);
+          const imgWidth = img.width;
+          const imgHeight = img.height;
+          const needRotate = checkRotate(imgWidth, imgHeight);
+          if (needRotate) {
+            canvas.width = imgHeight * dpr;
+            canvas.height = imgWidth * dpr;
+            canvas.style.width = imgHeight + "px";
+            canvas.style.height = imgWidth + "px";
+          } else {
+            canvas.width = imgWidth * dpr;
+            canvas.height = imgHeight * dpr;
+            canvas.style.width = imgWidth + "px";
+            canvas.style.height = imgHeight + "px";
           }
-          ctx.drawImage(
-            img,
-            0,
-            0,
-            img.width,
-            img.height,
-            this.exportPadding,
-            this.exportPadding,
-            img.width,
-            img.height
-          );
+          const ctx = canvas.getContext("2d");
+          ctx.scale(dpr, dpr);
+          if (needRotate) {
+            ctx.rotate(0.5 * Math.PI);
+            ctx.translate(0, -imgHeight);
+          }
+          if (!transparent) {
+            await this.drawBackgroundToCanvas(ctx, imgWidth, imgHeight);
+          }
+          ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
           resolve2(canvas.toDataURL());
         } catch (error) {
           reject(error);
@@ -61407,18 +64233,25 @@ var Export = class {
       ctx.restore();
       if (backgroundImage && backgroundImage !== "none") {
         ctx.save();
-        simulateCSSBackgroundInCanvas_default(ctx, width2, height2, backgroundImage, {
-          backgroundRepeat,
-          backgroundPosition,
-          backgroundSize
-        }, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve2();
+        simulateCSSBackgroundInCanvas_default(
+          ctx,
+          width2,
+          height2,
+          backgroundImage,
+          {
+            backgroundRepeat,
+            backgroundPosition,
+            backgroundSize
+          },
+          (err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve2();
+            }
+            ctx.restore();
           }
-          ctx.restore();
-        });
+        );
       } else {
         resolve2();
       }
@@ -61448,27 +64281,38 @@ var Export = class {
    * 方法1.把svg的图片都转化成data:url格式，再转换
    * 方法2.把svg的图片提取出来再挨个绘制到canvas里，最后一起转换
    */
-  async png(name, transparent = false) {
+  async png(name, transparent = false, checkRotate) {
     let { node: node3, str } = await this.getSvgData();
+    str = removeHTMLEntities(str);
     if (this.mindMap.richText) {
-      let res2 = await this.mindMap.richText.handleExportPng(node3.node);
-      let imgDataUrl = await this.svgToPng(res2, transparent);
-      return imgDataUrl;
+      let foreignObjectList = node3.find("foreignObject");
+      if (foreignObjectList.length > 0) {
+        foreignObjectList[0].add(SVG(`<style>${this.mindMap.opt.resetCss}</style>`));
+      }
+      str = node3.svg();
     }
     let blob = new Blob([str], {
       type: "image/svg+xml"
     });
     let svgUrl = await readBlob(blob);
-    let res = await this.svgToPng(svgUrl, transparent);
+    let res = await this.svgToPng(
+      svgUrl,
+      transparent,
+      checkRotate
+    );
     return res;
   }
   //  导出为pdf
-  async pdf(name) {
+  async pdf(name, useMultiPageExport) {
     if (!this.mindMap.doExportPDF) {
       throw new Error("\u8BF7\u6CE8\u518CExportPDF\u63D2\u4EF6");
     }
-    let img = await this.png();
-    this.mindMap.doExportPDF.pdf(name, img);
+    let img = await this.png("", false, (width2, height2) => {
+      if (width2 <= a4Size.width && height2 && a4Size.height)
+        return false;
+      return width2 / height2 > 1;
+    });
+    this.mindMap.doExportPDF.pdf(name, img, useMultiPageExport);
   }
   // 导出为xmind
   async xmind(name) {
@@ -61482,19 +64326,18 @@ var Export = class {
   }
   //  导出为svg
   // plusCssText：附加的css样式，如果svg中存在dom节点，想要设置一些针对节点的样式可以通过这个参数传入
-  async svg(name, plusCssText) {
+  async svg(name) {
     let { node: node3 } = await this.getSvgData();
     if (this.mindMap.richText) {
-      if (plusCssText) {
-        let foreignObjectList = node3.find("foreignObject");
-        if (foreignObjectList.length > 0) {
-          foreignObjectList[0].add(SVG(`<style>${plusCssText}</style>`));
-        }
+      let foreignObjectList = node3.find("foreignObject");
+      if (foreignObjectList.length > 0) {
+        foreignObjectList[0].add(SVG(`<style>${this.mindMap.opt.resetCss}</style>`));
       }
     }
     node3.first().before(SVG(`<title>${name}</title>`));
     await this.drawBackgroundToSvg(node3);
     let str = node3.svg();
+    str = removeHTMLEntities(str);
     let blob = new Blob([str], {
       type: "image/svg+xml"
     });
@@ -61555,6 +64398,7 @@ var Drag = class extends Base_default {
     this.mouseMoveX = 0;
     this.mouseMoveY = 0;
     this.checkDragOffset = 10;
+    this.minOffset = 10;
   }
   //  绑定事件
   bindEvent() {
@@ -61609,6 +64453,9 @@ var Drag = class extends Base_default {
     this.node.isDrag = false;
     this.node.show();
     this.removeCloneNode();
+    let overlapNodeUid = this.overlapNode ? this.overlapNode.nodeData.data.uid : "";
+    let prevNodeUid = this.prevNode ? this.prevNode.nodeData.data.uid : "";
+    let nextNodeUid = this.nextNode ? this.nextNode.nodeData.data.uid : "";
     if (this.overlapNode) {
       this.mindMap.renderer.setNodeActive(this.overlapNode, false);
       this.mindMap.execCommand("MOVE_NODE_TO", this.node, this.overlapNode);
@@ -61634,7 +64481,11 @@ var Drag = class extends Base_default {
       this.mindMap.render();
     }
     this.reset();
-    this.mindMap.emit("node_dragend");
+    this.mindMap.emit("node_dragend", {
+      overlapNodeUid,
+      prevNodeUid,
+      nextNodeUid
+    });
   }
   //  创建克隆节点
   createCloneNode() {
@@ -61688,9 +64539,10 @@ var Drag = class extends Base_default {
   }
   //  检测重叠节点
   checkOverlapNode() {
-    if (!this.drawTransform) {
+    if (!this.drawTransform || !this.placeholder) {
       return;
     }
+    const { nodeDragPlaceholderMaxSize } = this.mindMap.opt;
     let x3 = this.mouseMoveX;
     let y4 = this.mouseMoveY;
     this.overlapNode = null;
@@ -61729,17 +64581,17 @@ var Drag = class extends Base_default {
       if (prevBrother) {
         let prevNodeRect = this.getNodeRect(prevBrother);
         prevBrotherOffset = nodeRect.top - prevNodeRect.bottom;
-        prevBrotherOffset = prevBrotherOffset >= 10 ? prevBrotherOffset / 2 : 0;
+        prevBrotherOffset = prevBrotherOffset >= this.minOffset ? prevBrotherOffset / 2 : 0;
       } else {
-        prevBrotherOffset = 10;
+        prevBrotherOffset = this.minOffset;
       }
       let nextBrotherOffset = 0;
       if (nextBrother) {
         let nextNodeRect = this.getNodeRect(nextBrother);
         nextBrotherOffset = nextNodeRect.top - nodeRect.bottom;
-        nextBrotherOffset = nextBrotherOffset >= 10 ? nextBrotherOffset / 2 : 0;
+        nextBrotherOffset = nextBrotherOffset >= this.minOffset ? nextBrotherOffset / 2 : 0;
       } else {
-        nextBrotherOffset = 10;
+        nextBrotherOffset = this.minOffset;
       }
       if (nodeRect.left <= x3 && nodeRect.right >= x3) {
         if (!this.overlapNode && !this.prevNode && !this.nextNode && !node3.isRoot) {
@@ -61759,11 +64611,11 @@ var Drag = class extends Base_default {
           );
           if (checkIsPrevNode) {
             this.prevNode = node3;
-            let size2 = nextBrotherOffset > 0 ? nextBrotherOffset : 5;
+            let size2 = nextBrotherOffset > 0 ? Math.min(nextBrotherOffset, nodeDragPlaceholderMaxSize) : 5;
             this.placeholder.size(node3.width, size2).move(nodeRect.originLeft, nodeRect.originBottom);
           } else if (checkIsNextNode) {
             this.nextNode = node3;
-            let size2 = prevBrotherOffset > 0 ? prevBrotherOffset : 5;
+            let size2 = prevBrotherOffset > 0 ? Math.min(prevBrotherOffset, nodeDragPlaceholderMaxSize) : 5;
             this.placeholder.size(node3.width, size2).move(nodeRect.originLeft, nodeRect.originTop - size2);
           }
         }
@@ -61816,6 +64668,8 @@ var Select = class {
     this.mouseDownY = 0;
     this.mouseMoveX = 0;
     this.mouseMoveY = 0;
+    this.isSelecting = false;
+    this.cacheActiveList = [];
     this.bindEvent();
   }
   //  绑定事件
@@ -61831,6 +64685,7 @@ var Select = class {
       }
       e2.preventDefault();
       this.isMousedown = true;
+      this.cacheActiveList = [...this.mindMap.renderer.activeNodeList];
       let { x: x3, y: y4 } = this.mindMap.toPos(e2.clientX, e2.clientY);
       this.mouseDownX = x3;
       this.mouseDownY = y4;
@@ -61859,20 +64714,44 @@ var Select = class {
       if (!this.isMousedown) {
         return;
       }
-      this.mindMap.emit(
-        "node_active",
-        null,
-        this.mindMap.renderer.activeNodeList
-      );
+      this.checkTriggerNodeActiveEvent();
       clearTimeout(this.autoMoveTimer);
       this.isMousedown = false;
+      this.cacheActiveList = [];
       if (this.rect)
         this.rect.remove();
       this.rect = null;
+      setTimeout(() => {
+        this.isSelecting = false;
+      }, 0);
     });
+  }
+  // 如果激活节点改变了，那么触发事件
+  checkTriggerNodeActiveEvent() {
+    let isNumChange = this.cacheActiveList.length !== this.mindMap.renderer.activeNodeList.length;
+    let isNodeChange = false;
+    if (!isNumChange) {
+      for (let i3 = 0; i3 < this.cacheActiveList.length; i3++) {
+        let cur = this.cacheActiveList[i3];
+        if (!this.mindMap.renderer.activeNodeList.find((item) => {
+          return item.nodeData.data.uid === cur.nodeData.data.uid;
+        })) {
+          isNodeChange = true;
+          break;
+        }
+      }
+    }
+    if (isNumChange || isNodeChange) {
+      this.mindMap.emit(
+        "node_active",
+        null,
+        [...this.mindMap.renderer.activeNodeList]
+      );
+    }
   }
   //  鼠标移动事件
   onMove(x3, y4) {
+    this.isSelecting = true;
     this.rect.plot([
       [this.mouseDownX, this.mouseDownY],
       [this.mouseMoveX, this.mouseDownY],
@@ -61949,6 +64828,10 @@ var Select = class {
       }
     });
   }
+  // 是否存在选区
+  hasSelectRange() {
+    return this.isSelecting;
+  }
 };
 Select.instanceName = "select";
 var Select_default = Select;
@@ -62000,27 +64883,110 @@ var cubicBezierPath = (x1, y1, x22, y22) => {
     points[1]
   );
 };
-var getNodePoint = (node3, dir = "right") => {
+var calcPoint = (node3, e2) => {
+  const { left, top, translateLeft, translateTop, width: width2, height: height2 } = node3;
+  const clientX = e2.clientX;
+  const clientY = e2.clientY;
+  const centerX = translateLeft + width2 / 2;
+  const centerY = translateTop + height2 / 2;
+  const translateCenterX = left + width2 / 2;
+  const translateCenterY = top + height2 / 2;
+  const theta = Math.atan(height2 / width2);
+  const deltaX = clientX - centerX;
+  const deltaY = centerY - clientY;
+  const direction = Math.atan2(deltaY, deltaX);
+  let x3 = left + width2;
+  let y4 = top + height2;
+  if (direction < theta && direction >= -theta) {
+    const range2 = direction * (width2 / 2);
+    if (direction < theta && direction >= 0) {
+      y4 = translateCenterY - range2;
+    } else if (direction >= -theta && direction < 0) {
+      y4 = translateCenterY - range2;
+    }
+    return {
+      x: x3,
+      y: y4,
+      dir: "right",
+      range: range2
+    };
+  } else if (direction >= theta && direction < Math.PI - theta) {
+    y4 = top;
+    let range2 = 0;
+    if (direction < Math.PI / 2 - theta && direction >= theta) {
+      const side = height2 / 2 / direction;
+      range2 = -side;
+      x3 = translateCenterX + side;
+    } else if (direction >= Math.PI / 2 - theta && direction < Math.PI - theta) {
+      const tanValue2 = (centerX - clientX) / (centerY - clientY);
+      const side = height2 / 2 * tanValue2;
+      range2 = side;
+      x3 = translateCenterX - side;
+    }
+    return {
+      x: x3,
+      y: y4,
+      dir: "top",
+      range: range2
+    };
+  } else if (direction < -theta && direction >= theta - Math.PI) {
+    let range2 = 0;
+    if (direction >= theta - Math.PI / 2 && direction < -theta) {
+      const side = height2 / 2 / direction;
+      range2 = side;
+      x3 = translateCenterX - side;
+    } else if (direction < theta - Math.PI / 2 && direction >= theta - Math.PI) {
+      const tanValue2 = (centerX - clientX) / (centerY - clientY);
+      const side = height2 / 2 * tanValue2;
+      range2 = -side;
+      x3 = translateCenterX + side;
+    }
+    return {
+      x: x3,
+      y: y4,
+      dir: "bottom",
+      range: range2
+    };
+  }
+  x3 = left;
+  const tanValue = (centerY - clientY) / (centerX - clientX);
+  const range = tanValue * (width2 / 2);
+  if (direction >= -Math.PI && direction < theta - Math.PI) {
+    y4 = translateCenterY - range;
+  } else if (direction < Math.PI && direction >= Math.PI - theta) {
+    y4 = translateCenterY - range;
+  }
+  return {
+    x: x3,
+    y: y4,
+    dir: "left",
+    range
+  };
+};
+var getNodePoint = (node3, dir = "right", range = 0, e2 = null) => {
   let { left, top, width: width2, height: height2 } = node3;
+  if (e2) {
+    return calcPoint(node3, e2);
+  }
   switch (dir) {
     case "left":
       return {
         x: left,
-        y: top + height2 / 2
+        y: top + height2 / 2 - range
       };
     case "right":
       return {
         x: left + width2,
-        y: top + height2 / 2
+        y: top + height2 / 2 - range
       };
     case "top":
       return {
-        x: left + width2 / 2,
+        x: left + width2 / 2 - range,
         y: top
       };
     case "bottom":
       return {
-        x: left + width2 / 2,
+        x: left + width2 / 2 - range,
         y: top + height2
       };
     default:
@@ -62050,8 +65016,8 @@ var computeNodePoints = (fromNode, toNode) => {
     fromDir = "top";
     toDir = "bottom";
   } else if (offsetY > 0 && -offsetY < offsetX && offsetY > offsetX) {
-    fromDir = "bottom";
-    toDir = "top";
+    fromDir = "right";
+    toDir = "right";
   }
   return [getNodePoint(fromNode, fromDir), getNodePoint(toNode, toDir)];
 };
@@ -62141,14 +65107,21 @@ function onControlPointMousemove(e2) {
     y: y4
   };
   this[this.mousedownControlPointKey].x(x3 - radius).y(y4 - radius);
-  let [path, clickPath, text3, node3, toNode] = this.activeLine;
-  let [startPoint, endPoint] = computeNodePoints(node3, toNode);
+  let [, , , node3, toNode] = this.activeLine;
+  let targetIndex = getAssociativeLineTargetIndex(node3, toNode);
+  let { associativeLinePoint, associativeLineTargetControlOffsets } = node3.nodeData.data;
+  associativeLinePoint = associativeLinePoint || [];
+  const nodePos = this.getNodePos(node3);
+  const toNodePos = this.getNodePos(toNode);
+  let [startPoint, endPoint] = this.updateAllLinesPos(
+    node3,
+    toNode,
+    associativeLinePoint[targetIndex]
+  );
   this.controlPointMousemoveState.startPoint = startPoint;
   this.controlPointMousemoveState.endPoint = endPoint;
-  let targetIndex = getAssociativeLineTargetIndex(node3, toNode);
   this.controlPointMousemoveState.targetIndex = targetIndex;
   let offsets = [];
-  let associativeLineTargetControlOffsets = node3.nodeData.data.associativeLineTargetControlOffsets;
   if (!associativeLineTargetControlOffsets) {
     offsets = getDefaultControlPointOffsets(startPoint, endPoint);
   } else {
@@ -62156,7 +65129,13 @@ function onControlPointMousemove(e2) {
   }
   let point1 = null;
   let point22 = null;
+  const { x: clientX, y: clientY } = this.mindMap.toPos(e2.clientX, e2.clientY);
+  const _e = {
+    clientX,
+    clientY
+  };
   if (this.mousedownControlPointKey === "controlPoint1") {
+    startPoint = getNodePoint(nodePos, "", 0, _e);
     point1 = {
       x: x3,
       y: y4
@@ -62165,8 +65144,12 @@ function onControlPointMousemove(e2) {
       x: endPoint.x + offsets[1].x,
       y: endPoint.y + offsets[1].y
     };
-    this.controlLine1.plot(startPoint.x, startPoint.y, point1.x, point1.y);
+    if (startPoint) {
+      this.controlPointMousemoveState.startPoint = startPoint;
+      this.controlLine1.plot(startPoint.x, startPoint.y, point1.x, point1.y);
+    }
   } else {
+    endPoint = getNodePoint(toNodePos, "", 0, _e);
     point1 = {
       x: startPoint.x + offsets[0].x,
       y: startPoint.y + offsets[0].y
@@ -62175,9 +65158,22 @@ function onControlPointMousemove(e2) {
       x: x3,
       y: y4
     };
-    this.controlLine2.plot(endPoint.x, endPoint.y, point22.x, point22.y);
+    if (endPoint) {
+      this.controlPointMousemoveState.endPoint = endPoint;
+      this.controlLine2.plot(endPoint.x, endPoint.y, point22.x, point22.y);
+    }
   }
-  let pathStr = joinCubicBezierPath(startPoint, endPoint, point1, point22);
+  this.updataAassociativeLine(
+    startPoint,
+    endPoint,
+    point1,
+    point22,
+    this.activeLine
+  );
+}
+function updataAassociativeLine(startPoint, endPoint, point1, point22, activeLine) {
+  const [path, clickPath, text3] = activeLine;
+  const pathStr = joinCubicBezierPath(startPoint, endPoint, point1, point22);
   path.plot(pathStr);
   clickPath.plot(pathStr);
   this.updateTextPos(path, text3);
@@ -62191,7 +65187,14 @@ function onControlPointMouseup(e2) {
   let { pos, startPoint, endPoint, targetIndex } = this.controlPointMousemoveState;
   let [, , , node3] = this.activeLine;
   let offsetList = [];
-  let associativeLineTargetControlOffsets = node3.nodeData.data.associativeLineTargetControlOffsets;
+  let { associativeLinePoint, associativeLineTargetControlOffsets } = node3.nodeData.data;
+  if (!associativeLinePoint) {
+    associativeLinePoint = [];
+  }
+  associativeLinePoint[targetIndex] = associativeLinePoint[targetIndex] || {
+    startPoint,
+    endPoint
+  };
   if (!associativeLineTargetControlOffsets) {
     offsetList[targetIndex] = getDefaultControlPointOffsets(
       startPoint,
@@ -62208,16 +65211,19 @@ function onControlPointMouseup(e2) {
       y: pos.y - startPoint.y
     };
     offset2 = offsetList[targetIndex][1];
+    associativeLinePoint[targetIndex].startPoint = startPoint;
   } else {
     offset1 = offsetList[targetIndex][0];
     offset2 = {
       x: pos.x - endPoint.x,
       y: pos.y - endPoint.y
     };
+    associativeLinePoint[targetIndex].endPoint = endPoint;
   }
   offsetList[targetIndex] = [offset1, offset2];
   this.mindMap.execCommand("SET_NODE_DATA", node3, {
-    associativeLineTargetControlOffsets: offsetList
+    associativeLineTargetControlOffsets: offsetList,
+    associativeLinePoint
   });
   setTimeout(() => {
     this.resetControlPoint();
@@ -62293,7 +65299,8 @@ var associativeLineControls_default = {
   renderControls,
   removeControls,
   hideControls,
-  showControls
+  showControls,
+  updataAassociativeLine
 };
 
 // ../simple-mind-map/src/plugins/associativeLine/associativeLineText.js
@@ -62335,7 +65342,8 @@ function showEditTextBox(g2) {
     this.textEditNode.addEventListener("click", (e2) => {
       e2.stopPropagation();
     });
-    document.body.appendChild(this.textEditNode);
+    const targetNode = this.mindMap.opt.customInnerElsAppendTo || document.body;
+    targetNode.appendChild(this.textEditNode);
   }
   let {
     associativeLineTextFontSize,
@@ -62359,10 +65367,12 @@ function onScale() {
 }
 function updateTextEditBoxPos(g2) {
   let rect = g2.node.getBoundingClientRect();
-  this.textEditNode.style.minWidth = rect.width + 10 + "px";
-  this.textEditNode.style.minHeight = rect.height + 6 + "px";
-  this.textEditNode.style.left = rect.left + "px";
-  this.textEditNode.style.top = rect.top + "px";
+  if (this.textEditNode) {
+    this.textEditNode.style.minWidth = `${rect.width + 10}px`;
+    this.textEditNode.style.minHeight = `${rect.height + 6}px`;
+    this.textEditNode.style.left = `${rect.left}px`;
+    this.textEditNode.style.top = `${rect.top}px`;
+  }
 }
 function hideEditTextBox() {
   if (!this.showTextEdit) {
@@ -62392,7 +65402,10 @@ function getText2(node3, toNode) {
 function renderText(str, path, text3) {
   if (!str)
     return;
-  let { associativeLineTextFontSize, associativeLineTextLineHeight } = this.mindMap.themeConfig;
+  let {
+    associativeLineTextFontSize,
+    associativeLineTextLineHeight
+  } = this.mindMap.themeConfig;
   text3.clear();
   let textArr = str.split(/\n/gim);
   textArr.forEach((item, index3) => {
@@ -62503,11 +65516,31 @@ var AssociativeLine = class {
   // 创建箭头
   createMarker() {
     return this.draw.marker(20, 20, (add) => {
-      add.ref(2, 5);
+      add.ref(12, 5);
       add.size(10, 10);
       add.attr("orient", "auto-start-reverse");
       this.markerPath = add.path("M0,0 L2,5 L0,10 L10,5 Z");
     });
+  }
+  // 判断关联线坐标是否变更，有变更则使用变化后的坐标，无则默认坐标
+  updateAllLinesPos(node3, toNode, associativeLinePoint) {
+    associativeLinePoint = associativeLinePoint || {};
+    let [startPoint, endPoint] = computeNodePoints(node3, toNode);
+    let nodeRange = 0;
+    let nodeDir = "";
+    let toNodeRange = 0;
+    let toNodeDir = "";
+    if (associativeLinePoint.startPoint) {
+      nodeRange = associativeLinePoint.startPoint.range || 0;
+      nodeDir = associativeLinePoint.startPoint.dir || "right";
+      startPoint = getNodePoint(node3, nodeDir, nodeRange);
+    }
+    if (associativeLinePoint.endPoint) {
+      toNodeRange = associativeLinePoint.endPoint.range || 0;
+      toNodeDir = associativeLinePoint.endPoint.dir || "right";
+      endPoint = getNodePoint(toNode, toNodeDir, toNodeRange);
+    }
+    return [startPoint, endPoint];
   }
   // 渲染所有连线
   renderAllLines() {
@@ -62539,11 +65572,16 @@ var AssociativeLine = class {
       0
     );
     nodeToIds.forEach((ids, node3) => {
-      ids.forEach((id) => {
+      ids.forEach((id, index3) => {
         let toNode = idToNode.get(id);
         if (!node3 || !toNode)
           return;
-        let [startPoint, endPoint] = computeNodePoints(node3, toNode);
+        const associativeLinePoint = (node3.nodeData.data.associativeLinePoint || [])[index3];
+        const [startPoint, endPoint] = this.updateAllLinesPos(
+          node3,
+          toNode,
+          associativeLinePoint
+        );
         this.drawLine(startPoint, endPoint, node3, toNode);
       });
     });
@@ -62574,19 +65612,43 @@ var AssociativeLine = class {
     let clickPath = this.draw.path();
     clickPath.stroke({ width: associativeLineActiveWidth, color: "transparent" }).fill({ color: "none" });
     clickPath.plot(pathStr);
-    let text3 = this.createText({ path, clickPath, node: node3, toNode, startPoint, endPoint, controlPoints });
+    let text3 = this.createText({
+      path,
+      clickPath,
+      node: node3,
+      toNode,
+      startPoint,
+      endPoint,
+      controlPoints
+    });
     clickPath.click((e2) => {
       e2.stopPropagation();
-      this.setActiveLine({ path, clickPath, text: text3, node: node3, toNode, startPoint, endPoint, controlPoints });
+      this.setActiveLine({
+        path,
+        clickPath,
+        text: text3,
+        node: node3,
+        toNode,
+        startPoint,
+        endPoint,
+        controlPoints
+      });
     });
     this.renderText(this.getText(node3, toNode), path, text3);
     this.lineList.push([path, clickPath, text3, node3, toNode]);
   }
   // 激活某根关联线
-  setActiveLine({ path, clickPath, text: text3, node: node3, toNode, startPoint, endPoint, controlPoints }) {
-    let {
-      associativeLineActiveColor
-    } = this.mindMap.themeConfig;
+  setActiveLine({
+    path,
+    clickPath,
+    text: text3,
+    node: node3,
+    toNode,
+    startPoint,
+    endPoint,
+    controlPoints
+  }) {
+    let { associativeLineActiveColor } = this.mindMap.themeConfig;
     if (this.mindMap.renderer.activeNodeList.length > 0) {
       this.clearActiveNodes();
     } else {
@@ -62661,6 +65723,21 @@ var AssociativeLine = class {
       y: (y4 - translateY) / scaleY
     };
   }
+  // 计算节点偏移位置
+  getNodePos(node3) {
+    const { scaleX, scaleY, translateX, translateY } = this.mindMap.draw.transform();
+    const { left, top, width: width2, height: height2 } = node3;
+    let translateLeft = left * scaleX + translateX;
+    let translateTop = top * scaleY + translateY;
+    return {
+      left,
+      top,
+      translateLeft,
+      translateTop,
+      width: width2,
+      height: height2
+    };
+  }
   // 检测当前移动到的目标节点
   checkOverlapNode(x3, y4) {
     this.overlapNode = null;
@@ -62708,6 +65785,10 @@ var AssociativeLine = class {
       });
     }
     let list2 = fromNode.nodeData.data.associativeLineTargets || [];
+    const sameLine = list2.some((item) => item === id);
+    if (sameLine) {
+      return;
+    }
     list2.push(id);
     let [startPoint, endPoint] = computeNodePoints(fromNode, toNode);
     let controlPoints = computeCubicBezierPathPoints(
@@ -62727,9 +65808,12 @@ var AssociativeLine = class {
         y: controlPoints[1].y - endPoint.y
       }
     ];
+    let associativeLinePoint = fromNode.nodeData.data.associativeLinePoint || [];
+    associativeLinePoint[list2.length - 1] = [{ startPoint, endPoint }];
     this.mindMap.execCommand("SET_NODE_DATA", fromNode, {
       associativeLineTargets: list2,
-      associativeLineTargetControlOffsets: offsetList
+      associativeLineTargetControlOffsets: offsetList,
+      associativeLinePoint
     });
   }
   // 删除连接线
@@ -62738,7 +65822,13 @@ var AssociativeLine = class {
       return;
     let [, , , node3, toNode] = this.activeLine;
     this.removeControls();
-    let { associativeLineTargets, associativeLineTargetControlOffsets, associativeLineText } = node3.nodeData.data;
+    let {
+      associativeLineTargets,
+      associativeLinePoint,
+      associativeLineTargetControlOffsets,
+      associativeLineText
+    } = node3.nodeData.data;
+    associativeLinePoint = associativeLinePoint || [];
     let targetIndex = getAssociativeLineTargetIndex(node3, toNode);
     let newAssociativeLineText = {};
     if (associativeLineText) {
@@ -62751,6 +65841,10 @@ var AssociativeLine = class {
     this.mindMap.execCommand("SET_NODE_DATA", node3, {
       // 目标
       associativeLineTargets: associativeLineTargets.filter((_3, index3) => {
+        return index3 !== targetIndex;
+      }),
+      // 连接线坐标
+      associativeLinePoint: associativeLinePoint.filter((_3, index3) => {
         return index3 !== targetIndex;
       }),
       // 偏移量
@@ -62812,7 +65906,7 @@ var AssociativeLine_default = AssociativeLine;
 
 // ../simple-mind-map/src/plugins/RichText.js
 var import_quill = __toESM(require_quill());
-var import_html2canvas = __toESM(require_html2canvas());
+var import_quill_delta = __toESM(require_delta());
 var extended = false;
 var fontFamilyList = [
   "\u5B8B\u4F53, SimSun, Songti SC",
@@ -62841,6 +65935,7 @@ var RichText = class {
     this.quill = null;
     this.range = null;
     this.lastRange = null;
+    this.pasteUseRange = null;
     this.node = null;
     this.isInserting = false;
     this.styleEl = null;
@@ -62929,10 +66024,17 @@ var RichText = class {
     import_quill.default.register(SizeStyle, true);
   }
   // 显示文本编辑控件
-  showEditText(node3, rect, isInserting) {
+  showEditText(node3, rect, isInserting, isFromKeyDown) {
     if (this.showTextEdit) {
       return;
     }
+    const {
+      richTextEditFakeInPlace,
+      customInnerElsAppendTo,
+      nodeTextEditZIndex,
+      textAutoWrapWidth,
+      selectTextOnEnterEditText
+    } = this.mindMap.opt;
     this.node = node3;
     this.isInserting = isInserting;
     if (!rect)
@@ -62944,30 +66046,58 @@ var RichText = class {
     let originHeight = g2.attr("data-height");
     let scaleX = rect.width / originWidth;
     let scaleY = rect.height / originHeight;
-    const paddingX = 6;
-    const paddingY = 4;
+    let paddingX = 6;
+    let paddingY = 4;
+    if (richTextEditFakeInPlace) {
+      let paddingValue = node3.getPaddingVale();
+      paddingX = paddingValue.paddingX;
+      paddingY = paddingValue.paddingY;
+    }
     if (!this.textEditNode) {
       this.textEditNode = document.createElement("div");
       this.textEditNode.classList.add("smm-richtext-node-edit-wrap");
-      this.textEditNode.style.cssText = `position:fixed;box-sizing: border-box;box-shadow: 0 0 20px rgba(0,0,0,.5);outline: none; word-break: break-all;padding: ${paddingY}px ${paddingX}px;`;
+      this.textEditNode.style.cssText = `
+        position:fixed; 
+        box-sizing: border-box; 
+        box-shadow: 0 0 20px rgba(0,0,0,.5);
+        outline: none; 
+        word-break: 
+        break-all;padding: ${paddingY}px ${paddingX}px;
+      `;
       this.textEditNode.addEventListener("click", (e2) => {
         e2.stopPropagation();
       });
-      document.body.appendChild(this.textEditNode);
+      this.textEditNode.addEventListener("mousedown", (e2) => {
+        e2.stopPropagation();
+      });
+      this.textEditNode.addEventListener("keydown", (e2) => {
+        if (this.mindMap.renderer.textEdit.checkIsAutoEnterTextEditKey(e2)) {
+          e2.stopPropagation();
+        }
+      });
+      const targetNode = customInnerElsAppendTo || document.body;
+      targetNode.appendChild(this.textEditNode);
     }
     let bgColor = node3.style.merge("fillColor");
+    let color = node3.style.merge("color");
     this.textEditNode.style.marginLeft = `-${paddingX * scaleX}px`;
     this.textEditNode.style.marginTop = `-${paddingY * scaleY}px`;
-    this.textEditNode.style.zIndex = this.mindMap.opt.nodeTextEditZIndex;
-    this.textEditNode.style.backgroundColor = bgColor === "transparent" ? "#fff" : bgColor;
+    this.textEditNode.style.zIndex = nodeTextEditZIndex;
+    this.textEditNode.style.backgroundColor = bgColor === "transparent" ? isWhite(color) ? getVisibleColorFromTheme(this.mindMap.themeConfig) : "#fff" : bgColor;
     this.textEditNode.style.minWidth = originWidth + paddingX * 2 + "px";
     this.textEditNode.style.minHeight = originHeight + "px";
     this.textEditNode.style.left = rect.left + "px";
     this.textEditNode.style.top = rect.top + "px";
     this.textEditNode.style.display = "block";
-    this.textEditNode.style.maxWidth = this.mindMap.opt.textAutoWrapWidth + paddingX * 2 + "px";
+    this.textEditNode.style.maxWidth = textAutoWrapWidth + paddingX * 2 + "px";
     this.textEditNode.style.transform = `scale(${scaleX}, ${scaleY})`;
     this.textEditNode.style.transformOrigin = "left top";
+    if (richTextEditFakeInPlace) {
+      this.textEditNode.style.borderRadius = (node3.style.merge("borderRadius") || 5) + "px";
+      if (node3.style.merge("shape") == "roundedRectangle") {
+        this.textEditNode.style.borderRadius = (node3.height || 50) + "px";
+      }
+    }
     if (!node3.nodeData.data.richText) {
       let text3 = node3.nodeData.data.text.split(/\n/gim).join("<br>");
       let html2 = `<p>${text3}</p>`;
@@ -62978,7 +66108,7 @@ var RichText = class {
     this.initQuillEditor();
     document.querySelector(".ql-editor").style.minHeight = originHeight + "px";
     this.showTextEdit = true;
-    this.focus(isInserting ? 0 : null);
+    this.focus(isInserting || selectTextOnEnterEditText && !isFromKeyDown ? 0 : null);
     if (!node3.nodeData.data.richText) {
       this.setTextStyleIfNotRichText(node3);
     }
@@ -63034,6 +66164,11 @@ var RichText = class {
               key: 13,
               handler: function() {
               }
+            },
+            tab: {
+              key: 9,
+              handler: function() {
+              }
             }
           }
         }
@@ -63046,6 +66181,7 @@ var RichText = class {
       this.lastRange = this.range;
       this.range = null;
       if (range) {
+        this.pasteUseRange = range;
         let bounds = this.quill.getBounds(range.index, range.length);
         let rect = this.textEditNode.getBoundingClientRect();
         let rectInfo = {
@@ -63082,6 +66218,34 @@ var RichText = class {
         this.lostStyle = false;
       }
     });
+    this.quill.clipboard.addMatcher(Node.TEXT_NODE, (node3) => {
+      let style = this.getPasteTextStyle();
+      return new import_quill_delta.default().insert(node3.data, style);
+    });
+    this.quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node3, delta) => {
+      let ops = [];
+      let style = this.getPasteTextStyle();
+      delta.ops.forEach((op) => {
+        if (op.insert && typeof op.insert === "string" && op.insert !== "\n") {
+          ops.push({
+            attributes: { ...style },
+            insert: op.insert
+          });
+        }
+      });
+      delta.ops = ops;
+      return delta;
+    });
+  }
+  // 获取粘贴的文本的样式
+  getPasteTextStyle() {
+    if (this.pasteUseRange) {
+      return this.quill.getFormat(
+        this.pasteUseRange.index,
+        this.pasteUseRange.length
+      );
+    }
+    return {};
   }
   // 正则输入中文
   onCompositionStart() {
@@ -63241,11 +66405,9 @@ var RichText = class {
       }
     };
     walk2(node3);
-    let canvas = await (0, import_html2canvas.default)(el2, {
-      backgroundColor: null
-    });
+    const res = await domtoimage.toPng(el2);
     this.mindMap.el.removeChild(el2);
-    return canvas.toDataURL();
+    return res;
   }
   // 将所有节点转换成非富文本节点
   transformAllNodesToNormalNode() {
@@ -63286,6 +66448,10 @@ var RichText = class {
   // 插件被移除前做的事情
   beforePluginRemove() {
     this.transformAllNodesToNormalNode();
+    document.head.removeChild(this.styleEl);
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
     document.head.removeChild(this.styleEl);
   }
 };
@@ -63367,7 +66533,7 @@ var NodeImgAdjust = class {
       this.createResizeBtnEl();
     }
     this.setHandleElRect();
-    document.body.appendChild(this.handleEl);
+    this.handleEl.style.display = "block";
     this.isShowHandleEl = true;
   }
   // 隐藏自定义元素
@@ -63375,7 +66541,7 @@ var NodeImgAdjust = class {
     if (!this.isShowHandleEl)
       return;
     this.isShowHandleEl = false;
-    document.body.removeChild(this.handleEl);
+    this.handleEl.style.display = "none";
     this.handleEl.style.backgroundImage = ``;
     this.handleEl.style.width = 0;
     this.handleEl.style.height = 0;
@@ -63402,8 +66568,10 @@ var NodeImgAdjust = class {
     this.handleEl.style.cssText = `
       pointer-events: none;
       position: fixed;
+	    display:none;
       background-size: cover;
     `;
+    this.handleEl.className = "node-img-handle";
     const btnEl = document.createElement("div");
     btnEl.innerHTML = btns_default.imgAdjust;
     btnEl.style.cssText = `
@@ -63419,7 +66587,7 @@ var NodeImgAdjust = class {
       align-items: center;
       cursor: nwse-resize;
     `;
-    this.handleEl.appendChild(btnEl);
+    btnEl.className = "node-image-resize";
     btnEl.addEventListener("mouseenter", () => {
       this.showHandleEl();
     });
@@ -63429,8 +66597,48 @@ var NodeImgAdjust = class {
       this.hideHandleEl();
     });
     btnEl.addEventListener("mousedown", (e2) => {
+      e2.stopPropagation();
       this.onMousedown(e2);
     });
+    btnEl.addEventListener("mouseup", (e2) => {
+      setTimeout(() => {
+        this.hideHandleEl();
+        this.isAdjusted = false;
+      }, 0);
+    });
+    btnEl.addEventListener("click", (e2) => {
+      e2.stopPropagation();
+    });
+    this.handleEl.appendChild(btnEl);
+    const btnRemove = document.createElement("div");
+    this.handleEl.prepend(btnRemove);
+    btnRemove.className = "node-image-remove";
+    btnRemove.innerHTML = btns_default.remove;
+    btnRemove.style.cssText = `
+      position: absolute;
+      right: 0;top:0;color:#fff;
+      pointer-events: auto;
+      background-color: rgba(0, 0, 0, 0.3);
+      width: ${this.resizeBtnSize}px;
+      height: ${this.resizeBtnSize}px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    `;
+    btnRemove.addEventListener("mouseenter", (e2) => {
+      this.showHandleEl();
+    });
+    btnRemove.addEventListener("mouseleave", (e2) => {
+      if (this.isMousedown)
+        return;
+      this.hideHandleEl();
+    });
+    btnRemove.addEventListener("click", (e2) => {
+      this.mindMap.execCommand("SET_NODE_IMAGE", this.node, { url: null });
+    });
+    const targetNode = this.mindMap.opt.customInnerElsAppendTo || document.body;
+    targetNode.appendChild(this.handleEl);
   }
   // 鼠标按钮按下事件
   onMousedown() {
@@ -63479,12 +66687,18 @@ var NodeImgAdjust = class {
   }
   // 渲染完成事件
   onRenderEnd() {
-    if (!this.isAdjusted)
+    if (!this.isAdjusted) {
+      this.hideHandleEl();
       return;
+    }
     this.isAdjusted = false;
   }
   // 插件被移除前做的事情
   beforePluginRemove() {
+    this.unBindEvent();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
     this.unBindEvent();
   }
 };
@@ -63499,7 +66713,7 @@ var TouchEvent = class {
     this.touchesNum = 0;
     this.singleTouchstartEvent = null;
     this.clickNum = 0;
-    this.doubleTouchmoveDistance = 0;
+    this.touchStartScaleView = null;
     this.bindEvent();
   }
   // 绑定事件
@@ -63523,6 +66737,7 @@ var TouchEvent = class {
   // 手指按下事件
   onTouchstart(e2) {
     this.touchesNum = e2.touches.length;
+    this.touchStartScaleView = null;
     if (this.touchesNum === 1) {
       let touch = e2.touches[0];
       this.singleTouchstartEvent = touch;
@@ -63541,16 +66756,39 @@ var TouchEvent = class {
       let ox = touch1.clientX - touch2.clientX;
       let oy = touch1.clientY - touch2.clientY;
       let distance = Math.sqrt(Math.pow(ox, 2) + Math.pow(oy, 2));
-      let { x: touch1ClientX, y: touch1ClientY } = this.mindMap.toPos(touch1.clientX, touch1.clientY);
-      let { x: touch2ClientX, y: touch2ClientY } = this.mindMap.toPos(touch2.clientX, touch2.clientY);
+      let { x: touch1ClientX, y: touch1ClientY } = this.mindMap.toPos(
+        touch1.clientX,
+        touch1.clientY
+      );
+      let { x: touch2ClientX, y: touch2ClientY } = this.mindMap.toPos(
+        touch2.clientX,
+        touch2.clientY
+      );
       let cx2 = (touch1ClientX + touch2ClientX) / 2;
       let cy2 = (touch1ClientY + touch2ClientY) / 2;
-      if (distance > this.doubleTouchmoveDistance) {
-        this.mindMap.view.enlarge(cx2, cy2);
-      } else {
-        this.mindMap.view.narrow(cx2, cy2);
+      const view = this.mindMap.view;
+      if (!this.touchStartScaleView) {
+        this.touchStartScaleView = {
+          distance,
+          scale: view.scale,
+          x: view.x,
+          y: view.y,
+          cx: cx2,
+          cy: cy2
+        };
+        return;
       }
-      this.doubleTouchmoveDistance = distance;
+      const viewBefore = this.touchStartScaleView;
+      let scale = viewBefore.scale * (distance / viewBefore.distance);
+      if (Math.abs(distance - viewBefore.distance) <= 10) {
+        scale = viewBefore.scale;
+      }
+      const ratio = 1 - scale / viewBefore.scale;
+      view.scale = scale < 0.1 ? 0.1 : scale;
+      view.x = viewBefore.x + (cx2 - viewBefore.x) * ratio + (cx2 - viewBefore.cx) * scale;
+      view.y = viewBefore.y + (cy2 - viewBefore.y) * ratio + (cy2 - viewBefore.cy) * scale;
+      view.transform();
+      this.mindMap.emit("scale", scale);
     }
   }
   // 手指取消事件
@@ -63573,7 +66811,7 @@ var TouchEvent = class {
     }
     this.touchesNum = 0;
     this.singleTouchstartEvent = null;
-    this.doubleTouchmoveDistance = 0;
+    this.touchStartScaleView = null;
   }
   // 发送鼠标事件
   dispatchMouseEvent(eventName, target, e2) {
@@ -63599,290 +66837,379 @@ var TouchEvent = class {
   beforePluginRemove() {
     this.unBindEvent();
   }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.unBindEvent();
+  }
 };
 TouchEvent.instanceName = "touchEvent";
 var TouchEvent_default = TouchEvent;
 
-// ../simple-mind-map/src/parse/xmind.js
-var import_jszip = __toESM(require_jszip_min());
-var import_xml_js = __toESM(require_lib());
-var parseXmindFile = (file) => {
-  return new Promise((resolve2, reject) => {
-    import_jszip.default.loadAsync(file).then(
-      async (zip) => {
-        try {
-          let content3 = "";
-          if (zip.files["content.json"]) {
-            let json = await zip.files["content.json"].async("string");
-            content3 = await transformXmind(json, zip.files);
-          } else if (zip.files["content.xml"]) {
-            let xml = await zip.files["content.xml"].async("string");
-            let json = import_xml_js.default.xml2json(xml);
-            content3 = transformOldXmind(json);
-          }
-          if (content3) {
-            resolve2(content3);
-          } else {
-            reject(new Error("\u89E3\u6790\u5931\u8D25"));
-          }
-        } catch (error) {
-          reject(error);
-        }
-      },
-      (e2) => {
-        reject(e2);
-      }
-    );
-  });
-};
-var transformXmind = async (content3, files) => {
-  let data2 = JSON.parse(content3)[0];
-  let nodeTree = data2.rootTopic;
-  let newTree = {};
-  let waitLoadImageList = [];
-  let walk2 = async (node3, newNode) => {
-    newNode.data = {
-      // 节点内容
-      text: node3.title
-    };
-    if (node3.notes) {
-      let notesData = node3.notes.realHTML || node3.notes.plain;
-      newNode.data.note = notesData ? notesData.content || "" : "";
+// ../simple-mind-map/src/plugins/Search.js
+var Search = class {
+  //  构造函数
+  constructor({ mindMap }) {
+    this.mindMap = mindMap;
+    this.isSearching = false;
+    this.searchText = "";
+    this.matchNodeList = [];
+    this.currentIndex = -1;
+    this.notResetSearchText = false;
+    this.isJumpNext = false;
+    this.onDataChange = this.onDataChange.bind(this);
+    this.mindMap.on("data_change", this.onDataChange);
+  }
+  // 节点数据改变了，需要重新搜索
+  onDataChange() {
+    if (this.isJumpNext) {
+      this.isJumpNext = false;
+      this.search(this.searchText);
+      return;
     }
-    if (node3.href && /^https?:\/\//.test(node3.href)) {
-      newNode.data.hyperlink = node3.href;
+    if (this.notResetSearchText) {
+      this.notResetSearchText = false;
+      return;
     }
-    if (node3.labels && node3.labels.length > 0) {
-      newNode.data.tag = node3.labels;
-    }
-    if (node3.image && /\.(jpg|jpeg|png|gif|webp)$/.test(node3.image.src)) {
-      try {
-        let resolve2 = null;
-        let promise = new Promise((_resolve) => {
-          resolve2 = _resolve;
-        });
-        waitLoadImageList.push(promise);
-        let imageType = /\.([^.]+)$/.exec(node3.image.src)[1];
-        let imageBase64 = `data:image/${imageType};base64,` + await files["resources/" + node3.image.src.split("/")[1]].async(
-          "base64"
-        );
-        newNode.data.image = imageBase64;
-        if (!node3.image.width && !node3.image.height) {
-          let imageSize = await getImageSize(imageBase64);
-          newNode.data.imageSize = {
-            width: imageSize.width,
-            height: imageSize.height
-          };
-        } else {
-          newNode.data.imageSize = {
-            width: node3.image.width,
-            height: node3.image.height
-          };
-        }
-        resolve2();
-      } catch (error) {
-        console.log(error);
-        resolve();
-      }
-    }
-    newNode.children = [];
-    if (node3.children && node3.children.attached && node3.children.attached.length > 0) {
-      node3.children.attached.forEach((item) => {
-        let newChild = {};
-        newNode.children.push(newChild);
-        walk2(item, newChild);
-      });
-    }
-  };
-  walk2(nodeTree, newTree);
-  await Promise.all(waitLoadImageList);
-  return newTree;
-};
-var transformOldXmind = (content3) => {
-  let data2 = JSON.parse(content3);
-  let elements3 = data2.elements;
-  let root2 = null;
-  let getRoot = (arr) => {
-    for (let i3 = 0; i3 < arr.length; i3++) {
-      if (!root2 && arr[i3].name === "topic") {
-        root2 = arr[i3];
-        return;
-      }
-    }
-    arr.forEach((item) => {
-      getRoot(item.elements);
-    });
-  };
-  getRoot(elements3);
-  let newTree = {};
-  let getItemByName = (arr, name) => {
-    return arr.find((item) => {
-      return item.name === name;
-    });
-  };
-  let walk2 = (node3, newNode) => {
-    let nodeElements = node3.elements;
-    newNode.data = {
-      // 节点内容
-      text: getItemByName(nodeElements, "title").elements[0].text
-    };
-    try {
-      let notesElement = getItemByName(nodeElements, "notes");
-      if (notesElement) {
-        newNode.data.note = notesElement.elements[0].elements[0].elements[0].text;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    try {
-      if (node3.attributes && node3.attributes["xlink:href"] && /^https?:\/\//.test(node3.attributes["xlink:href"])) {
-        newNode.data.hyperlink = node3.attributes["xlink:href"];
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    try {
-      let labelsElement = getItemByName(nodeElements, "labels");
-      if (labelsElement) {
-        newNode.data.tag = labelsElement.elements.map((item) => {
-          return item.elements[0].text;
-        });
-      }
-    } catch (error) {
-      console.log(error);
-    }
-    newNode.children = [];
-    let _children = getItemByName(nodeElements, "children");
-    if (_children && _children.elements && _children.elements.length > 0) {
-      _children.elements.forEach((item) => {
-        if (item.name === "topics") {
-          item.elements.forEach((item2) => {
-            let newChild = {};
-            newNode.children.push(newChild);
-            walk2(item2, newChild);
-          });
-        } else {
-          let newChild = {};
-          newNode.children.push(newChild);
-          walk2(item, newChild);
-        }
-      });
-    }
-  };
-  walk2(root2, newTree);
-  return newTree;
-};
-var transformToXmind = async (data2, name) => {
-  const id = "simpleMindMap_" + Date.now();
-  const imageList = [];
-  let newTree = {};
-  let waitLoadImageList = [];
-  let walk2 = async (node3, newNode, isRoot) => {
-    let newData = {
-      structureClass: "org.xmind.ui.logic.right",
-      title: getTextFromHtml(node3.data.text),
-      // 节点文本
-      children: {
-        attached: []
-      }
-    };
-    if (node3.data.note !== void 0) {
-      newData.notes = {
-        realHTML: {
-          content: node3.data.note
-        },
-        plain: {
-          content: node3.data.note
-        }
-      };
-    }
-    if (node3.data.hyperlink !== void 0) {
-      newData.href = node3.data.hyperlink;
-    }
-    if (node3.data.tag !== void 0) {
-      newData.labels = node3.data.tag || [];
-    }
-    if (node3.data.image) {
-      try {
-        let resolve2 = null;
-        let promise = new Promise((_resolve) => {
-          resolve2 = _resolve;
-        });
-        waitLoadImageList.push(promise);
-        let imgName = "";
-        let imgData = node3.data.image;
-        if (/^https?:\/\//.test(node3.data.image)) {
-          imgData = await imgToDataUrl(node3.data.image);
-        }
-        let dataUrlRes = parseDataUrl(imgData);
-        imgName = "image_" + imageList.length + "." + dataUrlRes.type;
-        imageList.push({
-          name: imgName,
-          data: dataUrlRes.base64
-        });
-        newData.image = {
-          src: "xap:resources/" + imgName,
-          width: node3.data.imageSize.width,
-          height: node3.data.imageSize.height
-        };
-        resolve2();
-      } catch (error) {
-        console.log(error);
-        resolve();
-      }
-    }
-    if (isRoot) {
-      newData.class = "topic";
-      newNode.id = id;
-      newNode.class = "sheet";
-      newNode.title = name;
-      newNode.extensions = [];
-      newNode.topicPositioning = "fixed";
-      newNode.topicOverlapping = "overlap";
-      newNode.coreVersion = "2.100.0";
-      newNode.rootTopic = newData;
+    this.searchText = "";
+  }
+  // 搜索
+  search(text3, callback = () => {
+  }) {
+    if (isUndef(text3))
+      return this.endSearch();
+    text3 = String(text3);
+    this.isSearching = true;
+    if (this.searchText === text3) {
+      this.searchNext(callback);
     } else {
-      Object.keys(newData).forEach((key) => {
-        newNode[key] = newData[key];
-      });
+      this.searchText = text3;
+      this.doSearch();
+      this.searchNext(callback);
     }
-    if (node3.children && node3.children.length > 0) {
-      node3.children.forEach((child) => {
-        let newChild = {};
-        walk2(child, newChild);
-        newData.children.attached.push(newChild);
-      });
-    }
-  };
-  walk2(data2, newTree, true);
-  await Promise.all(waitLoadImageList);
-  const contentData = [newTree];
-  const zip = new import_jszip.default();
-  zip.file("content.json", JSON.stringify(contentData));
-  zip.file(
-    "metadata.json",
-    `{"modifier":"","dataStructureVersion":"1","layoutEngineVersion":"2","activeSheetId":"${id}"}`
-  );
-  const manifestData = {
-    "file-entries": { "content.json": {}, "metadata.json": {} }
-  };
-  if (imageList.length > 0) {
-    imageList.forEach((item) => {
-      manifestData["file-entries"]["resources/" + item.name] = {};
-      const img = zip.folder("resources");
-      img.file(item.name, item.data, { base64: true });
+    this.emitEvent();
+  }
+  // 结束搜索
+  endSearch() {
+    if (!this.isSearching)
+      return;
+    this.searchText = "";
+    this.matchNodeList = [];
+    this.currentIndex = -1;
+    this.notResetSearchText = false;
+    this.isSearching = false;
+    this.emitEvent();
+  }
+  // 搜索匹配的节点
+  doSearch() {
+    this.matchNodeList = [];
+    this.currentIndex = -1;
+    bfsWalk(this.mindMap.renderer.root, (node3) => {
+      let { richText, text: text3 } = node3.nodeData.data;
+      if (richText) {
+        text3 = getTextFromHtml(text3);
+      }
+      if (text3.includes(this.searchText)) {
+        this.matchNodeList.push(node3);
+      }
     });
   }
-  zip.file("manifest.json", JSON.stringify(manifestData));
-  const zipData = await zip.generateAsync({ type: "blob" });
-  return zipData;
+  // 搜索下一个，定位到下一个匹配节点
+  searchNext(callback) {
+    if (!this.isSearching || this.matchNodeList.length <= 0)
+      return;
+    if (this.currentIndex < this.matchNodeList.length - 1) {
+      this.currentIndex++;
+    } else {
+      this.currentIndex = 0;
+    }
+    let currentNode = this.matchNodeList[this.currentIndex];
+    this.notResetSearchText = true;
+    this.mindMap.execCommand("GO_TARGET_NODE", currentNode, () => {
+      this.notResetSearchText = false;
+      callback();
+    });
+  }
+  // 替换当前节点
+  replace(replaceText, jumpNext = false) {
+    if (replaceText === null || replaceText === void 0 || !this.isSearching || this.matchNodeList.length <= 0)
+      return;
+    this.isJumpNext = jumpNext;
+    replaceText = String(replaceText);
+    let currentNode = this.matchNodeList[this.currentIndex];
+    if (!currentNode)
+      return;
+    let text3 = this.getReplacedText(currentNode, this.searchText, replaceText);
+    this.notResetSearchText = true;
+    currentNode.setText(text3, currentNode.nodeData.data.richText, true);
+    this.matchNodeList = this.matchNodeList.filter((node3) => {
+      return currentNode !== node3;
+    });
+    if (this.currentIndex > this.matchNodeList.length - 1) {
+      this.currentIndex = -1;
+    } else {
+      this.currentIndex--;
+    }
+    this.emitEvent();
+  }
+  // 替换所有
+  replaceAll(replaceText) {
+    if (replaceText === null || replaceText === void 0 || !this.isSearching || this.matchNodeList.length <= 0)
+      return;
+    replaceText = String(replaceText);
+    this.matchNodeList.forEach((node3) => {
+      let text3 = this.getReplacedText(node3, this.searchText, replaceText);
+      this.mindMap.renderer.setNodeDataRender(
+        node3,
+        {
+          text: text3,
+          resetRichText: !!node3.nodeData.data.richText
+        },
+        true
+      );
+    });
+    this.mindMap.render();
+    this.mindMap.command.addHistory();
+    this.endSearch();
+  }
+  // 获取某个节点替换后的文本
+  getReplacedText(node3, searchText, replaceText) {
+    let { richText, text: text3 } = node3.nodeData.data;
+    if (richText) {
+      return replaceHtmlText(text3, searchText, replaceText);
+    } else {
+      return text3.replaceAll(searchText, replaceText);
+    }
+  }
+  // 发送事件
+  emitEvent() {
+    this.mindMap.emit("search_info_change", {
+      currentIndex: this.currentIndex,
+      total: this.matchNodeList.length
+    });
+  }
 };
-var xmind_default = {
-  parseXmindFile,
-  transformXmind,
-  transformOldXmind,
-  transformToXmind
+Search.instanceName = "search";
+var Search_default = Search;
+
+// ../simple-mind-map/src/plugins/Painter.js
+var Painter = class {
+  constructor({ mindMap }) {
+    this.mindMap = mindMap;
+    this.isInPainter = false;
+    this.painterNode = null;
+    this.bindEvent();
+  }
+  bindEvent() {
+    this.painterOneNode = this.painterOneNode.bind(this);
+    this.onEndPainter = this.onEndPainter.bind(this);
+    this.mindMap.on("node_click", this.painterOneNode);
+    this.mindMap.on("draw_click", this.onEndPainter);
+  }
+  unBindEvent() {
+    this.mindMap.off("node_click", this.painterOneNode);
+    this.mindMap.off("draw_click", this.onEndPainter);
+  }
+  // 开始格式刷
+  startPainter() {
+    if (this.mindMap.opt.readonly)
+      return;
+    let activeNodeList = this.mindMap.renderer.activeNodeList;
+    if (activeNodeList.length <= 0)
+      return;
+    this.painterNode = activeNodeList[0];
+    this.isInPainter = true;
+    this.mindMap.emit("painter_start");
+  }
+  // 结束格式刷
+  endPainter() {
+    this.painterNode = null;
+    this.isInPainter = false;
+  }
+  onEndPainter() {
+    this.endPainter();
+    this.mindMap.emit("painter_end");
+  }
+  // 格式刷某个节点
+  painterOneNode(node3) {
+    if (!node3 || !this.isInPainter || !this.painterNode || !node3 || node3 === this.painterNode)
+      return;
+    const style = {};
+    const painterNodeData = this.painterNode.nodeData.data;
+    Object.keys(painterNodeData).forEach((key) => {
+      if (!nodeDataNoStylePropList.includes(key)) {
+        style[key] = painterNodeData[key];
+      }
+    });
+    node3.setStyles(style);
+    if (painterNodeData.activeStyle) {
+      node3.setStyles(painterNodeData.activeStyle, true);
+    }
+  }
+  // 插件被移除前做的事情
+  beforePluginRemove() {
+    this.unBindEvent();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.unBindEvent();
+  }
 };
+Painter.instanceName = "painter";
+var Painter_default = Painter;
+
+// ../simple-mind-map/src/plugins/Scrollbar.js
+var Scrollbar = class {
+  //  构造函数
+  constructor(opt) {
+    this.mindMap = opt.mindMap;
+    this.scrollbarWrapSize = {
+      width: 0,
+      // 水平滚动条的容器宽度
+      height: 0
+      // 垂直滚动条的容器高度
+    };
+    this.reset();
+    this.bindEvent();
+  }
+  // 绑定事件
+  bindEvent() {
+    this.onMousemove = this.onMousemove.bind(this);
+    this.onMouseup = this.onMouseup.bind(this);
+    this.onNodeTreeRenderEnd = this.onNodeTreeRenderEnd.bind(this);
+    this.onViewDataChange = throttle(this.onViewDataChange, 16, this);
+    this.mindMap.on("mousemove", this.onMousemove);
+    this.mindMap.on("mouseup", this.onMouseup);
+    this.mindMap.on("node_tree_render_end", this.onNodeTreeRenderEnd);
+    this.mindMap.on("view_data_change", this.onViewDataChange);
+  }
+  // 解绑事件
+  unBindEvent() {
+    this.mindMap.off("mousemove", this.onMousemove);
+    this.mindMap.off("mouseup", this.onMouseup);
+    this.mindMap.off("node_tree_render_end", this.onNodeTreeRenderEnd);
+    this.mindMap.off("view_data_change", this.onViewDataChange);
+  }
+  // 每次渲染后需要更新滚动条
+  onNodeTreeRenderEnd() {
+    this.emitEvent();
+  }
+  // 思维导图视图数据改变需要更新滚动条
+  onViewDataChange() {
+    this.emitEvent();
+  }
+  // 发送滚动条改变事件
+  emitEvent() {
+    this.mindMap.emit("scrollbar_change");
+  }
+  // 复位数据
+  reset() {
+    this.currentScrollType = "";
+    this.isMousedown = false;
+    this.mousedownPos = {
+      x: 0,
+      y: 0
+    };
+    this.startViewPos = {
+      x: 0,
+      y: 0
+    };
+    this.chartHeight = 0;
+    this.chartWidth = 0;
+  }
+  // 设置滚动条容器的大小，指滚动条容器的大小，对于水平滚动条，即宽度，对于垂直滚动条，即高度
+  setScrollBarWrapSize(width2, height2) {
+    this.scrollbarWrapSize.width = width2;
+    this.scrollbarWrapSize.height = height2;
+  }
+  // 计算滚动条大小和位置
+  calculationScrollbar() {
+    const rect = this.mindMap.draw.rbox();
+    const elRect = this.mindMap.elRect;
+    rect.x -= elRect.left;
+    rect.x2 -= elRect.left;
+    rect.y -= elRect.top;
+    rect.y2 -= elRect.top;
+    const canvasHeight = this.mindMap.height;
+    const paddingY = canvasHeight / 2;
+    const chartHeight = rect.height + paddingY * 2;
+    this.chartHeight = chartHeight;
+    const chartTop = rect.y - paddingY;
+    const height2 = Math.min(canvasHeight / chartHeight * 100, 100);
+    let top = -chartTop / chartHeight * 100;
+    if (top < 0) {
+      top = 0;
+    }
+    if (top > 100 - height2) {
+      top = 100 - height2;
+    }
+    const canvasWidth = this.mindMap.width;
+    const paddingX = canvasWidth / 2;
+    const chartWidth = rect.width + paddingX * 2;
+    this.chartWidth = chartWidth;
+    const chartLeft = rect.x - paddingX;
+    const width2 = Math.min(canvasWidth / chartWidth * 100, 100);
+    let left = -chartLeft / chartWidth * 100;
+    if (left < 0) {
+      left = 0;
+    }
+    if (left > 100 - width2) {
+      left = 100 - width2;
+    }
+    const res = {
+      // 垂直滚动条
+      vertical: {
+        top,
+        height: height2
+      },
+      // 水平滚动条
+      horizontal: {
+        left,
+        width: width2
+      }
+    };
+    return res;
+  }
+  onMousedown(e2, type) {
+    e2.preventDefault();
+    this.currentScrollType = type;
+    this.isMousedown = true;
+    this.mousedownPos = {
+      x: e2.clientX,
+      y: e2.clientY
+    };
+    let transformData = this.mindMap.view.getTransformData();
+    this.startViewPos = {
+      x: transformData.state.x,
+      y: transformData.state.y
+    };
+  }
+  onMousemove(e2) {
+    if (!this.isMousedown) {
+      return;
+    }
+    if (this.currentScrollType === "vertical") {
+      const oy = e2.clientY - this.mousedownPos.y;
+      const oyPercentage = -oy / this.scrollbarWrapSize.height;
+      const oyPx = oyPercentage * this.chartHeight;
+      this.mindMap.view.translateYTo(oyPx + this.startViewPos.y);
+    } else {
+      const ox = e2.clientX - this.mousedownPos.x;
+      const oxPercentage = -ox / this.scrollbarWrapSize.width;
+      const oxPx = oxPercentage * this.chartWidth;
+      this.mindMap.view.translateXTo(oxPx + this.startViewPos.x);
+    }
+  }
+  onMouseup() {
+    this.isMousedown = false;
+    this.reset();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.unBindEvent();
+  }
+};
+Scrollbar.instanceName = "scrollbar";
+var Scrollbar_default = Scrollbar;
 
 // ../simple-mind-map/node_modules/mdast-util-to-string/lib/index.js
 function toString7(value, options) {
@@ -63908,7 +67235,7 @@ function node2(value) {
 }
 
 // ../simple-mind-map/node_modules/micromark-util-chunked/index.js
-function splice(list2, start, remove, items) {
+function splice(list2, start, remove2, items) {
   const end = list2.length;
   let chunkStart = 0;
   let parameters;
@@ -63917,14 +67244,14 @@ function splice(list2, start, remove, items) {
   } else {
     start = start > end ? end : start;
   }
-  remove = remove > 0 ? remove : 0;
+  remove2 = remove2 > 0 ? remove2 : 0;
   if (items.length < 1e4) {
     parameters = Array.from(items);
-    parameters.unshift(start, remove);
+    parameters.unshift(start, remove2);
     [].splice.apply(list2, parameters);
   } else {
-    if (remove)
-      [].splice.apply(list2, [start, remove]);
+    if (remove2)
+      [].splice.apply(list2, [start, remove2]);
     while (chunkStart < items.length) {
       parameters = items.slice(chunkStart, chunkStart + 1e4);
       parameters.unshift(start, 0);
@@ -68583,7 +71910,7 @@ var handleList = (node3) => {
   walk2(node3.children, list2);
   return list2;
 };
-var transformMarkdownTo = async (md) => {
+var transformMarkdownTo = (md) => {
   const tree = fromMarkdown(md);
   let root2 = {
     children: []
@@ -68655,12 +71982,28 @@ simple_mind_map_default.iconList = icons_default.nodeIconList;
 simple_mind_map_default.constants = constant_exports;
 simple_mind_map_default.themes = themes_default;
 simple_mind_map_default.defaultTheme = default_exports;
-simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default);
+simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportXMind_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default).usePlugin(Search_default).usePlugin(Painter_default).usePlugin(Scrollbar_default);
 var full_default = simple_mind_map_default;
 export {
   full_default as default
 };
 /*! Bundled license information:
+
+jszip/dist/jszip.min.js:
+  (*!
+  
+  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
+  <http://stuartk.com/jszip>
+  
+  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
+  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
+  
+  JSZip uses the library pako released under the MIT license :
+  https://github.com/nodeca/pako/blob/main/LICENSE
+  *)
+
+sax/lib/sax.js:
+  (*! http://mths.be/fromcodepoint v0.1.0 by @mathias *)
 
 html2canvas/dist/html2canvas.js:
   (*!
@@ -68709,22 +72052,6 @@ quill/dist/quill.js:
    * Copyright (c) 2014, Jason Chen
    * Copyright (c) 2013, salesforce.com
    *)
-
-jszip/dist/jszip.min.js:
-  (*!
-  
-  JSZip v3.10.1 - A JavaScript class for generating and reading zip files
-  <http://stuartk.com/jszip>
-  
-  (c) 2009-2016 Stuart Knightley <stuart [at] stuartk.com>
-  Dual licenced under the MIT license or GPLv3. See https://raw.github.com/Stuk/jszip/main/LICENSE.markdown.
-  
-  JSZip uses the library pako released under the MIT license :
-  https://github.com/nodeca/pako/blob/main/LICENSE
-  *)
-
-sax/lib/sax.js:
-  (*! http://mths.be/fromcodepoint v0.1.0 by @mathias *)
 
 @svgdotjs/svg.js/dist/svg.esm.js:
   (*!
