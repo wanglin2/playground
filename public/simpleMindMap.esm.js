@@ -24003,7 +24003,6 @@ var constant_exports = {};
 __export(constant_exports, {
   CONSTANTS: () => CONSTANTS,
   ERROR_TYPES: () => ERROR_TYPES,
-  commonCaches: () => commonCaches,
   cssContent: () => cssContent,
   initRootNodePositionMap: () => initRootNodePositionMap,
   layoutList: () => layoutList,
@@ -24318,12 +24317,10 @@ var nodeDataNoStylePropList = [
   "associativeLineTargets",
   "associativeLineTargetControlOffsets",
   "associativeLinePoint",
-  "associativeLineText"
+  "associativeLineText",
+  "attachmentUrl",
+  "attachmentName"
 ];
-var commonCaches = {
-  measureCustomNodeContentSizeEl: null,
-  measureRichtextNodeTextSizeEl: null
-};
 var ERROR_TYPES = {
   READ_CLIPBOARD_ERROR: "read_clipboard_error",
   PARSE_PASTE_DATA_ERROR: "parse_paste_data_error",
@@ -24395,7 +24392,7 @@ var View = class {
       this.sy = this.y;
     });
     this.mindMap.event.on("drag", (e, event) => {
-      if (e.ctrlKey || this.mindMap.opt.isDisableDrag) {
+      if (e.ctrlKey || e.metaKey || this.mindMap.opt.isDisableDrag) {
         return;
       }
       if (this.firstDrag) {
@@ -24423,7 +24420,7 @@ var View = class {
       if (customHandleMousewheel && typeof customHandleMousewheel === "function") {
         return customHandleMousewheel(e);
       }
-      if (mousewheelAction === CONSTANTS.MOUSE_WHEEL_ACTION.ZOOM || e.ctrlKey) {
+      if (mousewheelAction === CONSTANTS.MOUSE_WHEEL_ACTION.ZOOM || e.ctrlKey || e.metaKey) {
         if (disableMouseWheelZoom)
           return;
         const { x: clientX, y: clientY } = this.mindMap.toPos(
@@ -24493,7 +24490,8 @@ var View = class {
         ...viewData.transform
       });
       this.mindMap.emit("view_data_change", this.getTransformData());
-      this.mindMap.emit("scale", this.scale);
+      this.emitEvent("scale");
+      this.emitEvent("translate");
     }
   }
   //  平移x,y方向
@@ -24503,6 +24501,7 @@ var View = class {
     this.x += x2;
     this.y += y2;
     this.transform();
+    this.emitEvent("translate");
   }
   //  平移x方向
   translateX(step) {
@@ -24510,11 +24509,13 @@ var View = class {
       return;
     this.x += step;
     this.transform();
+    this.emitEvent("translate");
   }
   //  平移x方式到
   translateXTo(x2) {
     this.x = x2;
     this.transform();
+    this.emitEvent("translate");
   }
   //  平移y方向
   translateY(step) {
@@ -24522,11 +24523,13 @@ var View = class {
       return;
     this.y += step;
     this.transform();
+    this.emitEvent("translate");
   }
   //  平移y方向到
   translateYTo(y2) {
     this.y = y2;
     this.transform();
+    this.emitEvent("translate");
   }
   //   应用变换
   transform() {
@@ -24543,13 +24546,17 @@ var View = class {
   }
   //  恢复
   reset() {
-    let scaleChange = this.scale !== 1;
+    const scaleChange = this.scale !== 1;
+    const translateChange = this.x !== 0 || this.y !== 0;
     this.scale = 1;
     this.x = 0;
     this.y = 0;
     this.transform();
     if (scaleChange) {
-      this.mindMap.emit("scale", this.scale);
+      this.emitEvent("scale");
+    }
+    if (translateChange) {
+      this.emitEvent("translate");
     }
   }
   //  缩小
@@ -24558,7 +24565,7 @@ var View = class {
     const scale2 = Math.max(this.scale - scaleRatio, 0.1);
     this.scaleInCenter(scale2, cx3, cy3);
     this.transform();
-    this.mindMap.emit("scale", this.scale);
+    this.emitEvent("scale");
   }
   //  放大
   enlarge(cx3, cy3, isTouchPad) {
@@ -24566,7 +24573,7 @@ var View = class {
     const scale2 = this.scale + scaleRatio;
     this.scaleInCenter(scale2, cx3, cy3);
     this.transform();
-    this.mindMap.emit("scale", this.scale);
+    this.emitEvent("scale");
   }
   // 基于指定中心进行缩放，cx，cy 可不指定，此时会使用画布中心点
   scaleInCenter(scale2, cx3, cy3) {
@@ -24590,14 +24597,15 @@ var View = class {
       this.scale = scale2;
     }
     this.transform();
-    this.mindMap.emit("scale", this.scale);
+    this.emitEvent("scale");
   }
   // 适应画布大小
-  fit() {
-    const { fitPadding } = this.mindMap.opt;
+  fit(getRbox = () => {
+  }, enlarge = false, fitPadding) {
+    fitPadding = fitPadding === void 0 ? this.mindMap.opt.fitPadding : fitPadding;
     const draw = this.mindMap.draw;
     const origTransform = draw.transform();
-    const rect = draw.rbox();
+    const rect = getRbox() || draw.rbox();
     const drawWidth = rect.width / origTransform.scaleX;
     const drawHeight = rect.height / origTransform.scaleY;
     const drawRatio = drawWidth / drawHeight;
@@ -24607,7 +24615,7 @@ var View = class {
     const elRatio = elWidth / elHeight;
     let newScale = 0;
     let flag3 = "";
-    if (drawWidth <= elWidth && drawHeight <= elHeight) {
+    if (drawWidth <= elWidth && drawHeight <= elHeight && !enlarge) {
       newScale = 1;
       flag3 = 1;
     } else {
@@ -24625,7 +24633,7 @@ var View = class {
       newScale = newWidth / drawWidth;
     }
     this.setScale(newScale);
-    const newRect = draw.rbox();
+    const newRect = getRbox() || draw.rbox();
     newRect.x -= this.mindMap.elRect.left;
     newRect.y -= this.mindMap.elRect.top;
     let newX = 0;
@@ -24703,6 +24711,15 @@ var View = class {
       top,
       bottom
     };
+  }
+  // 派发事件
+  emitEvent(type) {
+    switch (type) {
+      case "scale":
+        this.mindMap.emit("scale", this.scale);
+      case "translate":
+        this.mindMap.emit("translate", this.x, this.y);
+    }
   }
 };
 var View_default = View;
@@ -30660,8 +30677,15 @@ var copyRenderTree = (tree, root2, removeActiveState = false) => {
   tree.data = simpleDeepClone(root2.data);
   if (removeActiveState) {
     tree.data.isActive = false;
-    if (tree.data.generalization) {
-      tree.data.generalization.isActive = false;
+    const generalization = tree.data.generalization;
+    if (generalization) {
+      if (Array.isArray(generalization)) {
+        generalization.forEach((item) => {
+          item.isActive = false;
+        });
+      } else {
+        generalization.isActive = false;
+      }
     }
   }
   tree.children = [];
@@ -31519,6 +31543,62 @@ var handleGetSvgDataExtraContent = ({
     footerHeight
   };
 };
+var getNodeTreeBoundingRect = (node2, x2 = 0, y2 = 0, paddingX = 0, paddingY = 0, excludeSelf = false) => {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  const walk2 = (root2, isRoot) => {
+    if (!(isRoot && excludeSelf)) {
+      const { x: x3, y: y3, width: width2, height: height2 } = root2.group.findOne(".smm-node-shape").rbox();
+      if (x3 < minX) {
+        minX = x3;
+      }
+      if (x3 + width2 > maxX) {
+        maxX = x3 + width2;
+      }
+      if (y3 < minY) {
+        minY = y3;
+      }
+      if (y3 + height2 > maxY) {
+        maxY = y3 + height2;
+      }
+    }
+    if (root2._generalizationList.length > 0) {
+      root2._generalizationList.forEach((item) => {
+        walk2(item.generalizationNode);
+      });
+    }
+    if (root2.children) {
+      root2.children.forEach((item) => {
+        walk2(item);
+      });
+    }
+  };
+  walk2(node2, true);
+  minX = minX - x2 + paddingX;
+  minY = minY - y2 + paddingY;
+  maxX = maxX - x2 + paddingX;
+  maxY = maxY - y2 + paddingY;
+  return {
+    left: minX,
+    top: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
+};
+var getOnfullscreEnevt = () => {
+  if (document.documentElement.requestFullScreen) {
+    return "fullscreenchange";
+  } else if (document.documentElement.webkitRequestFullScreen) {
+    return "webkitfullscreenchange";
+  } else if (document.documentElement.mozRequestFullScreen) {
+    return "mozfullscreenchange";
+  } else if (document.documentElement.msRequestFullscreen) {
+    return "msfullscreenchange";
+  }
+};
+var fullscrrenEvent = getOnfullscreEnevt();
 
 // ../simple-mind-map/src/core/render/node/Style.js
 var rootProp = ["paddingX", "paddingY"];
@@ -32070,6 +32150,7 @@ function createGeneralizationNode() {
     if (!cur.generalizationNode) {
       cur.generalizationNode = new Node_default({
         data: {
+          inserting: item.inserting,
           data: item
         },
         uid: createUid(),
@@ -32078,6 +32159,7 @@ function createGeneralizationNode() {
         isGeneralization: true
       });
     }
+    delete item.inserting;
     cur.generalizationNode.generalizationBelongNode = this;
     if (cur.generalizationNode.width > maxWidth)
       maxWidth = cur.generalizationNode.width;
@@ -32394,6 +32476,9 @@ function setHyperlink(link, title) {
 function setNote(note2) {
   this.mindMap.execCommand("SET_NODE_NOTE", this, note2);
 }
+function setAttachment(url, name) {
+  this.mindMap.execCommand("SET_NODE_ATTACHMENT", this, url, name);
+}
 function setTag(tag) {
   this.mindMap.execCommand("SET_NODE_TAG", this, tag);
 }
@@ -32413,6 +32498,7 @@ var nodeCommandWraps_default = {
   setIcon,
   setHyperlink,
   setNote,
+  setAttachment,
   setTag,
   setShape,
   setStyle,
@@ -32422,6 +32508,7 @@ var nodeCommandWraps_default = {
 // ../simple-mind-map/src/svg/icons.js
 var hyperlink = '<svg t="1624174958075" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="7982" ><path d="M435.484444 251.733333v68.892445L295.822222 320.682667a168.504889 168.504889 0 0 0-2.844444 336.952889h142.506666v68.892444H295.822222a237.397333 237.397333 0 0 1 0-474.794667h139.662222z m248.945778 0a237.397333 237.397333 0 0 1 0 474.851556H544.654222v-69.006222l139.776 0.056889a168.504889 168.504889 0 0 0 2.844445-336.952889H544.597333V251.676444h139.776z m-25.827555 203.946667a34.474667 34.474667 0 0 1 0 68.892444H321.649778a34.474667 34.474667 0 0 1 0-68.892444h336.952889z" p-id="7983"></path></svg>';
 var note = '<svg t="1624195132675" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="8792" ><path d="M152.768 985.984 152.768 49.856l434.56 0 66.816 0 234.048 267.392 0 66.816 0 601.92L152.768 985.984 152.768 985.984zM654.144 193.088l0 124.16 108.736 0L654.144 193.088 654.144 193.088zM821.312 384.064l-167.168 0L587.328 384.064 587.328 317.312 587.328 116.736 219.584 116.736 219.584 919.04l601.728 0L821.312 384.064 821.312 384.064zM386.688 517.888 319.808 517.888 319.808 450.944l66.816 0L386.624 517.888 386.688 517.888zM386.688 651.584 319.808 651.584 319.808 584.704l66.816 0L386.624 651.584 386.688 651.584zM386.688 785.344 319.808 785.344l0-66.88 66.816 0L386.624 785.344 386.688 785.344zM721.024 517.888 453.632 517.888 453.632 450.944l267.392 0L721.024 517.888 721.024 517.888zM654.144 651.584 453.632 651.584 453.632 584.704l200.512 0L654.144 651.584 654.144 651.584zM620.672 785.344l-167.04 0 0-66.88 167.04 0L620.672 785.344 620.672 785.344z" p-id="8793"></path></svg>';
+var attachment = '<svg t="1711935375590" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3864" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128"><path d="M516.373333 375.978667l136.576-136.576a147.797333 147.797333 0 0 1 208.853334-0.021334 147.690667 147.690667 0 0 1-0.042667 208.832l-204.8 204.778667v0.021333l-153.621333 153.6c-85.973333 85.973333-225.28 85.973333-311.253334 0.021334-85.994667-85.973333-85.973333-225.216 0.149334-311.36L431.146667 256.362667a21.333333 21.333333 0 0 0-30.165334-30.165334L162.069333 465.066667c-102.805333 102.826667-102.826667 269.056-0.149333 371.733333 102.613333 102.613333 268.970667 102.613333 371.584 0l153.6-153.642667h0.021333l0.021334-0.021333 204.778666-204.778667c74.325333-74.325333 74.346667-194.858667 0.021334-269.184-74.24-74.24-194.88-74.24-269.162667 0.042667l-136.576 136.554667-187.626667 187.626666a117.845333 117.845333 0 0 0-0.106666 166.826667 118.037333 118.037333 0 0 0 166.826666-0.106667l255.850667-255.829333a21.333333 21.333333 0 0 0-30.165333-30.165333L435.136 669.973333a75.370667 75.370667 0 0 1-106.496 0.106667 75.178667 75.178667 0 0 1 0.128-106.496l187.605333-187.605333z" p-id="3865"></path></svg>';
 var nodeIconList = [
   {
     name: "\u4F18\u5148\u7EA7\u56FE\u6807",
@@ -32713,6 +32800,7 @@ var getNodeIconListIcon = (name, extendIconList = []) => {
 var icons_default = {
   hyperlink,
   note,
+  attachment,
   nodeIconList,
   getNodeIconListIcon
 };
@@ -32831,13 +32919,13 @@ function createRichTextNode() {
     });
   }
   let html2 = `<div>${this.getData("text")}</div>`;
-  if (!commonCaches.measureRichtextNodeTextSizeEl) {
-    commonCaches.measureRichtextNodeTextSizeEl = document.createElement("div");
-    commonCaches.measureRichtextNodeTextSizeEl.style.position = "fixed";
-    commonCaches.measureRichtextNodeTextSizeEl.style.left = "-999999px";
-    this.mindMap.el.appendChild(commonCaches.measureRichtextNodeTextSizeEl);
+  if (!this.mindMap.commonCaches.measureRichtextNodeTextSizeEl) {
+    this.mindMap.commonCaches.measureRichtextNodeTextSizeEl = document.createElement("div");
+    this.mindMap.commonCaches.measureRichtextNodeTextSizeEl.style.position = "fixed";
+    this.mindMap.commonCaches.measureRichtextNodeTextSizeEl.style.left = "-999999px";
+    this.mindMap.el.appendChild(this.mindMap.commonCaches.measureRichtextNodeTextSizeEl);
   }
-  let div = commonCaches.measureRichtextNodeTextSizeEl;
+  let div = this.mindMap.commonCaches.measureRichtextNodeTextSizeEl;
   div.innerHTML = html2;
   let el = div.children[0];
   el.classList.add("smm-richtext-node-wrap");
@@ -32937,7 +33025,7 @@ function createHyperlinkNode() {
     e.stopPropagation();
   });
   if (hyperlinkTitle) {
-    a.attr("title", hyperlinkTitle);
+    node2.add(SVG(`<title>${hyperlinkTitle}</title>`));
   }
   a.rect(iconSize, iconSize).fill({ color: "transparent" });
   let iconNode = SVG(icons_default.hyperlink).size(iconSize, iconSize);
@@ -33029,6 +33117,32 @@ function createNoteNode() {
     height: iconSize
   };
 }
+function createAttachmentNode() {
+  const { attachmentUrl, attachmentName } = this.getData();
+  if (!attachmentUrl) {
+    return;
+  }
+  const iconSize = this.mindMap.themeConfig.iconSize;
+  const node2 = new SVG().attr("cursor", "pointer").size(iconSize, iconSize);
+  if (attachmentName) {
+    node2.add(SVG(`<title>${attachmentName}</title>`));
+  }
+  node2.add(new Rect().size(iconSize, iconSize).fill({ color: "transparent" }));
+  const iconNode = SVG(icons_default.attachment).size(iconSize, iconSize);
+  this.style.iconNode(iconNode);
+  node2.add(iconNode);
+  node2.on("click", (e) => {
+    this.mindMap.emit("node_attachmentClick", this, e, node2);
+  });
+  node2.on("contextmenu", (e) => {
+    this.mindMap.emit("node_attachmentContextmenu", this, e, node2);
+  });
+  return {
+    node: node2,
+    width: iconSize,
+    height: iconSize
+  };
+}
 function getNoteContentPosition() {
   const iconSize = this.mindMap.themeConfig.iconSize;
   const { scaleY } = this.mindMap.view.getTransformData().transform;
@@ -33041,18 +33155,18 @@ function getNoteContentPosition() {
   };
 }
 function measureCustomNodeContentSize(content3) {
-  if (!commonCaches.measureCustomNodeContentSizeEl) {
-    commonCaches.measureCustomNodeContentSizeEl = document.createElement("div");
-    commonCaches.measureCustomNodeContentSizeEl.style.cssText = `
+  if (!this.mindMap.commonCaches.measureCustomNodeContentSizeEl) {
+    this.mindMap.commonCaches.measureCustomNodeContentSizeEl = document.createElement("div");
+    this.mindMap.commonCaches.measureCustomNodeContentSizeEl.style.cssText = `
       position: fixed;
       left: -99999px;
       top: -99999px;
     `;
-    this.mindMap.el.appendChild(commonCaches.measureCustomNodeContentSizeEl);
+    this.mindMap.el.appendChild(this.mindMap.commonCaches.measureCustomNodeContentSizeEl);
   }
-  commonCaches.measureCustomNodeContentSizeEl.innerHTML = "";
-  commonCaches.measureCustomNodeContentSizeEl.appendChild(content3);
-  let rect = commonCaches.measureCustomNodeContentSizeEl.getBoundingClientRect();
+  this.mindMap.commonCaches.measureCustomNodeContentSizeEl.innerHTML = "";
+  this.mindMap.commonCaches.measureCustomNodeContentSizeEl.appendChild(content3);
+  let rect = this.mindMap.commonCaches.measureCustomNodeContentSizeEl.getBoundingClientRect();
   return {
     width: rect.width,
     height: rect.height
@@ -33070,6 +33184,7 @@ var nodeCreateContents_default = {
   createHyperlinkNode,
   createTagNode,
   createNoteNode,
+  createAttachmentNode,
   getNoteContentPosition,
   measureCustomNodeContentSize,
   isUseCustomNodeContent
@@ -33263,6 +33378,7 @@ var Node2 = class {
     this._noteData = null;
     this.noteEl = null;
     this.noteContentIsShow = false;
+    this._attachmentData = null;
     this._expandBtn = null;
     this._lastExpandBtnType = null;
     this._showExpandBtn = false;
@@ -33362,6 +33478,7 @@ var Node2 = class {
     this._hyperlinkData = this.createHyperlinkNode();
     this._tagData = this.createTagNode();
     this._noteData = this.createNoteNode();
+    this._attachmentData = this.createAttachmentNode();
   }
   //  计算节点的宽高
   getSize() {
@@ -33418,6 +33535,13 @@ var Node2 = class {
     if (this._noteData) {
       textContentWidth += this._noteData.width;
       textContentHeight = Math.max(textContentHeight, this._noteData.height);
+    }
+    if (this._attachmentData) {
+      textContentWidth += this._attachmentData.width;
+      textContentHeight = Math.max(
+        textContentHeight,
+        this._attachmentData.height
+      );
     }
     this._rectInfo.textContentWidth = textContentWidth;
     this._rectInfo.textContentHeight = textContentHeight;
@@ -33514,6 +33638,11 @@ var Node2 = class {
       textContentNested.add(this._noteData.node);
       textContentOffsetX += this._noteData.width;
     }
+    if (this._attachmentData) {
+      this._attachmentData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._attachmentData.height) / 2);
+      textContentNested.add(this._attachmentData.node);
+      textContentOffsetX += this._attachmentData.width;
+    }
     textContentNested.translate(
       width2 / 2 - textContentNested.bbox().width / 2,
       imgHeight + paddingY + (imgHeight > 0 && this._rectInfo.textContentHeight > 0 ? this.blockContentMargin : 0)
@@ -33552,7 +33681,7 @@ var Node2 = class {
           }
         }
       }
-      if (e.ctrlKey && enableCtrlKeyNodeSelection) {
+      if ((e.ctrlKey || e.metaKey) && enableCtrlKeyNodeSelection) {
         this.isMultipleChoice = true;
         let isActive = this.getData("isActive");
         if (!isActive)
@@ -33594,7 +33723,7 @@ var Node2 = class {
     });
     this.group.on("dblclick", (e) => {
       const { readonly, onlyOneEnableActiveNodeOnCooperate } = this.mindMap.opt;
-      if (readonly || e.ctrlKey) {
+      if (readonly || e.ctrlKey || e.metaKey) {
         return;
       }
       e.stopPropagation();
@@ -33634,6 +33763,11 @@ var Node2 = class {
     this.renderer.addNodeToActiveList(this);
     this.renderer.emitNodeActiveEvent(this);
   }
+  // 取消激活该节点
+  deactivate() {
+    this.mindMap.renderer.removeNodeFromActiveList(this);
+    this.mindMap.renderer.emitNodeActiveEvent();
+  }
   //  更新节点
   update() {
     if (!this.group) {
@@ -33641,15 +33775,18 @@ var Node2 = class {
     }
     this.updateNodeActiveClass();
     let { alwaysShowExpandBtn } = this.mindMap.opt;
+    const childrenLength = this.nodeData.children.length;
     if (alwaysShowExpandBtn) {
-      if (this._expandBtn && this.nodeData.children.length <= 0) {
+      if (this._expandBtn && childrenLength <= 0) {
         this.removeExpandBtn();
       } else {
         this.renderExpandBtn();
       }
     } else {
       let { isActive, expand } = this.getData();
-      if (expand && !isActive && !this._isMouseenter) {
+      if (childrenLength <= 0) {
+        this.removeExpandBtn();
+      } else if (expand && !isActive && !this._isMouseenter) {
         this.hideExpandBtn();
       } else {
         this.showExpandBtn();
@@ -34218,9 +34355,9 @@ var Base2 = class {
       data2.data.uid = newUid;
       this.cacheNode(newUid, newNode);
       data2._node = newNode;
-      if (data2.data.isActive) {
-        this.renderer.addNodeToActiveList(newNode);
-      }
+    }
+    if (data2.data.isActive) {
+      this.renderer.addNodeToActiveList(newNode);
     }
     if (this.mindMap.renderer.findActiveNodeIndex(newNode) !== -1) {
       newNode.setData({
@@ -37442,6 +37579,8 @@ var Render = class {
     this.mindMap.command.add("SET_NODE_HYPERLINK", this.setNodeHyperlink);
     this.setNodeNote = this.setNodeNote.bind(this);
     this.mindMap.command.add("SET_NODE_NOTE", this.setNodeNote);
+    this.setNodeAttachment = this.setNodeAttachment.bind(this);
+    this.mindMap.command.add("SET_NODE_ATTACHMENT", this.setNodeAttachment);
     this.setNodeTag = this.setNodeTag.bind(this);
     this.mindMap.command.add("SET_NODE_TAG", this.setNodeTag);
     this.insertFormula = this.insertFormula.bind(this);
@@ -37504,7 +37643,7 @@ var Render = class {
       this.mindMap.execCommand("SELECT_ALL");
     });
     this.mindMap.keyCommand.addShortcut("Control+l", () => {
-      this.mindMap.execCommand("RESET_LAYOUT", this.resetLayout);
+      this.mindMap.execCommand("RESET_LAYOUT");
     });
     this.mindMap.keyCommand.addShortcut("Control+Up", () => {
       this.mindMap.execCommand("UP_NODE");
@@ -38066,12 +38205,16 @@ var Render = class {
         const _hasCustomStyles = this._handleRemoveCustomStyles(node2.data);
         if (_hasCustomStyles)
           hasCustomStyles = true;
-        if (node2.data.generalization && node2.data.generalization.length > 0) {
-          node2.data.generalization.forEach((generalizationData) => {
-            const _hasCustomStyles2 = this._handleRemoveCustomStyles(generalizationData);
-            if (_hasCustomStyles2)
-              hasCustomStyles = true;
-          });
+        let generalization = node2.data.generalization;
+        if (generalization) {
+          generalization = Array.isArray(generalization) ? generalization : [generalization];
+          if (generalization.length > 0) {
+            generalization.forEach((generalizationData) => {
+              const _hasCustomStyles2 = this._handleRemoveCustomStyles(generalizationData);
+              if (_hasCustomStyles2)
+                hasCustomStyles = true;
+            });
+          }
         }
       });
     }
@@ -38282,7 +38425,7 @@ var Render = class {
       root2.children = [];
       root2.nodeData.children = [];
     } else {
-      needActiveNode = this.getNextActiveNode();
+      needActiveNode = this.getNextActiveNode(list2);
       for (let i = 0; i < list2.length; i++) {
         const node2 = list2[i];
         const currentEditNode = this.textEdit.getCurrentEditNode();
@@ -38330,12 +38473,12 @@ var Render = class {
     if (this.activeNodeList.length <= 0 && appointNodes.length <= 0) {
       return;
     }
-    let needActiveNode = this.getNextActiveNode();
     let isAppointNodes = appointNodes.length > 0;
     let list2 = isAppointNodes ? appointNodes : this.activeNodeList;
     list2 = list2.filter((node2) => {
       return !node2.isRoot;
     });
+    let needActiveNode = this.getNextActiveNode(list2);
     for (let i = 0; i < list2.length; i++) {
       let node2 = list2[i];
       if (node2.isGeneralization) {
@@ -38358,7 +38501,11 @@ var Render = class {
     this.mindMap.render();
   }
   // 计算下一个可激活的节点
-  getNextActiveNode() {
+  getNextActiveNode(deleteList) {
+    if (deleteList.length !== 1)
+      return null;
+    if (this.findActiveNodeIndex(deleteList[0]) === -1)
+      return null;
     let needActiveNode = null;
     if (this.activeNodeList.length === 1 && !this.activeNodeList[0].isGeneralization && this.mindMap.opt.deleteNodeActive) {
       const node2 = this.activeNodeList[0];
@@ -38509,7 +38656,7 @@ var Render = class {
     this.mindMap.render();
   }
   //  收起所有
-  unexpandAllNode() {
+  unexpandAllNode(isSetRootNodeCenter = true) {
     if (!this.renderTree)
       return;
     walk(
@@ -38526,7 +38673,9 @@ var Render = class {
       0
     );
     this.mindMap.render(() => {
-      this.setRootNodeCenter();
+      if (isSetRootNodeCenter) {
+        this.setRootNodeCenter();
+      }
     });
   }
   //  展开到指定层级
@@ -38611,6 +38760,13 @@ var Render = class {
       note: note2
     });
   }
+  //  设置节点附件
+  setNodeAttachment(node2, url, name = "") {
+    this.setNodeDataRender(node2, {
+      attachmentUrl: url,
+      attachmentName: name
+    });
+  }
   //  设置节点标签
   setNodeTag(node2, tag) {
     this.setNodeDataRender(node2, {
@@ -38628,7 +38784,7 @@ var Render = class {
     });
   }
   //  添加节点概要
-  addGeneralization(data2) {
+  addGeneralization(data2, openEdit = true) {
     if (this.activeNodeList.length <= 0) {
       return;
     }
@@ -38636,13 +38792,22 @@ var Render = class {
       return !node2.isRoot && !node2.isGeneralization && !node2.checkHasSelfGeneralization();
     });
     const list2 = parseAddGeneralizationNodeList(nodeList);
+    const isRichText = !!this.mindMap.richText;
+    const { focusNewNode, inserting } = this.getNewNodeBehavior(
+      openEdit,
+      list2.length > 1
+    );
     list2.forEach((item) => {
       const newData = {
+        inserting,
         ...data2 || {
           text: this.mindMap.opt.defaultGeneralizationText
         },
         range: item.range || null,
-        uid: createUid()
+        uid: createUid(),
+        richText: isRichText,
+        resetRichText: isRichText,
+        isActive: focusNewNode
       };
       let generalization = item.node.getData("generalization");
       if (generalization) {
@@ -38661,6 +38826,9 @@ var Render = class {
         expand: true
       });
     });
+    if (focusNewNode) {
+      this.clearActiveNodeList();
+    }
     this.mindMap.render(() => {
       this.mindMap.render();
     });
@@ -38820,6 +38988,8 @@ var Render = class {
   }
   // 高亮节点或子节点
   highlightNode(node2, range2) {
+    if (this.isRendering)
+      return;
     const { highlightNodeBoxStyle = {} } = this.mindMap.opt;
     if (!this.highlightBoxNode) {
       this.highlightBoxNode = new Polygon().stroke({
@@ -40395,6 +40565,15 @@ var Command = class {
       this.mindMap.opt.addHistoryTime,
       this
     );
+    this.isPause = false;
+  }
+  // 暂停收集历史数据
+  pause() {
+    this.isPause = true;
+  }
+  // 恢复收集历史数据
+  recovery() {
+    this.isPause = false;
   }
   //  清空历史数据
   clearHistory() {
@@ -40452,7 +40631,7 @@ var Command = class {
   }
   //  添加回退数据
   addHistory() {
-    if (this.mindMap.opt.readonly) {
+    if (this.mindMap.opt.readonly || this.isPause) {
       return;
     }
     const lastData = this.history.length > 0 ? this.history[this.history.length - 1] : null;
@@ -40963,7 +41142,9 @@ var defaultOpt = {
     }
   */
   addContentToHeader: null,
-  addContentToFooter: null
+  addContentToFooter: null,
+  // 演示插件配置
+  demonstrateConfig: null
 };
 
 // ../simple-mind-map/index.js
@@ -41114,19 +41295,10 @@ var MindMap2 = class {
   }
   // 初始化缓存数据
   initCache() {
-    Object.keys(commonCaches).forEach((key) => {
-      let type = getType(commonCaches[key]);
-      let value = "";
-      switch (type) {
-        case "Boolean":
-          value = false;
-          break;
-        default:
-          value = null;
-          break;
-      }
-      commonCaches[key] = value;
-    });
+    this.commonCaches = {
+      measureCustomNodeContentSizeEl: null,
+      measureRichtextNodeTextSizeEl: null
+    };
   }
   //  设置主题
   initTheme() {
@@ -41282,7 +41454,8 @@ var MindMap2 = class {
     paddingY = 0,
     ignoreWatermark = false,
     addContentToHeader,
-    addContentToFooter
+    addContentToFooter,
+    node: node2
   } = {}) {
     const { cssTextList, header, headerHeight, footer, footerHeight } = handleGetSvgDataExtraContent({
       addContentToHeader,
@@ -41296,6 +41469,10 @@ var MindMap2 = class {
     const elRect = this.elRect;
     draw.scale(1 / origTransform.scaleX, 1 / origTransform.scaleY);
     const rect = draw.rbox();
+    let clipData = null;
+    if (node2) {
+      clipData = getNodeTreeBoundingRect(node2, rect.x, rect.y, paddingX, paddingY);
+    }
     const fixHeight = 0;
     rect.width += paddingX * 2;
     rect.height += paddingY * 2 + fixHeight + headerHeight + footerHeight;
@@ -41363,6 +41540,7 @@ var MindMap2 = class {
       // 思维导图图形的整体svg元素，包括：svg（画布容器）、g（实际的思维导图组）
       svgHTML: clone.svg(),
       // svg字符串
+      clipData,
       rect: {
         ...rect,
         // 思维导图图形未缩放时的位置尺寸等信息
@@ -41521,10 +41699,7 @@ var MiniMap = class {
     const svgStr = svg2.svg();
     return {
       getImgUrl: async (callback) => {
-        const blob = new Blob([svgStr], {
-          type: "image/svg+xml"
-        });
-        const res = await readBlob(blob);
+        const res = await this.mindMap.doExport.fixSvgStrAndToBlob(svgStr);
         callback(res);
       },
       svgHTML: svgStr,
@@ -56915,14 +57090,14 @@ var PDFDocument = (
       var javaScript = PDFJavaScript_default.of(ref, this, embedder);
       this.javaScripts.push(javaScript);
     };
-    PDFDocument2.prototype.attach = function(attachment, name, options) {
+    PDFDocument2.prototype.attach = function(attachment2, name, options) {
       if (options === void 0) {
         options = {};
       }
       return __awaiter(this, void 0, void 0, function() {
         var bytes, embedder, ref, embeddedFile;
         return __generator(this, function(_a) {
-          assertIs(attachment, "attachment", ["string", Uint8Array, ArrayBuffer]);
+          assertIs(attachment2, "attachment", ["string", Uint8Array, ArrayBuffer]);
           assertIs(name, "name", ["string"]);
           assertOrUndefined(options.mimeType, "mimeType", ["string"]);
           assertOrUndefined(options.description, "description", ["string"]);
@@ -56931,7 +57106,7 @@ var PDFDocument = (
             Date
           ]);
           assertIsOneOfOrUndefined(options.afRelationship, "options.afRelationship", AFRelationship);
-          bytes = toUint8Array(attachment);
+          bytes = toUint8Array(attachment2);
           embedder = FileEmbedder_default.for(bytes, name, options);
           ref = this.context.nextRef();
           embeddedFile = PDFEmbeddedFile_default.of(ref, this, embedder);
@@ -58488,14 +58663,26 @@ var Export = class {
     });
   }
   //  获取svg数据
-  async getSvgData() {
-    let { exportPaddingX, exportPaddingY, errorHandler, resetCss, addContentToHeader, addContentToFooter } = this.mindMap.opt;
-    let { svg: svg2, svgHTML } = this.mindMap.getSvgData({
+  async getSvgData(node2) {
+    let {
+      exportPaddingX,
+      exportPaddingY,
+      errorHandler,
+      resetCss,
+      addContentToHeader,
+      addContentToFooter
+    } = this.mindMap.opt;
+    let { svg: svg2, svgHTML, clipData } = this.mindMap.getSvgData({
       paddingX: exportPaddingX,
       paddingY: exportPaddingY,
       addContentToHeader,
-      addContentToFooter
+      addContentToFooter,
+      node: node2
     });
+    if (clipData) {
+      clipData.paddingX = exportPaddingX;
+      clipData.paddingY = exportPaddingY;
+    }
     const task1 = this.createTransformImgTaskList(
       svg2,
       "image",
@@ -58526,11 +58713,12 @@ var Export = class {
     }
     return {
       node: svg2,
-      str: svgHTML
+      str: svgHTML,
+      clipData
     };
   }
   //   svg转png
-  svgToPng(svgSrc, transparent) {
+  svgToPng(svgSrc, transparent, clipData = null) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.setAttribute("crossOrigin", "anonymous");
@@ -58543,6 +58731,14 @@ var Export = class {
           );
           let imgWidth = img.width;
           let imgHeight = img.height;
+          let paddingX = 0;
+          let paddingY = 0;
+          if (clipData) {
+            paddingX = clipData.paddingX;
+            paddingY = clipData.paddingY;
+            imgWidth = clipData.width + paddingX * 2;
+            imgHeight = clipData.height + paddingY * 2;
+          }
           const maxSize = 16384 / dpr;
           const maxArea = maxSize * maxSize;
           if (imgWidth * imgHeight > maxArea) {
@@ -58566,7 +58762,21 @@ var Export = class {
           if (!transparent) {
             await this.drawBackgroundToCanvas(ctx, imgWidth, imgHeight);
           }
-          ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+          if (clipData) {
+            ctx.drawImage(
+              img,
+              clipData.left,
+              clipData.top,
+              clipData.width,
+              clipData.height,
+              paddingX,
+              paddingY,
+              clipData.width,
+              clipData.height
+            );
+          } else {
+            ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+          }
           resolve(canvas.toDataURL());
         } catch (error2) {
           reject(error2);
@@ -58643,11 +58853,21 @@ var Export = class {
    * 方法1.把svg的图片都转化成data:url格式，再转换
    * 方法2.把svg的图片提取出来再挨个绘制到canvas里，最后一起转换
    */
-  async png(name, transparent = false) {
-    const { str } = await this.getSvgData();
+  async png(name, transparent = false, node2 = null) {
+    this.handleNodeExport(node2);
+    const { str, clipData } = await this.getSvgData(node2);
     const svgUrl = await this.fixSvgStrAndToBlob(str);
-    const res = await this.svgToPng(svgUrl, transparent);
+    const res = await this.svgToPng(svgUrl, transparent, clipData);
     return res;
+  }
+  // 导出指定节点，如果该节点是激活状态，那么取消激活和隐藏展开收起按钮
+  handleNodeExport(node2) {
+    if (node2 && node2.getData("isActive")) {
+      node2.deactivate();
+      if (!this.mindMap.opt.alwaysShowExpandBtn && node2.getData("expand")) {
+        node2.removeExpandBtn();
+      }
+    }
   }
   //  导出为pdf
   async pdf(name, transparent = false) {
@@ -58801,6 +59021,9 @@ var Drag = class extends Base_default {
   onMouseup(e) {
     if (!this.isMousedown) {
       return;
+    }
+    if (this.mindMap.opt.autoMoveWhenMouseInEdgeOnDrag && this.mindMap.select) {
+      this.mindMap.select.clearAutoMoveTimer();
     }
     this.isMousedown = false;
     this.beingDragNodeList.forEach((node2) => {
@@ -59333,7 +59556,7 @@ var Select = class {
       return;
     }
     let { useLeftKeySelectionRightKeyDrag } = this.mindMap.opt;
-    if (!e.ctrlKey && (useLeftKeySelectionRightKeyDrag ? e.which !== 1 : e.which !== 3)) {
+    if (!(e.ctrlKey || e.metaKey) && (useLeftKeySelectionRightKeyDrag ? e.which !== 1 : e.which !== 3)) {
       return;
     }
     e.preventDefault();
@@ -61264,6 +61487,14 @@ var RichText = class {
           node2.data.richText = false;
           node2.data.text = getTextFromHtml(node2.data.text);
         }
+        let generalization = node2.data && node2.data.generalization ? node2.data.generalization : [];
+        generalization = Array.isArray(generalization) ? generalization : [generalization];
+        if (generalization.length > 0) {
+          generalization.forEach((item) => {
+            item.richText = false;
+            item.text = getTextFromHtml(item.text);
+          });
+        }
       },
       null,
       true,
@@ -61280,6 +61511,14 @@ var RichText = class {
       if (root2.data && !root2.data.richText) {
         root2.data.richText = true;
         root2.data.resetRichText = true;
+      }
+      let generalization = root2.data && root2.data.generalization ? root2.data.generalization : [];
+      generalization = Array.isArray(generalization) ? generalization : [generalization];
+      if (generalization.length > 0) {
+        generalization.forEach((item) => {
+          item.richText = true;
+          item.resetRichText = true;
+        });
       }
       if (root2.children && root2.children.length > 0) {
         Array.from(root2.children).forEach((item) => {
@@ -61775,6 +62014,10 @@ var Search = class {
       }
     });
   }
+  // 判断对象是否是节点实例
+  isNodeInstance(node2) {
+    return node2 instanceof Node_default;
+  }
   // 搜索下一个，定位到下一个匹配节点
   searchNext(callback) {
     if (!this.isSearching || this.matchNodeList.length <= 0)
@@ -61786,10 +62029,10 @@ var Search = class {
     }
     const currentNode = this.matchNodeList[this.currentIndex];
     this.notResetSearchText = true;
-    const uid = currentNode instanceof Node_default ? currentNode.getData("uid") : currentNode.data.uid;
+    const uid = this.isNodeInstance(currentNode) ? currentNode.getData("uid") : currentNode.data.uid;
     const targetNode = this.mindMap.renderer.findNodeByUid(uid);
     this.mindMap.execCommand("GO_TARGET_NODE", uid, (node2) => {
-      if (!(currentNode instanceof Node_default)) {
+      if (!this.isNodeInstance(currentNode)) {
         this.matchNodeList[this.currentIndex] = node2;
       }
       callback();
@@ -61829,15 +62072,20 @@ var Search = class {
       return;
     replaceText = String(replaceText);
     this.matchNodeList.forEach((node2) => {
-      let text4 = this.getReplacedText(node2, this.searchText, replaceText);
-      this.mindMap.renderer.setNodeDataRender(
-        node2,
-        {
-          text: text4,
-          resetRichText: !!node2.getData("richText")
-        },
-        true
-      );
+      const text4 = this.getReplacedText(node2, this.searchText, replaceText);
+      if (this.isNodeInstance(node2)) {
+        this.mindMap.renderer.setNodeDataRender(
+          node2,
+          {
+            text: text4,
+            resetRichText: !!node2.getData("richText")
+          },
+          true
+        );
+      } else {
+        node2.data.text = text4;
+        node2.data.resetRichText = !!node2.data.richText;
+      }
     });
     this.mindMap.render();
     this.mindMap.command.addHistory();
@@ -61845,7 +62093,7 @@ var Search = class {
   }
   // 获取某个节点替换后的文本
   getReplacedText(node2, searchText, replaceText) {
-    let { richText, text: text4 } = node2.getData();
+    let { richText, text: text4 } = this.isNodeInstance(node2) ? node2.getData() : node2.data;
     if (richText) {
       return replaceHtmlText(text4, searchText, replaceText);
     } else {
@@ -81626,7 +81874,7 @@ simple_mind_map_default.iconList = icons_default.nodeIconList;
 simple_mind_map_default.constants = constant_exports;
 simple_mind_map_default.themes = themes_default;
 simple_mind_map_default.defaultTheme = default_exports;
-simple_mind_map_default.version = "0.9.9-fix.2";
+simple_mind_map_default.version = "0.9.11";
 simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportXMind_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default).usePlugin(Search_default).usePlugin(Painter_default).usePlugin(Scrollbar_default).usePlugin(Formula_default).usePlugin(RainbowLines_default);
 var full_default = simple_mind_map_default;
 export {
