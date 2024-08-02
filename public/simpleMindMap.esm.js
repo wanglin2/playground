@@ -24245,6 +24245,10 @@ var CONSTANTS = {
     DEFAULT: "default",
     NOT_ACTIVE: "notActive",
     ACTIVE_ONLY: "activeOnly"
+  },
+  TAG_POSITION: {
+    RIGHT: "right",
+    BOTTOM: "bottom"
   }
 };
 var initRootNodePositionMap = {
@@ -31259,7 +31263,7 @@ var addDataToAppointNodes = (appointNodes, data2 = {}) => {
   walk2(appointNodes);
   return appointNodes;
 };
-var createUidForAppointNodes = (appointNodes, createNewId = false) => {
+var createUidForAppointNodes = (appointNodes, createNewId = false, handle = null) => {
   const walk2 = (list2) => {
     list2.forEach((node2) => {
       if (!node2.data) {
@@ -31268,6 +31272,7 @@ var createUidForAppointNodes = (appointNodes, createNewId = false) => {
       if (createNewId || isUndef(node2.data.uid)) {
         node2.data.uid = createUid();
       }
+      handle && handle(node2);
       if (node2.children && node2.children.length > 0) {
         walk2(node2.children);
       }
@@ -31549,19 +31554,22 @@ var getNodeTreeBoundingRect = (node2, x2 = 0, y2 = 0, paddingX = 0, paddingY = 0
   let minY = Infinity;
   let maxY = -Infinity;
   const walk2 = (root2, isRoot) => {
-    if (!(isRoot && excludeSelf)) {
-      const { x: x3, y: y3, width: width2, height: height2 } = root2.group.findOne(".smm-node-shape").rbox();
-      if (x3 < minX) {
-        minX = x3;
-      }
-      if (x3 + width2 > maxX) {
-        maxX = x3 + width2;
-      }
-      if (y3 < minY) {
-        minY = y3;
-      }
-      if (y3 + height2 > maxY) {
-        maxY = y3 + height2;
+    if (!(isRoot && excludeSelf) && root2.group) {
+      try {
+        const { x: x3, y: y3, width: width2, height: height2 } = root2.group.findOne(".smm-node-shape").rbox();
+        if (x3 < minX) {
+          minX = x3;
+        }
+        if (x3 + width2 > maxX) {
+          maxX = x3 + width2;
+        }
+        if (y3 < minY) {
+          minY = y3;
+        }
+        if (y3 + height2 > maxY) {
+          maxY = y3 + height2;
+        }
+      } catch (e) {
       }
     }
     if (!excludeGeneralization && root2._generalizationList.length > 0) {
@@ -31673,6 +31681,13 @@ var formatGetNodeGeneralization = (data2) => {
 };
 var addXmlns = (el) => {
   el.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+};
+var sortNodeList = (nodeList) => {
+  nodeList = [...nodeList];
+  nodeList.sort((a, b) => {
+    return a.sortIndex - b.sortIndex;
+  });
+  return nodeList;
 };
 
 // ../simple-mind-map/src/core/render/node/Style.js
@@ -31818,18 +31833,21 @@ var Style2 = class {
     node2.style.fontStyle = this.merge("fontStyle");
   }
   //  标签文字
-  tagText(node2) {
+  tagText(node2, style) {
     node2.fill({
       color: "#fff"
     }).css({
-      "font-size": "12px"
+      "font-size": style.fontSize + "px"
     });
   }
   //  标签矩形
-  tagRect(node2, text4, color) {
+  tagRect(node2, style) {
     node2.fill({
-      color: color || generateColorByContent(text4.node.textContent)
+      color: style.fill
     });
+    if (style.radius) {
+      node2.radius(style.radius);
+    }
   }
   //  内置图标
   iconNode(node2) {
@@ -32253,7 +32271,7 @@ function updateGeneralization() {
   this.removeGeneralization();
   this.createGeneralizationNode();
 }
-function renderGeneralization() {
+function renderGeneralization(forceRender) {
   if (this.isGeneralization)
     return;
   this.updateGeneralizationData();
@@ -32269,7 +32287,8 @@ function renderGeneralization() {
   this.renderer.layout.renderGeneralization(this._generalizationList);
   this._generalizationList.forEach((item) => {
     this.style.generalizationLine(item.generalizationLine);
-    item.generalizationNode.render();
+    item.generalizationNode.render(() => {
+    }, forceRender);
   });
 }
 function updateGeneralizationData() {
@@ -32387,7 +32406,7 @@ function createExpandNodeContent() {
   }
   let { close: close3, open: open3 } = this.mindMap.opt.expandBtnIcon || {};
   if (this.mindMap.opt.isShowExpandNum) {
-    this._openExpandNode = SVG().text().size(this.expandBtnSize, this.expandBtnSize);
+    this._openExpandNode = new Text2();
     this._openExpandNode.attr({
       "text-anchor": "middle",
       "dominant-baseline": "middle",
@@ -32445,7 +32464,7 @@ function updateExpandBtnNode() {
         });
         let count = this.sumNode(this.nodeData.children);
         count = expandBtnNumHandler(count);
-        node2.text(count);
+        node2.text(String(count));
       } else {
         this._fillExpandNode.stroke("none");
       }
@@ -32481,11 +32500,7 @@ function renderExpandBtn() {
     });
     this._expandBtn.on("click", (e) => {
       e.stopPropagation();
-      this.mindMap.execCommand(
-        "SET_NODE_EXPAND",
-        this,
-        !this.getData("expand")
-      );
+      this.mindMap.execCommand("SET_NODE_EXPAND", this, !this.getData("expand"));
       this.mindMap.emit("expand_btn_click", this);
     });
     this._expandBtn.on("dblclick", (e) => {
@@ -32881,6 +32896,19 @@ var icons_default = {
 };
 
 // ../simple-mind-map/src/core/render/node/nodeCreateContents.js
+var defaultTagStyle = {
+  radius: 3,
+  // 标签矩形的圆角大小
+  fontSize: 12,
+  // 字号，建议文字高度不要大于height
+  fill: "",
+  // 标签矩形的背景颜色
+  height: 20,
+  // 标签矩形的高度
+  paddingX: 8
+  // 水平内边距，如果设置了width，将忽略该配置
+  //width: 30 // 标签矩形的宽度，如果不设置，默认以文字的宽度+paddingX*2为宽度
+};
 function createImgNode() {
   const img = this.getData("image");
   if (!img) {
@@ -33121,28 +33149,57 @@ function createHyperlinkNode() {
   };
 }
 function createTagNode() {
-  let tagData = this.getData("tag");
+  const tagData = this.getData("tag");
   if (!tagData || tagData.length <= 0) {
     return [];
   }
-  let nodes = [];
-  tagData.slice(0, this.mindMap.opt.maxTag).forEach((item, index2) => {
-    let tag = new G();
+  let { maxTag, tagsColorMap } = this.mindMap.opt;
+  tagsColorMap = tagsColorMap || {};
+  const nodes = [];
+  tagData.slice(0, maxTag).forEach((item, index2) => {
+    let str = "";
+    let style = {
+      ...defaultTagStyle
+    };
+    if (typeof item === "string") {
+      str = item;
+    } else {
+      str = item.text;
+      style = { ...defaultTagStyle, ...item.style };
+    }
+    const hasCustomWidth = typeof style.width !== "undefined";
+    const tag = new G();
     tag.on("click", () => {
-      this.mindMap.emit("node_tag_click", this, item);
+      this.mindMap.emit("node_tag_click", this, item, index2, tag);
     });
-    let text4 = new Text2().text(item).x(8).cy(8);
-    this.style.tagText(text4, index2);
-    let { width: width2 } = text4.bbox();
-    let rect = new Rect().size(width2 + 16, 20);
-    const tagsColorList = this.mindMap.opt.tagsColorMap || {};
-    const color = tagsColorList[text4.node.textContent];
-    this.style.tagRect(rect, text4, color);
+    const text4 = new Text2().text(str);
+    this.style.tagText(text4, style);
+    const { width: textWidth, height: textHeight } = text4.bbox();
+    const rectWidth = hasCustomWidth ? style.width : textWidth + style.paddingX * 2;
+    const maxWidth = hasCustomWidth ? Math.max(rectWidth, textWidth) : rectWidth;
+    const maxHeight = Math.max(style.height, textHeight);
+    if (hasCustomWidth) {
+      text4.x((maxWidth - textWidth) / 2);
+    } else {
+      text4.x(hasCustomWidth ? 0 : style.paddingX);
+    }
+    text4.cy(-maxHeight / 2);
+    const rect = new Rect().size(rectWidth, style.height).cy(-maxHeight / 2);
+    if (hasCustomWidth) {
+      rect.x((maxWidth - rectWidth) / 2);
+    }
+    this.style.tagRect(rect, {
+      ...style,
+      fill: style.fill || // 优先节点自身配置
+      tagsColorMap[text4.node.textContent] || // 否则尝试从实例化选项tagsColorMap映射中获取颜色
+      generateColorByContent(text4.node.textContent)
+      // 否则按照标签内容生成
+    });
     tag.add(rect).add(text4);
     nodes.push({
       node: tag,
-      width: width2 + 16,
-      height: 20
+      width: maxWidth,
+      height: maxHeight
     });
   });
   return nodes;
@@ -33605,10 +33662,14 @@ var Node2 = class {
         height: rect.height
       };
     }
+    const { tagPosition } = this.mindMap.opt;
+    const tagIsBottom = tagPosition === CONSTANTS.TAG_POSITION.BOTTOM;
     let imgContentWidth = 0;
     let imgContentHeight = 0;
     let textContentWidth = 0;
     let textContentHeight = 0;
+    let tagContentWidth = 0;
+    let tagContentHeight = 0;
     if (this._imgData) {
       this._rectInfo.imgContentWidth = imgContentWidth = this._imgData.width;
       this._rectInfo.imgContentHeight = imgContentHeight = this._imgData.height;
@@ -33635,10 +33696,18 @@ var Node2 = class {
       );
     }
     if (this._tagData.length > 0) {
-      textContentWidth += this._tagData.reduce((sum2, cur) => {
-        textContentHeight = Math.max(textContentHeight, cur.height);
+      let maxTagHeight = 0;
+      const totalTagWidth = this._tagData.reduce((sum2, cur) => {
+        maxTagHeight = Math.max(maxTagHeight, cur.height);
         return sum2 += cur.width + this.textContentItemMargin;
       }, 0);
+      if (tagIsBottom) {
+        tagContentWidth = totalTagWidth;
+        tagContentHeight = maxTagHeight;
+      } else {
+        textContentWidth += totalTagWidth;
+        textContentHeight = Math.max(textContentHeight, maxTagHeight);
+      }
     }
     if (this._noteData) {
       textContentWidth += this._noteData.width;
@@ -33661,6 +33730,11 @@ var Node2 = class {
     let { paddingX, paddingY } = this.getPaddingVale();
     let _width = Math.max(imgContentWidth, textContentWidth);
     let _height = imgContentHeight + textContentHeight;
+    if (tagIsBottom && tagContentHeight > 0 && textContentHeight > 0) {
+      margin += this.blockContentMargin;
+      _width = Math.max(_width, tagContentWidth);
+      _height += tagContentHeight;
+    }
     let { paddingX: shapePaddingX, paddingY: shapePaddingY } = this.shapeInstance.getShapePadding(_width, _height, paddingX, paddingY);
     this.shapePadding.paddingX = shapePaddingX;
     this.shapePadding.paddingY = shapePaddingY;
@@ -33673,7 +33747,7 @@ var Node2 = class {
   //  定位节点内容
   layout() {
     this.group.clear();
-    const { hoverRectPadding } = this.mindMap.opt;
+    const { hoverRectPadding, tagPosition } = this.mindMap.opt;
     let { width: width2, height: height2, textContentItemMargin } = this;
     let { paddingY } = this.getPaddingVale();
     const halfBorderWidth = this.getBorderWidth() / 2;
@@ -33705,6 +33779,8 @@ var Node2 = class {
       addHoverNode();
       return;
     }
+    const tagIsBottom = tagPosition === CONSTANTS.TAG_POSITION.BOTTOM;
+    const { textContentHeight } = this._rectInfo;
     let imgHeight = 0;
     if (this._imgData) {
       imgHeight = this._imgData.height;
@@ -33719,7 +33795,7 @@ var Node2 = class {
         width: this._prefixData.width,
         height: this._prefixData.height
       });
-      foreignObject.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._prefixData.height) / 2);
+      foreignObject.x(textContentOffsetX).y((textContentHeight - this._prefixData.height) / 2);
       textContentNested.add(foreignObject);
       textContentOffsetX += this._prefixData.width + textContentItemMargin;
     }
@@ -33727,7 +33803,7 @@ var Node2 = class {
     if (this._iconData && this._iconData.length > 0) {
       let iconLeft = 0;
       this._iconData.forEach((item) => {
-        item.node.x(textContentOffsetX + iconLeft).y((this._rectInfo.textContentHeight - item.height) / 2);
+        item.node.x(textContentOffsetX + iconLeft).y((textContentHeight - item.height) / 2);
         iconNested.add(item.node);
         iconLeft += item.width + textContentItemMargin;
       });
@@ -33737,33 +33813,51 @@ var Node2 = class {
     if (this._textData) {
       const oldX = this._textData.node.attr("data-offsetx") || 0;
       this._textData.node.attr("data-offsetx", textContentOffsetX);
-      (this._textData.nodeContent || this._textData.node).x(-oldX).x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._textData.height) / 2);
+      (this._textData.nodeContent || this._textData.node).x(-oldX).x(textContentOffsetX).y((textContentHeight - this._textData.height) / 2);
       textContentNested.add(this._textData.node);
       textContentOffsetX += this._textData.width + textContentItemMargin;
     }
     if (this._hyperlinkData) {
-      this._hyperlinkData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._hyperlinkData.height) / 2);
+      this._hyperlinkData.node.x(textContentOffsetX).y((textContentHeight - this._hyperlinkData.height) / 2);
       textContentNested.add(this._hyperlinkData.node);
       textContentOffsetX += this._hyperlinkData.width + textContentItemMargin;
     }
     let tagNested = new G();
     if (this._tagData && this._tagData.length > 0) {
-      let tagLeft = 0;
-      this._tagData.forEach((item) => {
-        item.node.x(textContentOffsetX + tagLeft).y((this._rectInfo.textContentHeight - item.height) / 2);
-        tagNested.add(item.node);
-        tagLeft += item.width + textContentItemMargin;
-      });
-      textContentNested.add(tagNested);
-      textContentOffsetX += tagLeft;
+      if (tagIsBottom) {
+        let tagLeft = 0;
+        this._tagData.forEach((item) => {
+          item.node.x(tagLeft).y(0);
+          tagNested.add(item.node);
+          tagLeft += item.width + textContentItemMargin;
+        });
+        tagNested.cx(width2 / 2).y(
+          paddingY + // 内边距
+          imgHeight + // 图片高度
+          textContentHeight + // 文本区域高度
+          (imgHeight > 0 && textContentHeight > 0 ? this.blockContentMargin : 0) + // 图片和文本之间的间距
+          this.blockContentMargin
+          // 标签和文本之间的间距
+        );
+        this.group.add(tagNested);
+      } else {
+        let tagLeft = 0;
+        this._tagData.forEach((item) => {
+          item.node.x(textContentOffsetX + tagLeft).y((textContentHeight - item.height) / 2);
+          tagNested.add(item.node);
+          tagLeft += item.width + textContentItemMargin;
+        });
+        textContentNested.add(tagNested);
+        textContentOffsetX += tagLeft;
+      }
     }
     if (this._noteData) {
-      this._noteData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._noteData.height) / 2);
+      this._noteData.node.x(textContentOffsetX).y((textContentHeight - this._noteData.height) / 2);
       textContentNested.add(this._noteData.node);
       textContentOffsetX += this._noteData.width;
     }
     if (this._attachmentData) {
-      this._attachmentData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._attachmentData.height) / 2);
+      this._attachmentData.node.x(textContentOffsetX).y((textContentHeight - this._attachmentData.height) / 2);
       textContentNested.add(this._attachmentData.node);
       textContentOffsetX += this._attachmentData.width;
     }
@@ -33773,15 +33867,18 @@ var Node2 = class {
         width: this._postfixData.width,
         height: this._postfixData.height
       });
-      foreignObject.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._postfixData.height) / 2);
+      foreignObject.x(textContentOffsetX).y((textContentHeight - this._postfixData.height) / 2);
       textContentNested.add(foreignObject);
       textContentOffsetX += this._postfixData.width;
     }
+    this.group.add(textContentNested);
     textContentNested.translate(
       width2 / 2 - textContentNested.bbox().width / 2,
-      imgHeight + paddingY + (imgHeight > 0 && this._rectInfo.textContentHeight > 0 ? this.blockContentMargin : 0)
+      paddingY + // 内边距
+      imgHeight + // 图片高度
+      (imgHeight > 0 && textContentHeight > 0 ? this.blockContentMargin : 0)
+      // 和图片的间距
     );
-    this.group.add(textContentNested);
     addHoverNode();
     this.mindMap.emit("node_layout_end", this);
   }
@@ -33905,7 +34002,7 @@ var Node2 = class {
     this.mindMap.renderer.emitNodeActiveEvent();
   }
   //  更新节点
-  update() {
+  update(forceRender) {
     if (!this.group) {
       return;
     }
@@ -33928,7 +34025,7 @@ var Node2 = class {
         this.showExpandBtn();
       }
     }
-    this.renderGeneralization();
+    this.renderGeneralization(forceRender);
     if (this.updateUserListNode)
       this.updateUserListNode();
     let t = this.group.transform();
@@ -33946,6 +34043,11 @@ var Node2 = class {
       left,
       top
     };
+  }
+  // 判断节点是否可见
+  checkIsInClient(padding = 0) {
+    const { left: nx, top: ny } = this.getNodePosInClient(this.left, this.top);
+    return nx + this.width > 0 - padding && ny + this.height > 0 - padding && nx < this.mindMap.width + padding && ny < this.mindMap.height + padding;
   }
   // 重新渲染节点，即重新创建节点内容、计算节点大小、计算节点内容布局、更新展开收起按钮，概要及位置
   reRender() {
@@ -33972,40 +34074,58 @@ var Node2 = class {
       this.updateNodeActiveClass();
     }
   }
-  //  递归渲染
+  // 递归渲染
+  // forceRender：强制渲染，无论是否处于画布可视区域
+  // async：异步渲染
   render(callback = () => {
-  }) {
+  }, forceRender = false, async = false) {
     this.renderLine();
-    if (!this.group) {
-      this.group = new G();
-      this.group.addClass("smm-node");
-      this.group.css({
-        cursor: "default"
-      });
-      this.bindGroupEvent();
-      this.nodeDraw.add(this.group);
-      this.layout();
-      this.update();
-    } else {
-      if (!this.nodeDraw.has(this.group)) {
+    const { openPerformance, performanceConfig } = this.mindMap.opt;
+    if (forceRender || !openPerformance || this.checkIsInClient(performanceConfig.padding) || this.isRoot) {
+      if (!this.group) {
+        this.group = new G();
+        this.group.addClass("smm-node");
+        this.group.css({
+          cursor: "default"
+        });
+        this.bindGroupEvent();
         this.nodeDraw.add(this.group);
-      }
-      if (this.needLayout) {
-        this.needLayout = false;
         this.layout();
+        this.update(forceRender);
+      } else {
+        if (!this.nodeDraw.has(this.group)) {
+          this.nodeDraw.add(this.group);
+        }
+        if (this.needLayout) {
+          this.needLayout = false;
+          this.layout();
+        }
+        this.updateExpandBtnPlaceholderRect();
+        this.update(forceRender);
       }
-      this.updateExpandBtnPlaceholderRect();
-      this.update();
+    } else if (openPerformance && performanceConfig.removeNodeWhenOutCanvas) {
+      this.removeSelf();
     }
     if (this.children && this.children.length && this.getData("expand") !== false) {
       let index2 = 0;
       this.children.forEach((item) => {
-        item.render(() => {
-          index2++;
-          if (index2 >= this.children.length) {
-            callback();
-          }
-        });
+        const renderChild = () => {
+          item.render(
+            () => {
+              index2++;
+              if (index2 >= this.children.length) {
+                callback();
+              }
+            },
+            forceRender,
+            async
+          );
+        };
+        if (async) {
+          setTimeout(renderChild, 0);
+        } else {
+          renderChild();
+        }
       });
     } else {
       callback();
@@ -34015,6 +34135,13 @@ var Node2 = class {
       this.active();
       this.mindMap.emit("node_dblclick", this, null, true);
     }
+  }
+  // 删除自身，只是从画布删除，节点容器还在，后续还可以重新插回画布
+  removeSelf() {
+    if (!this.group)
+      return;
+    this.group.remove();
+    this.removeGeneralization();
   }
   //  递归删除，只是从画布删除，节点容器还在，后续还可以重新插回画布
   remove() {
@@ -34031,6 +34158,10 @@ var Node2 = class {
   }
   // 销毁节点，不但会从画布删除，而且原节点直接置空，后续无法再插回画布
   destroy() {
+    this.removeLine();
+    if (this.parent) {
+      this.parent.removeLine();
+    }
     if (!this.group)
       return;
     if (this.emptyUser) {
@@ -34039,11 +34170,7 @@ var Node2 = class {
     this.resetWhenDelete();
     this.group.remove();
     this.removeGeneralization();
-    this.removeLine();
     this.group = null;
-    if (this.parent) {
-      this.parent.removeLine();
-    }
     this.style.onRemove();
   }
   //  隐藏节点
@@ -34465,6 +34592,11 @@ var Base2 = class {
       );
       newNode.reset();
       newNode.layerIndex = layerIndex;
+      if (isRoot) {
+        newNode.isRoot = true;
+      } else {
+        newNode.parent = parent._node;
+      }
       this.cacheNode(data2._node.uid, newNode);
       this.checkIsLayoutChangeRerenderExpandBtnPlaceholderRect(newNode);
       if (this.checkIsNeedResizeSources() || isLayerTypeChange || newNode.getData("resetRichText")) {
@@ -34481,6 +34613,11 @@ var Base2 = class {
       newNode.reset();
       newNode.nodeData = newNode.handleData(data2 || {});
       newNode.layerIndex = layerIndex;
+      if (isRoot) {
+        newNode.isRoot = true;
+      } else {
+        newNode.parent = parent._node;
+      }
       this.cacheNode(uid, newNode);
       this.checkIsLayoutChangeRerenderExpandBtnPlaceholderRect(newNode);
       data2._node = newNode;
@@ -34498,7 +34635,9 @@ var Base2 = class {
         renderer: this.renderer,
         mindMap: this.mindMap,
         draw: this.draw,
-        layerIndex
+        layerIndex,
+        isRoot,
+        parent: !isRoot ? parent._node : null
       });
       data2.data.uid = newUid;
       this.cacheNode(newUid, newNode);
@@ -34513,10 +34652,8 @@ var Base2 = class {
       });
     }
     if (isRoot) {
-      newNode.isRoot = true;
       this.root = newNode;
     } else {
-      newNode.parent = parent._node;
       parent._node.addChildren(newNode);
     }
     return newNode;
@@ -34861,11 +34998,14 @@ var LogicalStructure = class extends Base_default {
   }
   //  遍历数据计算节点的left、width、height
   computedBaseValue() {
+    let sortIndex = 0;
     walk(
       this.renderer.renderTree,
       null,
       (cur, parent, isRoot, layerIndex) => {
         let newNode = this.createNode(cur, parent, isRoot, layerIndex);
+        newNode.sortIndex = sortIndex;
+        sortIndex++;
         if (isRoot) {
           this.setNodeCenter(newNode);
         } else {
@@ -37281,7 +37421,8 @@ var TextEdit = class {
   }
   // 处理画布缩放
   onScale() {
-    if (!this.currentNode)
+    const node2 = this.getCurrentEditNode();
+    if (!node2)
       return;
     if (this.mindMap.richText) {
       this.mindMap.richText.cacheEditingText = this.mindMap.richText.getEditText();
@@ -37291,7 +37432,7 @@ var TextEdit = class {
       this.showTextEdit = false;
     }
     this.show({
-      node: this.currentNode,
+      node: node2,
       isFromScale: true
     });
   }
@@ -37692,6 +37833,50 @@ var Render = class {
         return;
       this.setRootNodeCenter();
     });
+    this.performanceMode();
+  }
+  // 性能模式，懒加载节点
+  performanceMode() {
+    const { openPerformance, performanceConfig } = this.mindMap.opt;
+    const onViewDataChange = throttle(() => {
+      if (this.root) {
+        this.mindMap.emit("node_tree_render_start");
+        this.root.render(
+          () => {
+            this.mindMap.emit("node_tree_render_end");
+          },
+          false,
+          true
+        );
+      }
+    }, performanceConfig.time);
+    let lastOpen = false;
+    this.mindMap.on("before_update_config", (opt) => {
+      lastOpen = opt.openPerformance;
+    });
+    this.mindMap.on("after_update_config", (opt) => {
+      if (opt.openPerformance && !lastOpen) {
+        this.mindMap.on("view_data_change", onViewDataChange);
+        this.forceLoadNode();
+      }
+      if (!opt.openPerformance && lastOpen) {
+        this.mindMap.off("view_data_change", onViewDataChange);
+        this.forceLoadNode();
+      }
+    });
+    if (!openPerformance)
+      return;
+    this.mindMap.on("view_data_change", onViewDataChange);
+  }
+  // 强制渲染节点，不考虑是否在画布可视区域内
+  forceLoadNode(node2) {
+    node2 = node2 || this.root;
+    if (node2) {
+      this.mindMap.emit("node_tree_render_start");
+      node2.render(() => {
+        this.mindMap.emit("node_tree_render_end");
+      }, true);
+    }
   }
   //  注册命令
   registerCommands() {
@@ -37914,6 +38099,7 @@ var Render = class {
       return;
     }
     this.mindMap.emit("node_tree_render_start");
+    this.root = null;
     this.layout.doLayout((root2) => {
       Object.keys(this.lastNodeCache).forEach((uid) => {
         if (!this.nodeCache[uid]) {
@@ -38590,6 +38776,9 @@ var Render = class {
   // 如果是富文本模式，那么某些层级变化需要更新样式
   checkNodeLayerChange(node2, toNode3, toNodeIsParent = false) {
     if (this.mindMap.richText) {
+      if (this.mindMap.richText.checkNodeHasCustomRichTextStyle(node2)) {
+        return;
+      }
       const toIndex = toNodeIsParent ? toNode3.layerIndex + 1 : toNode3.layerIndex;
       let nodeLayerChanged = node2.layerIndex === 1 && toIndex !== 1 || node2.layerIndex !== 1 && toIndex === 1;
       if (nodeLayerChanged) {
@@ -38719,7 +38908,8 @@ var Render = class {
     if (this.activeNodeList.length <= 0) {
       return null;
     }
-    const nodeList = getTopAncestorsFomNodeList(this.activeNodeList);
+    let nodeList = getTopAncestorsFomNodeList(this.activeNodeList);
+    nodeList = sortNodeList(nodeList);
     return nodeList.map((node2) => {
       return copyNodeTree({}, node2, true);
     });
@@ -38729,11 +38919,12 @@ var Render = class {
     if (this.activeNodeList.length <= 0) {
       return;
     }
-    const nodeList = getTopAncestorsFomNodeList(this.activeNodeList).filter(
+    let nodeList = getTopAncestorsFomNodeList(this.activeNodeList).filter(
       (node2) => {
         return !node2.isRoot;
       }
     );
+    nodeList = sortNodeList(nodeList);
     const copyData = nodeList.map((node2) => {
       return copyNodeTree({}, node2, true);
     });
@@ -38756,6 +38947,9 @@ var Render = class {
       this.checkNodeLayerChange(item, toNode3, true);
       this.removeNodeFromActiveList(item);
       removeFromParentNodeData(item);
+      toNode3.setData({
+        expand: true
+      });
       toNode3.nodeData.children.push(item.nodeData);
     });
     this.emitNodeActiveEvent();
@@ -38768,10 +38962,20 @@ var Render = class {
       return;
     }
     this.activeNodeList.forEach((node2) => {
+      node2.setData({
+        expand: true
+      });
       node2.nodeData.children.push(
         ...data2.map((item) => {
           const newData = simpleDeepClone(item);
-          createUidForAppointNodes([newData], true);
+          createUidForAppointNodes([newData], true, (node3) => {
+            if (this.mindMap.richText) {
+              if (this.mindMap.richText.checkNodeHasCustomRichTextStyle(node3.data)) {
+                return;
+              }
+              node3.data.resetRichText = true;
+            }
+          });
           return newData;
         })
       );
@@ -38983,11 +39187,14 @@ var Render = class {
       return !node2.isRoot && !node2.isGeneralization && !node2.checkHasSelfGeneralization();
     });
     const list2 = parseAddGeneralizationNodeList(nodeList);
+    if (list2.length <= 0)
+      return;
     const isRichText = !!this.mindMap.richText;
     const { focusNewNode, inserting } = this.getNewNodeBehavior(
       openEdit,
       list2.length > 1
     );
+    let needRender = false;
     list2.forEach((item) => {
       const newData = {
         inserting,
@@ -39001,15 +39208,19 @@ var Render = class {
         isActive: focusNewNode
       };
       let generalization = item.node.getData("generalization");
-      if (generalization) {
-        if (Array.isArray(generalization)) {
-          generalization.push(newData);
-        } else {
-          generalization = [generalization, newData];
+      generalization = generalization ? Array.isArray(generalization) ? generalization : [generalization] : [];
+      if (item.range) {
+        const isExist = !!generalization.find((item2) => {
+          return item2.range && item2.range[0] === item.range[0] && item2.range[1] === item.range[1];
+        });
+        if (isExist) {
+          return;
         }
+        generalization.push(newData);
       } else {
-        generalization = [newData];
+        generalization.push(newData);
       }
+      needRender = true;
       this.mindMap.execCommand("SET_NODE_DATA", item.node, {
         generalization
       });
@@ -39017,6 +39228,8 @@ var Render = class {
         expand: true
       });
     });
+    if (!needRender)
+      return;
     if (focusNewNode) {
       this.clearActiveNodeList();
     }
@@ -41070,6 +41283,8 @@ var defaultOpt = {
   mouseScaleCenterUseMousePosition: true,
   // 最多显示几个标签
   maxTag: 5,
+  // 标签显示的位置，相对于节点文本，bottom（下方）、right（右侧）
+  tagPosition: CONSTANTS.TAG_POSITION.RIGHT,
   // 展开收缩按钮尺寸
   expandBtnSize: 20,
   // 节点里图片和文字的间距
@@ -41277,6 +41492,17 @@ var defaultOpt = {
   // 自定义超链接的跳转
   // 如果不传，默认会以新窗口的方式打开超链接，可以传递一个函数，函数接收两个参数：link（超链接的url）、node（所属节点实例），只要传递了函数，就会阻止默认的跳转
   customHyperlinkJump: null,
+  // 是否开启性能模式，默认情况下所有节点都会直接渲染，无论是否处于画布可视区域，这样当节点数量比较多时（1000+）会比较卡，如果你的数据量比较大，那么可以通过该配置开启性能模式，即只渲染画布可视区域内的节点，超出的节点不渲染，这样会大幅提高渲染速度，当然同时也会带来一些其他问题，比如：1.当拖动或是缩放画布时会实时计算并渲染未节点的节点，所以会带来一定卡顿；2.导出图片、svg、pdf时需要先渲染全部节点，所以会比较慢；3.其他目前未发现的问题
+  openPerformance: false,
+  // 性能优化模式配置
+  performanceConfig: {
+    time: 250,
+    // 当视图改变后多久刷新一次节点，单位：ms，
+    padding: 100,
+    // 超出画布四周指定范围内依旧渲染节点
+    removeNodeWhenOutCanvas: true
+    // 节点移除画布可视区域后从画布删除
+  },
   // 【Select插件】
   // 多选节点时鼠标移动到边缘时的画布移动偏移量
   selectTranslateStep: 3,
@@ -41426,6 +41652,12 @@ var defaultOpt = {
   // 【Formula插件】
   // 是否开启在富文本编辑框中直接编辑数学公式
   enableEditFormulaInRichTextEdit: true,
+  // katex库的字体文件的请求路径。仅当katex的output配置为html时才会请求字体文件。可以通过mindMap.formula.getKatexConfig()方法来获取当前的配置
+  // 字体文件可以从node_modules中找到：katex/dist/fonts/。可以上传到你的服务器或cdn
+  // 最终的字体请求路径为`${katexFontPath}fonts/KaTeX_AMS-Regular.woff2`，可以自行拼接进行测试是否可以访问
+  katexFontPath: "https://unpkg.com/katex@0.16.11/dist/",
+  // 自定义katex库的输出模式。默认当Chrome内核100以下会使用html方式，否则使用mathml方式，如果你有自己的规则，那么可以传递一个函数，函数返回值为：mathml或html
+  getKatexOutputType: null,
   // 【RichText插件】
   // 转换富文本内容，当进入富文本编辑时，可以通过该参数传递一个函数，函数接收文本内容，需要返回你处理后的文本内容
   transformRichTextOnEnterEdit: null,
@@ -41433,7 +41665,10 @@ var defaultOpt = {
   beforeHideRichTextEdit: null,
   // 设置富文本节点编辑框和节点大小一致，形成伪原地编辑的效果
   // 需要注意的是，只有当节点内只有文本、且形状是矩形才会有比较好的效果
-  richTextEditFakeInPlace: false
+  richTextEditFakeInPlace: false,
+  // 【OuterFrame】插件
+  outerFramePaddingX: 10,
+  outerFramePaddingY: 10
 };
 
 // ../simple-mind-map/index.js
@@ -41555,7 +41790,7 @@ var MindMap2 = class {
     this.renderer.reRender = true;
     this.renderer.clearCache();
     this.clearDraw();
-    this.render(callback, source = "");
+    this.render(callback, source);
   }
   // 获取或更新容器尺寸位置信息
   getElRectInfo() {
@@ -41567,8 +41802,13 @@ var MindMap2 = class {
   }
   //  容器尺寸变化，调整尺寸
   resize() {
+    const oldWidth = this.width;
+    const oldHeight = this.height;
     this.getElRectInfo();
     this.svg.size(this.width, this.height);
+    if (oldWidth !== this.width || oldHeight !== this.height) {
+      this.render();
+    }
     this.emit("resize");
   }
   //  监听事件
@@ -41631,7 +41871,9 @@ var MindMap2 = class {
   }
   // 更新配置
   updateConfig(opt = {}) {
+    this.emit("before_update_config", this.opt);
     this.opt = this.handleOpt(import_deepmerge33.default.all([defaultOpt, this.opt, opt]));
+    this.emit("after_update_config", this.opt);
   }
   //  获取当前布局结构
   getLayout() {
@@ -41714,6 +41956,9 @@ var MindMap2 = class {
   //  导出
   async export(...args) {
     try {
+      if (!this.doExport) {
+        throw new Error("\u8BF7\u6CE8\u518CExport\u63D2\u4EF6\uFF01");
+      }
       let result = await this.doExport.export(...args);
       return result;
     } catch (error2) {
@@ -41747,6 +41992,10 @@ var MindMap2 = class {
     addContentToFooter,
     node: node2
   } = {}) {
+    const { watermarkConfig, openPerformance } = this.opt;
+    if (openPerformance) {
+      this.renderer.forceLoadNode(node2);
+    }
     const { cssTextList, header, headerHeight, footer, footerHeight } = handleGetSvgDataExtraContent({
       addContentToHeader,
       addContentToFooter
@@ -41779,7 +42028,7 @@ var MindMap2 = class {
     const hasWatermark = this.watermark && this.watermark.hasWatermark();
     if (!ignoreWatermark && hasWatermark) {
       this.watermark.isInExport = true;
-      const { onlyExport } = this.opt.watermarkConfig;
+      const { onlyExport } = watermarkConfig;
       const needReDrawWatermark = rect.width > origWidth || rect.height > origHeight;
       if (needReDrawWatermark) {
         this.width = rect.width;
@@ -59080,6 +59329,19 @@ var Export = class {
         foreignObjectList[0].add(SVG(`<style>${resetCss}</style>`));
         svgIsChange = true;
       }
+      if (this.mindMap.formula) {
+        const formulaList = svg2.find(".ql-formula");
+        if (formulaList.length > 0) {
+          const styleText2 = this.mindMap.formula.getStyleText();
+          if (styleText2) {
+            const styleEl = document.createElement("style");
+            styleEl.innerHTML = styleText2;
+            addXmlns(styleEl);
+            foreignObjectList[0].add(styleEl);
+            svgIsChange = true;
+          }
+        }
+      }
     }
     if (typeof handleBeingExportSvg === "function") {
       svgIsChange = true;
@@ -59563,11 +59825,13 @@ var Drag = class extends Base_default {
       this.offsetX = this.mouseDownX - (node2.left * scaleX + translateX);
       this.offsetY = this.mouseDownY - (node2.top * scaleY + translateY);
       if (node2.getData("isActive")) {
-        this.beingDragNodeList = getTopAncestorsFomNodeList(
-          // 过滤掉根节点和概要节点
-          this.mindMap.renderer.activeNodeList.filter((item) => {
-            return !item.isRoot && !item.isGeneralization;
-          })
+        this.beingDragNodeList = sortNodeList(
+          getTopAncestorsFomNodeList(
+            // 过滤掉根节点和概要节点
+            this.mindMap.renderer.activeNodeList.filter((item) => {
+              return !item.isRoot && !item.isGeneralization;
+            })
+          )
         );
       } else {
         this.beingDragNodeList = [node2];
@@ -61212,10 +61476,12 @@ var AssociativeLine = class {
     this.onNodeDragging = this.onNodeDragging.bind(this);
     this.onNodeDragend = this.onNodeDragend.bind(this);
     this.onControlPointMouseup = this.onControlPointMouseup.bind(this);
+    this.cancelCreateLine = this.cancelCreateLine.bind(this);
     this.mindMap.on("node_tree_render_end", this.renderAllLines);
     this.mindMap.on("data_change", this.renderAllLines);
     this.mindMap.on("draw_click", this.onDrawClick);
     this.mindMap.on("node_click", this.onNodeClick);
+    this.mindMap.on("contextmenu", this.cancelCreateLine);
     this.mindMap.keyCommand.addShortcut("Del|Backspace", this.removeLine);
     this.mindMap.command.add("ADD_ASSOCIATIVE_LINE", this.addLine);
     this.mindMap.on("mousemove", this.onMousemove);
@@ -61230,6 +61496,7 @@ var AssociativeLine = class {
     this.mindMap.off("data_change", this.renderAllLines);
     this.mindMap.off("draw_click", this.onDrawClick);
     this.mindMap.off("node_click", this.onNodeClick);
+    this.mindMap.off("contextmenu", this.cancelCreateLine);
     this.mindMap.keyCommand.removeShortcut("Del|Backspace", this.removeLine);
     this.mindMap.command.remove("ADD_ASSOCIATIVE_LINE", this.addLine);
     this.mindMap.off("mousemove", this.onMousemove);
@@ -61240,10 +61507,12 @@ var AssociativeLine = class {
   }
   // 画布点击事件
   onDrawClick() {
-    if (this.isControlPointMousedown) {
-      return;
+    if (this.isCreatingLine) {
+      this.cancelCreateLine();
     }
-    this.clearActiveLine();
+    if (this.isControlPointMousedown) {
+      this.clearActiveLine();
+    }
   }
   // 节点点击事件
   onNodeClick(node2) {
@@ -61443,6 +61712,15 @@ var AssociativeLine = class {
     this.markerPath.stroke({ color: associativeLineColor }).fill({ color: associativeLineColor });
     this.creatingLine.marker("end", this.marker);
   }
+  // 取消创建关联线
+  cancelCreateLine() {
+    this.isCreatingLine = false;
+    this.creatingStartNode = null;
+    this.creatingLine.remove();
+    this.creatingLine = null;
+    this.overlapNode = null;
+    this.back();
+  }
   // 鼠标移动事件
   onMousemove(e) {
     this.onControlPointMousemove(e);
@@ -61512,12 +61790,7 @@ var AssociativeLine = class {
     if (this.overlapNode && this.overlapNode.getData("isActive")) {
       this.mindMap.execCommand("SET_NODE_ACTIVE", this.overlapNode, false);
     }
-    this.isCreatingLine = false;
-    this.creatingStartNode = null;
-    this.creatingLine.remove();
-    this.creatingLine = null;
-    this.overlapNode = null;
-    this.back();
+    this.cancelCreateLine();
   }
   // 添加连接线
   addLine(fromNode, toNode3) {
@@ -62038,11 +62311,11 @@ var RichText = class {
         this.lostStyle = false;
       }
     });
-    this.quill.clipboard.addMatcher(Node.TEXT_NODE, (node2) => {
+    this.quill.clipboard.addMatcher(Node_default.TEXT_NODE, (node2) => {
       let style = this.getPasteTextStyle();
       return new import_quill_delta.default().insert(this.formatPasteText(node2.data), style);
     });
-    this.quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node2, delta) => {
+    this.quill.clipboard.addMatcher(Node_default.ELEMENT_NODE, (node2, delta) => {
       let ops = [];
       let style = this.getPasteTextStyle();
       delta.ops.forEach((op2) => {
@@ -62245,6 +62518,24 @@ var RichText = class {
       this.formatAllText(config);
       this.hideEditText([node2]);
     }
+  }
+  // 检查指定节点是否存在自定义的富文本样式
+  checkNodeHasCustomRichTextStyle(node2) {
+    const list2 = [
+      "fontFamily",
+      "fontSize",
+      "fontWeight",
+      "fontStyle",
+      "textDecoration",
+      "color"
+    ];
+    const nodeData = node2 instanceof Node_default ? node2.getData() : node2;
+    for (let i = 0; i < list2.length; i++) {
+      if (nodeData[list2[i]] !== void 0) {
+        return true;
+      }
+    }
+    return false;
   }
   // 将所有节点转换成非富文本节点
   transformAllNodesToNormalNode() {
@@ -77647,6 +77938,1101 @@ var katex = {
 
 // ../simple-mind-map/src/plugins/Formula.js
 var import_quill2 = __toESM(require_quill());
+
+// ../simple-mind-map/src/plugins/FormulaStyle.js
+var getFontStyleText = (fontPath) => {
+  return `
+@font-face {
+  font-family: 'KaTeX_AMS';
+  src: url(${fontPath}fonts/KaTeX_AMS-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_AMS-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_AMS-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Caligraphic';
+  src: url(${fontPath}fonts/KaTeX_Caligraphic-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Caligraphic-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_Caligraphic-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Caligraphic';
+  src: url(${fontPath}fonts/KaTeX_Caligraphic-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Caligraphic-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Caligraphic-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Fraktur';
+  src: url(${fontPath}fonts/KaTeX_Fraktur-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Fraktur-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_Fraktur-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Fraktur';
+  src: url(${fontPath}fonts/KaTeX_Fraktur-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Fraktur-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Fraktur-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-BoldItalic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-BoldItalic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-BoldItalic.ttf) format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-Italic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-Italic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Math';
+  src: url(${fontPath}fonts/KaTeX_Math-BoldItalic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Math-BoldItalic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Math-BoldItalic.ttf) format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Math';
+  src: url(${fontPath}fonts/KaTeX_Math-Italic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Math-Italic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Math-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(${fontPath}fonts/KaTeX_SansSerif-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_SansSerif-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_SansSerif-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(${fontPath}fonts/KaTeX_SansSerif-Italic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_SansSerif-Italic.woff) format('woff'), url(${fontPath}fonts/KaTeX_SansSerif-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(${fontPath}fonts/KaTeX_SansSerif-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_SansSerif-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_SansSerif-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Script';
+  src: url(${fontPath}fonts/KaTeX_Script-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Script-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Script-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size1';
+  src: url(${fontPath}fonts/KaTeX_Size1-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size1-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size1-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size2';
+  src: url(${fontPath}fonts/KaTeX_Size2-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size2-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size2-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size3';
+  src: url(${fontPath}fonts/KaTeX_Size3-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size3-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size3-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size4';
+  src: url(${fontPath}fonts/KaTeX_Size4-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size4-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size4-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Typewriter';
+  src: url(${fontPath}fonts/KaTeX_Typewriter-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Typewriter-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Typewriter-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+    `;
+};
+var getBaseStyleText = () => {
+  return `
+.katex {
+  font: normal 1.21em KaTeX_Main, Times New Roman, serif;
+  line-height: 1.2;
+  text-indent: 0;
+  text-rendering: auto;
+}
+.katex * {
+  -ms-high-contrast-adjust: none !important;
+}
+.katex * {
+  border-color: currentColor;
+}
+.katex .katex-version::after {
+  content: "0.16.9";
+}
+.katex .katex-mathml {
+  /* Accessibility hack to only show to screen readers
+         Found at: http://a11yproject.com/posts/how-to-hide-content/ */
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+.katex .katex-html {
+  /* 
+ewline is an empty block at top level, between .base elements */
+}
+.katex .katex-html > .newline {
+  display: block;
+}
+.katex .base {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  width: -webkit-min-content;
+  width: -moz-min-content;
+  width: min-content;
+}
+.katex .strut {
+  display: inline-block;
+}
+.katex .textbf {
+  font-weight: bold;
+}
+.katex .textit {
+  font-style: italic;
+}
+.katex .textrm {
+  font-family: KaTeX_Main;
+}
+.katex .textsf {
+  font-family: KaTeX_SansSerif;
+}
+.katex .texttt {
+  font-family: KaTeX_Typewriter;
+}
+.katex .mathnormal {
+  font-family: KaTeX_Math;
+  font-style: italic;
+}
+.katex .mathit {
+  font-family: KaTeX_Main;
+  font-style: italic;
+}
+.katex .mathrm {
+  font-style: normal;
+}
+.katex .mathbf {
+  font-family: KaTeX_Main;
+  font-weight: bold;
+}
+.katex .boldsymbol {
+  font-family: KaTeX_Math;
+  font-weight: bold;
+  font-style: italic;
+}
+.katex .amsrm {
+  font-family: KaTeX_AMS;
+}
+.katex .mathbb,
+.katex .textbb {
+  font-family: KaTeX_AMS;
+}
+.katex .mathcal {
+  font-family: KaTeX_Caligraphic;
+}
+.katex .mathfrak,
+.katex .textfrak {
+  font-family: KaTeX_Fraktur;
+}
+.katex .mathboldfrak,
+.katex .textboldfrak {
+  font-family: KaTeX_Fraktur;
+  font-weight: bold;
+}
+.katex .mathtt {
+  font-family: KaTeX_Typewriter;
+}
+.katex .mathscr,
+.katex .textscr {
+  font-family: KaTeX_Script;
+}
+.katex .mathsf,
+.katex .textsf {
+  font-family: KaTeX_SansSerif;
+}
+.katex .mathboldsf,
+.katex .textboldsf {
+  font-family: KaTeX_SansSerif;
+  font-weight: bold;
+}
+.katex .mathitsf,
+.katex .textitsf {
+  font-family: KaTeX_SansSerif;
+  font-style: italic;
+}
+.katex .mainrm {
+  font-family: KaTeX_Main;
+  font-style: normal;
+}
+.katex .vlist-t {
+  display: inline-table;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.katex .vlist-r {
+  display: table-row;
+}
+.katex .vlist {
+  display: table-cell;
+  vertical-align: bottom;
+  position: relative;
+}
+.katex .vlist > span {
+  display: block;
+  height: 0;
+  position: relative;
+}
+.katex .vlist > span > span {
+  display: inline-block;
+}
+.katex .vlist > span > .pstrut {
+  overflow: hidden;
+  width: 0;
+}
+.katex .vlist-t2 {
+  margin-right: -2px;
+}
+.katex .vlist-s {
+  display: table-cell;
+  vertical-align: bottom;
+  font-size: 1px;
+  width: 2px;
+  min-width: 2px;
+}
+.katex .vbox {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: baseline;
+}
+.katex .hbox {
+  display: inline-flex;
+  flex-direction: row;
+  width: 100%;
+}
+.katex .thinbox {
+  display: inline-flex;
+  flex-direction: row;
+  width: 0;
+  max-width: 0;
+}
+.katex .msupsub {
+  text-align: left;
+}
+.katex .mfrac > span > span {
+  text-align: center;
+}
+.katex .mfrac .frac-line {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: solid;
+}
+.katex .mfrac .frac-line,
+.katex .overline .overline-line,
+.katex .underline .underline-line,
+.katex .hline,
+.katex .hdashline,
+.katex .rule {
+  min-height: 1px;
+}
+.katex .mspace {
+  display: inline-block;
+}
+.katex .llap,
+.katex .rlap,
+.katex .clap {
+  width: 0;
+  position: relative;
+}
+.katex .llap > .inner,
+.katex .rlap > .inner,
+.katex .clap > .inner {
+  position: absolute;
+}
+.katex .llap > .fix,
+.katex .rlap > .fix,
+.katex .clap > .fix {
+  display: inline-block;
+}
+.katex .llap > .inner {
+  right: 0;
+}
+.katex .rlap > .inner,
+.katex .clap > .inner {
+  left: 0;
+}
+.katex .clap > .inner > span {
+  margin-left: -50%;
+  margin-right: 50%;
+}
+.katex .rule {
+  display: inline-block;
+  border: solid 0;
+  position: relative;
+}
+.katex .overline .overline-line,
+.katex .underline .underline-line,
+.katex .hline {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: solid;
+}
+.katex .hdashline {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: dashed;
+}
+.katex .sqrt > .root {
+  margin-left: 0.27777778em;
+  margin-right: -0.55555556em;
+}
+.katex .sizing.reset-size1.size1,
+.katex .fontsize-ensurer.reset-size1.size1 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size1.size2,
+.katex .fontsize-ensurer.reset-size1.size2 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size1.size3,
+.katex .fontsize-ensurer.reset-size1.size3 {
+  font-size: 1.4em;
+}
+.katex .sizing.reset-size1.size4,
+.katex .fontsize-ensurer.reset-size1.size4 {
+  font-size: 1.6em;
+}
+.katex .sizing.reset-size1.size5,
+.katex .fontsize-ensurer.reset-size1.size5 {
+  font-size: 1.8em;
+}
+.katex .sizing.reset-size1.size6,
+.katex .fontsize-ensurer.reset-size1.size6 {
+  font-size: 2em;
+}
+.katex .sizing.reset-size1.size7,
+.katex .fontsize-ensurer.reset-size1.size7 {
+  font-size: 2.4em;
+}
+.katex .sizing.reset-size1.size8,
+.katex .fontsize-ensurer.reset-size1.size8 {
+  font-size: 2.88em;
+}
+.katex .sizing.reset-size1.size9,
+.katex .fontsize-ensurer.reset-size1.size9 {
+  font-size: 3.456em;
+}
+.katex .sizing.reset-size1.size10,
+.katex .fontsize-ensurer.reset-size1.size10 {
+  font-size: 4.148em;
+}
+.katex .sizing.reset-size1.size11,
+.katex .fontsize-ensurer.reset-size1.size11 {
+  font-size: 4.976em;
+}
+.katex .sizing.reset-size2.size1,
+.katex .fontsize-ensurer.reset-size2.size1 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size2.size2,
+.katex .fontsize-ensurer.reset-size2.size2 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size2.size3,
+.katex .fontsize-ensurer.reset-size2.size3 {
+  font-size: 1.16666667em;
+}
+.katex .sizing.reset-size2.size4,
+.katex .fontsize-ensurer.reset-size2.size4 {
+  font-size: 1.33333333em;
+}
+.katex .sizing.reset-size2.size5,
+.katex .fontsize-ensurer.reset-size2.size5 {
+  font-size: 1.5em;
+}
+.katex .sizing.reset-size2.size6,
+.katex .fontsize-ensurer.reset-size2.size6 {
+  font-size: 1.66666667em;
+}
+.katex .sizing.reset-size2.size7,
+.katex .fontsize-ensurer.reset-size2.size7 {
+  font-size: 2em;
+}
+.katex .sizing.reset-size2.size8,
+.katex .fontsize-ensurer.reset-size2.size8 {
+  font-size: 2.4em;
+}
+.katex .sizing.reset-size2.size9,
+.katex .fontsize-ensurer.reset-size2.size9 {
+  font-size: 2.88em;
+}
+.katex .sizing.reset-size2.size10,
+.katex .fontsize-ensurer.reset-size2.size10 {
+  font-size: 3.45666667em;
+}
+.katex .sizing.reset-size2.size11,
+.katex .fontsize-ensurer.reset-size2.size11 {
+  font-size: 4.14666667em;
+}
+.katex .sizing.reset-size3.size1,
+.katex .fontsize-ensurer.reset-size3.size1 {
+  font-size: 0.71428571em;
+}
+.katex .sizing.reset-size3.size2,
+.katex .fontsize-ensurer.reset-size3.size2 {
+  font-size: 0.85714286em;
+}
+.katex .sizing.reset-size3.size3,
+.katex .fontsize-ensurer.reset-size3.size3 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size3.size4,
+.katex .fontsize-ensurer.reset-size3.size4 {
+  font-size: 1.14285714em;
+}
+.katex .sizing.reset-size3.size5,
+.katex .fontsize-ensurer.reset-size3.size5 {
+  font-size: 1.28571429em;
+}
+.katex .sizing.reset-size3.size6,
+.katex .fontsize-ensurer.reset-size3.size6 {
+  font-size: 1.42857143em;
+}
+.katex .sizing.reset-size3.size7,
+.katex .fontsize-ensurer.reset-size3.size7 {
+  font-size: 1.71428571em;
+}
+.katex .sizing.reset-size3.size8,
+.katex .fontsize-ensurer.reset-size3.size8 {
+  font-size: 2.05714286em;
+}
+.katex .sizing.reset-size3.size9,
+.katex .fontsize-ensurer.reset-size3.size9 {
+  font-size: 2.46857143em;
+}
+.katex .sizing.reset-size3.size10,
+.katex .fontsize-ensurer.reset-size3.size10 {
+  font-size: 2.96285714em;
+}
+.katex .sizing.reset-size3.size11,
+.katex .fontsize-ensurer.reset-size3.size11 {
+  font-size: 3.55428571em;
+}
+.katex .sizing.reset-size4.size1,
+.katex .fontsize-ensurer.reset-size4.size1 {
+  font-size: 0.625em;
+}
+.katex .sizing.reset-size4.size2,
+.katex .fontsize-ensurer.reset-size4.size2 {
+  font-size: 0.75em;
+}
+.katex .sizing.reset-size4.size3,
+.katex .fontsize-ensurer.reset-size4.size3 {
+  font-size: 0.875em;
+}
+.katex .sizing.reset-size4.size4,
+.katex .fontsize-ensurer.reset-size4.size4 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size4.size5,
+.katex .fontsize-ensurer.reset-size4.size5 {
+  font-size: 1.125em;
+}
+.katex .sizing.reset-size4.size6,
+.katex .fontsize-ensurer.reset-size4.size6 {
+  font-size: 1.25em;
+}
+.katex .sizing.reset-size4.size7,
+.katex .fontsize-ensurer.reset-size4.size7 {
+  font-size: 1.5em;
+}
+.katex .sizing.reset-size4.size8,
+.katex .fontsize-ensurer.reset-size4.size8 {
+  font-size: 1.8em;
+}
+.katex .sizing.reset-size4.size9,
+.katex .fontsize-ensurer.reset-size4.size9 {
+  font-size: 2.16em;
+}
+.katex .sizing.reset-size4.size10,
+.katex .fontsize-ensurer.reset-size4.size10 {
+  font-size: 2.5925em;
+}
+.katex .sizing.reset-size4.size11,
+.katex .fontsize-ensurer.reset-size4.size11 {
+  font-size: 3.11em;
+}
+.katex .sizing.reset-size5.size1,
+.katex .fontsize-ensurer.reset-size5.size1 {
+  font-size: 0.55555556em;
+}
+.katex .sizing.reset-size5.size2,
+.katex .fontsize-ensurer.reset-size5.size2 {
+  font-size: 0.66666667em;
+}
+.katex .sizing.reset-size5.size3,
+.katex .fontsize-ensurer.reset-size5.size3 {
+  font-size: 0.77777778em;
+}
+.katex .sizing.reset-size5.size4,
+.katex .fontsize-ensurer.reset-size5.size4 {
+  font-size: 0.88888889em;
+}
+.katex .sizing.reset-size5.size5,
+.katex .fontsize-ensurer.reset-size5.size5 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size5.size6,
+.katex .fontsize-ensurer.reset-size5.size6 {
+  font-size: 1.11111111em;
+}
+.katex .sizing.reset-size5.size7,
+.katex .fontsize-ensurer.reset-size5.size7 {
+  font-size: 1.33333333em;
+}
+.katex .sizing.reset-size5.size8,
+.katex .fontsize-ensurer.reset-size5.size8 {
+  font-size: 1.6em;
+}
+.katex .sizing.reset-size5.size9,
+.katex .fontsize-ensurer.reset-size5.size9 {
+  font-size: 1.92em;
+}
+.katex .sizing.reset-size5.size10,
+.katex .fontsize-ensurer.reset-size5.size10 {
+  font-size: 2.30444444em;
+}
+.katex .sizing.reset-size5.size11,
+.katex .fontsize-ensurer.reset-size5.size11 {
+  font-size: 2.76444444em;
+}
+.katex .sizing.reset-size6.size1,
+.katex .fontsize-ensurer.reset-size6.size1 {
+  font-size: 0.5em;
+}
+.katex .sizing.reset-size6.size2,
+.katex .fontsize-ensurer.reset-size6.size2 {
+  font-size: 0.6em;
+}
+.katex .sizing.reset-size6.size3,
+.katex .fontsize-ensurer.reset-size6.size3 {
+  font-size: 0.7em;
+}
+.katex .sizing.reset-size6.size4,
+.katex .fontsize-ensurer.reset-size6.size4 {
+  font-size: 0.8em;
+}
+.katex .sizing.reset-size6.size5,
+.katex .fontsize-ensurer.reset-size6.size5 {
+  font-size: 0.9em;
+}
+.katex .sizing.reset-size6.size6,
+.katex .fontsize-ensurer.reset-size6.size6 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size6.size7,
+.katex .fontsize-ensurer.reset-size6.size7 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size6.size8,
+.katex .fontsize-ensurer.reset-size6.size8 {
+  font-size: 1.44em;
+}
+.katex .sizing.reset-size6.size9,
+.katex .fontsize-ensurer.reset-size6.size9 {
+  font-size: 1.728em;
+}
+.katex .sizing.reset-size6.size10,
+.katex .fontsize-ensurer.reset-size6.size10 {
+  font-size: 2.074em;
+}
+.katex .sizing.reset-size6.size11,
+.katex .fontsize-ensurer.reset-size6.size11 {
+  font-size: 2.488em;
+}
+.katex .sizing.reset-size7.size1,
+.katex .fontsize-ensurer.reset-size7.size1 {
+  font-size: 0.41666667em;
+}
+.katex .sizing.reset-size7.size2,
+.katex .fontsize-ensurer.reset-size7.size2 {
+  font-size: 0.5em;
+}
+.katex .sizing.reset-size7.size3,
+.katex .fontsize-ensurer.reset-size7.size3 {
+  font-size: 0.58333333em;
+}
+.katex .sizing.reset-size7.size4,
+.katex .fontsize-ensurer.reset-size7.size4 {
+  font-size: 0.66666667em;
+}
+.katex .sizing.reset-size7.size5,
+.katex .fontsize-ensurer.reset-size7.size5 {
+  font-size: 0.75em;
+}
+.katex .sizing.reset-size7.size6,
+.katex .fontsize-ensurer.reset-size7.size6 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size7.size7,
+.katex .fontsize-ensurer.reset-size7.size7 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size7.size8,
+.katex .fontsize-ensurer.reset-size7.size8 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size7.size9,
+.katex .fontsize-ensurer.reset-size7.size9 {
+  font-size: 1.44em;
+}
+.katex .sizing.reset-size7.size10,
+.katex .fontsize-ensurer.reset-size7.size10 {
+  font-size: 1.72833333em;
+}
+.katex .sizing.reset-size7.size11,
+.katex .fontsize-ensurer.reset-size7.size11 {
+  font-size: 2.07333333em;
+}
+.katex .sizing.reset-size8.size1,
+.katex .fontsize-ensurer.reset-size8.size1 {
+  font-size: 0.34722222em;
+}
+.katex .sizing.reset-size8.size2,
+.katex .fontsize-ensurer.reset-size8.size2 {
+  font-size: 0.41666667em;
+}
+.katex .sizing.reset-size8.size3,
+.katex .fontsize-ensurer.reset-size8.size3 {
+  font-size: 0.48611111em;
+}
+.katex .sizing.reset-size8.size4,
+.katex .fontsize-ensurer.reset-size8.size4 {
+  font-size: 0.55555556em;
+}
+.katex .sizing.reset-size8.size5,
+.katex .fontsize-ensurer.reset-size8.size5 {
+  font-size: 0.625em;
+}
+.katex .sizing.reset-size8.size6,
+.katex .fontsize-ensurer.reset-size8.size6 {
+  font-size: 0.69444444em;
+}
+.katex .sizing.reset-size8.size7,
+.katex .fontsize-ensurer.reset-size8.size7 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size8.size8,
+.katex .fontsize-ensurer.reset-size8.size8 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size8.size9,
+.katex .fontsize-ensurer.reset-size8.size9 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size8.size10,
+.katex .fontsize-ensurer.reset-size8.size10 {
+  font-size: 1.44027778em;
+}
+.katex .sizing.reset-size8.size11,
+.katex .fontsize-ensurer.reset-size8.size11 {
+  font-size: 1.72777778em;
+}
+.katex .sizing.reset-size9.size1,
+.katex .fontsize-ensurer.reset-size9.size1 {
+  font-size: 0.28935185em;
+}
+.katex .sizing.reset-size9.size2,
+.katex .fontsize-ensurer.reset-size9.size2 {
+  font-size: 0.34722222em;
+}
+.katex .sizing.reset-size9.size3,
+.katex .fontsize-ensurer.reset-size9.size3 {
+  font-size: 0.40509259em;
+}
+.katex .sizing.reset-size9.size4,
+.katex .fontsize-ensurer.reset-size9.size4 {
+  font-size: 0.46296296em;
+}
+.katex .sizing.reset-size9.size5,
+.katex .fontsize-ensurer.reset-size9.size5 {
+  font-size: 0.52083333em;
+}
+.katex .sizing.reset-size9.size6,
+.katex .fontsize-ensurer.reset-size9.size6 {
+  font-size: 0.5787037em;
+}
+.katex .sizing.reset-size9.size7,
+.katex .fontsize-ensurer.reset-size9.size7 {
+  font-size: 0.69444444em;
+}
+.katex .sizing.reset-size9.size8,
+.katex .fontsize-ensurer.reset-size9.size8 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size9.size9,
+.katex .fontsize-ensurer.reset-size9.size9 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size9.size10,
+.katex .fontsize-ensurer.reset-size9.size10 {
+  font-size: 1.20023148em;
+}
+.katex .sizing.reset-size9.size11,
+.katex .fontsize-ensurer.reset-size9.size11 {
+  font-size: 1.43981481em;
+}
+.katex .sizing.reset-size10.size1,
+.katex .fontsize-ensurer.reset-size10.size1 {
+  font-size: 0.24108004em;
+}
+.katex .sizing.reset-size10.size2,
+.katex .fontsize-ensurer.reset-size10.size2 {
+  font-size: 0.28929605em;
+}
+.katex .sizing.reset-size10.size3,
+.katex .fontsize-ensurer.reset-size10.size3 {
+  font-size: 0.33751205em;
+}
+.katex .sizing.reset-size10.size4,
+.katex .fontsize-ensurer.reset-size10.size4 {
+  font-size: 0.38572806em;
+}
+.katex .sizing.reset-size10.size5,
+.katex .fontsize-ensurer.reset-size10.size5 {
+  font-size: 0.43394407em;
+}
+.katex .sizing.reset-size10.size6,
+.katex .fontsize-ensurer.reset-size10.size6 {
+  font-size: 0.48216008em;
+}
+.katex .sizing.reset-size10.size7,
+.katex .fontsize-ensurer.reset-size10.size7 {
+  font-size: 0.57859209em;
+}
+.katex .sizing.reset-size10.size8,
+.katex .fontsize-ensurer.reset-size10.size8 {
+  font-size: 0.69431051em;
+}
+.katex .sizing.reset-size10.size9,
+.katex .fontsize-ensurer.reset-size10.size9 {
+  font-size: 0.83317261em;
+}
+.katex .sizing.reset-size10.size10,
+.katex .fontsize-ensurer.reset-size10.size10 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size10.size11,
+.katex .fontsize-ensurer.reset-size10.size11 {
+  font-size: 1.19961427em;
+}
+.katex .sizing.reset-size11.size1,
+.katex .fontsize-ensurer.reset-size11.size1 {
+  font-size: 0.20096463em;
+}
+.katex .sizing.reset-size11.size2,
+.katex .fontsize-ensurer.reset-size11.size2 {
+  font-size: 0.24115756em;
+}
+.katex .sizing.reset-size11.size3,
+.katex .fontsize-ensurer.reset-size11.size3 {
+  font-size: 0.28135048em;
+}
+.katex .sizing.reset-size11.size4,
+.katex .fontsize-ensurer.reset-size11.size4 {
+  font-size: 0.32154341em;
+}
+.katex .sizing.reset-size11.size5,
+.katex .fontsize-ensurer.reset-size11.size5 {
+  font-size: 0.36173633em;
+}
+.katex .sizing.reset-size11.size6,
+.katex .fontsize-ensurer.reset-size11.size6 {
+  font-size: 0.40192926em;
+}
+.katex .sizing.reset-size11.size7,
+.katex .fontsize-ensurer.reset-size11.size7 {
+  font-size: 0.48231511em;
+}
+.katex .sizing.reset-size11.size8,
+.katex .fontsize-ensurer.reset-size11.size8 {
+  font-size: 0.57877814em;
+}
+.katex .sizing.reset-size11.size9,
+.katex .fontsize-ensurer.reset-size11.size9 {
+  font-size: 0.69453376em;
+}
+.katex .sizing.reset-size11.size10,
+.katex .fontsize-ensurer.reset-size11.size10 {
+  font-size: 0.83360129em;
+}
+.katex .sizing.reset-size11.size11,
+.katex .fontsize-ensurer.reset-size11.size11 {
+  font-size: 1em;
+}
+.katex .delimsizing.size1 {
+  font-family: KaTeX_Size1;
+}
+.katex .delimsizing.size2 {
+  font-family: KaTeX_Size2;
+}
+.katex .delimsizing.size3 {
+  font-family: KaTeX_Size3;
+}
+.katex .delimsizing.size4 {
+  font-family: KaTeX_Size4;
+}
+.katex .delimsizing.mult .delim-size1 > span {
+  font-family: KaTeX_Size1;
+}
+.katex .delimsizing.mult .delim-size4 > span {
+  font-family: KaTeX_Size4;
+}
+.katex .nulldelimiter {
+  display: inline-block;
+  width: 0.12em;
+}
+.katex .delimcenter {
+  position: relative;
+}
+.katex .op-symbol {
+  position: relative;
+}
+.katex .op-symbol.small-op {
+  font-family: KaTeX_Size1;
+}
+.katex .op-symbol.large-op {
+  font-family: KaTeX_Size2;
+}
+.katex .op-limits > .vlist-t {
+  text-align: center;
+}
+.katex .accent > .vlist-t {
+  text-align: center;
+}
+.katex .accent .accent-body {
+  position: relative;
+}
+.katex .accent .accent-body:not(.accent-full) {
+  width: 0;
+}
+.katex .overlay {
+  display: block;
+}
+.katex .mtable .vertical-separator {
+  display: inline-block;
+  min-width: 1px;
+}
+.katex .mtable .arraycolsep {
+  display: inline-block;
+}
+.katex .mtable .col-align-c > .vlist-t {
+  text-align: center;
+}
+.katex .mtable .col-align-l > .vlist-t {
+  text-align: left;
+}
+.katex .mtable .col-align-r > .vlist-t {
+  text-align: right;
+}
+.katex .svg-align {
+  text-align: left;
+}
+.katex svg {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: inherit;
+  fill: currentColor;
+  stroke: currentColor;
+  fill-rule: nonzero;
+  fill-opacity: 1;
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  stroke-opacity: 1;
+}
+.katex svg path {
+  stroke: none;
+}
+.katex img {
+  border-style: none;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+}
+.katex .stretchy {
+  width: 100%;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+.katex .stretchy::before,
+.katex .stretchy::after {
+  content: "";
+}
+.katex .hide-tail {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.katex .halfarrow-left {
+  position: absolute;
+  left: 0;
+  width: 50.2%;
+  overflow: hidden;
+}
+.katex .halfarrow-right {
+  position: absolute;
+  right: 0;
+  width: 50.2%;
+  overflow: hidden;
+}
+.katex .brace-left {
+  position: absolute;
+  left: 0;
+  width: 25.1%;
+  overflow: hidden;
+}
+.katex .brace-center {
+  position: absolute;
+  left: 25%;
+  width: 50%;
+  overflow: hidden;
+}
+.katex .brace-right {
+  position: absolute;
+  right: 0;
+  width: 25.1%;
+  overflow: hidden;
+}
+.katex .x-arrow-pad {
+  padding: 0 0.5em;
+}
+.katex .cd-arrow-pad {
+  padding: 0 0.55556em 0 0.27778em;
+}
+.katex .x-arrow,
+.katex .mover,
+.katex .munder {
+  text-align: center;
+}
+.katex .boxpad {
+  padding: 0 0.3em;
+}
+.katex .fbox,
+.katex .fcolorbox {
+  box-sizing: border-box;
+  border: 0.04em solid;
+}
+.katex .cancel-pad {
+  padding: 0 0.2em;
+}
+.katex .cancel-lap {
+  margin-left: -0.2em;
+  margin-right: -0.2em;
+}
+.katex .sout {
+  border-bottom-style: solid;
+  border-bottom-width: 0.08em;
+}
+.katex .angl {
+  box-sizing: border-box;
+  border-top: 0.049em solid;
+  border-right: 0.049em solid;
+  margin-right: 0.03889em;
+}
+.katex .anglpad {
+  padding: 0 0.03889em;
+}
+.katex .eqn-num::before {
+  counter-increment: katexEqnNo;
+  content: "(" counter(katexEqnNo) ")";
+}
+.katex .mml-eqn-num::before {
+  counter-increment: mmlEqnNo;
+  content: "(" counter(mmlEqnNo) ")";
+}
+.katex .mtr-glue {
+  width: 50%;
+}
+.katex .cd-vert-arrow {
+  display: inline-block;
+  position: relative;
+}
+.katex .cd-label-left {
+  display: inline-block;
+  position: absolute;
+  right: calc(50% + 0.3em);
+  text-align: left;
+}
+.katex .cd-label-right {
+  display: inline-block;
+  position: absolute;
+  left: calc(50% + 0.3em);
+  text-align: right;
+}
+.katex-display {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+}
+.katex-display > .katex {
+  display: block;
+  text-align: center;
+  white-space: nowrap;
+}
+.katex-display > .katex > .katex-html {
+  display: block;
+  position: relative;
+}
+.katex-display > .katex > .katex-html > .tag {
+  position: absolute;
+  right: 0;
+}
+.katex-display.leqno > .katex > .katex-html > .tag {
+  left: 0;
+  right: auto;
+}
+.katex-display.fleqn > .katex {
+  text-align: left;
+  padding-left: 2em;
+}
+body {
+  counter-reset: katexEqnNo mmlEqnNo;
+}
+`;
+};
+
+// ../simple-mind-map/src/plugins/Formula.js
 var Formula = class {
   //  构造函数
   constructor(opt) {
@@ -77654,6 +79040,9 @@ var Formula = class {
     this.mindMap = opt.mindMap;
     window.katex = katex;
     this.init();
+    this.config = this.getKatexConfig();
+    this.cssEl = null;
+    this.addStyle();
     this.extendQuill();
   }
   init() {
@@ -77670,10 +79059,15 @@ var Formula = class {
       output: "mathml"
       // 默认只输出公式
     };
-    const chromeVersion = getChromeVersion();
-    if (chromeVersion && chromeVersion <= 100) {
-      config.output = "html";
-    }
+    let { getKatexOutputType } = this.mindMap.opt;
+    getKatexOutputType = getKatexOutputType || function() {
+      const chromeVersion = getChromeVersion();
+      if (chromeVersion && chromeVersion <= 100) {
+        return "html";
+      }
+    };
+    const output = getKatexOutputType() || "mathml";
+    config.output = ["mathml", "html"].includes(output) ? output : "mathml";
     return config;
   }
   // 修改formula格式工具
@@ -77684,13 +79078,31 @@ var Formula = class {
       static create(value) {
         let node2 = super.create(value);
         if (typeof value === "string") {
-          katex.render(value, node2, self2.getKatexConfig());
+          katex.render(value, node2, self2.config);
           node2.setAttribute("data-value", value);
         }
         return node2;
       }
     }
     import_quill2.default.register("formats/formula", CustomFormulaBlot, true);
+  }
+  getStyleText() {
+    const { katexFontPath } = this.mindMap.opt;
+    let text4 = "";
+    if (this.config.output === "html") {
+      text4 = getFontStyleText(katexFontPath);
+    }
+    text4 += getBaseStyleText();
+    return text4;
+  }
+  addStyle() {
+    this.cssEl = document.createElement("style");
+    this.cssEl.type = "text/css";
+    this.cssEl.innerHTML = this.getStyleText();
+    document.head.appendChild(this.cssEl);
+  }
+  removeStyle() {
+    document.head.removeChild(this.cssEl);
   }
   // 给指定的节点插入指定公式
   insertFormulaToNode(node2, formula) {
@@ -77767,6 +79179,14 @@ var Formula = class {
     } catch (e) {
       return false;
     }
+  }
+  // 插件被移除前做的事情
+  beforePluginRemove() {
+    this.removeStyle();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.removeStyle();
   }
 };
 Formula.instanceName = "formula";
@@ -77883,6 +79303,7 @@ var Demonstrate = class {
       { ...defaultConfig },
       this.mindMap.opt.demonstrateConfig || {}
     );
+    this.needRestorePerformanceMode = false;
   }
   // 进入演示模式
   enter() {
@@ -77894,6 +79315,7 @@ var Demonstrate = class {
     }
   }
   _enter() {
+    this.pausePerformanceMode();
     this.addTmpStyles();
     this.transformState = this.mindMap.view.getTransformData();
     this.renderTree = this.mindMap.getData();
@@ -77925,7 +79347,24 @@ var Demonstrate = class {
     this.removeHighlightEl();
     this.mindMap.command.recovery();
     this.mindMap.keyCommand.recovery();
+    this.restorePerformanceMode();
     this.mindMap.emit("exit_demonstrate");
+  }
+  // 暂停性能模式
+  pausePerformanceMode() {
+    const { openPerformance } = this.mindMap.opt;
+    if (openPerformance) {
+      this.needRestorePerformanceMode = true;
+      this.mindMap.opt.openPerformance = false;
+      this.mindMap.renderer.forceLoadNode();
+    }
+  }
+  // 恢复性能模式
+  restorePerformanceMode() {
+    if (!this.needRestorePerformanceMode)
+      return;
+    this.mindMap.opt.openPerformance = true;
+    this.mindMap.renderer.forceLoadNode();
   }
   // 添加临时的样式
   addTmpStyles() {
@@ -78304,8 +79743,6 @@ var OuterFrame = class {
     this.createDrawContainer();
     this.outerFrameElList = [];
     this.activeOuterFrame = null;
-    this.paddingX = 10;
-    this.paddingY = 10;
     this.bindEvent();
   }
   // 创建容器
@@ -78435,6 +79872,7 @@ var OuterFrame = class {
     if (!tree)
       return;
     const t = this.mindMap.draw.transform();
+    const { outerFramePaddingX, outerFramePaddingY } = this.mindMap.opt;
     walk(
       tree,
       null,
@@ -78447,11 +79885,13 @@ var OuterFrame = class {
             if (range2[0] === -1 || range2[1] === -1)
               return;
             const { left, top, width: width2, height: height2 } = getNodeListBoundingRect(nodeList);
+            if (!Number.isFinite(left) || !Number.isFinite(top) || !Number.isFinite(width2) || !Number.isFinite(height2))
+              return;
             const el = this.createOuterFrameEl(
-              (left - this.paddingX - this.mindMap.elRect.left - t.translateX) / t.scaleX,
-              (top - this.paddingY - this.mindMap.elRect.top - t.translateY) / t.scaleY,
-              (width2 + this.paddingX * 2) / t.scaleX,
-              (height2 + this.paddingY * 2) / t.scaleY,
+              (left - outerFramePaddingX - this.mindMap.elRect.left - t.translateX) / t.scaleX,
+              (top - outerFramePaddingY - this.mindMap.elRect.top - t.translateY) / t.scaleY,
+              (width2 + outerFramePaddingX * 2) / t.scaleX,
+              (height2 + outerFramePaddingY * 2) / t.scaleY,
               nodeList[0].getData("outerFrame")
               // 使用第一个节点的外框样式
             );
@@ -78488,7 +79928,7 @@ var OuterFrame = class {
       return;
     const { el } = this.activeOuterFrame;
     el.stroke({
-      dasharray: "5,5"
+      dasharray: el.cacheStyle.dasharray || defaultStyle.strokeDasharray
     });
     this.activeOuterFrame = null;
   }
@@ -78502,6 +79942,9 @@ var OuterFrame = class {
     }).fill({
       color: styleConfig.fill
     }).x(x2).y(y2);
+    el.cacheStyle = {
+      dasharray: styleConfig.strokeDasharray
+    };
     this.outerFrameElList.push(el);
     return el;
   }
@@ -83424,7 +84867,7 @@ simple_mind_map_default.iconList = icons_default.nodeIconList;
 simple_mind_map_default.constants = constant_exports;
 simple_mind_map_default.themes = themes_default;
 simple_mind_map_default.defaultTheme = default_exports;
-simple_mind_map_default.version = "0.10.2";
+simple_mind_map_default.version = "0.10.5";
 simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportXMind_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default).usePlugin(Search_default).usePlugin(Painter_default).usePlugin(Scrollbar_default).usePlugin(Formula_default).usePlugin(RainbowLines_default).usePlugin(Demonstrate_default).usePlugin(OuterFrame_default);
 var full_default = simple_mind_map_default;
 export {

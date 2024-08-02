@@ -24184,6 +24184,7 @@ var CONSTANTS = {
   },
   LAYOUT: {
     LOGICAL_STRUCTURE: "logicalStructure",
+    LOGICAL_STRUCTURE_LEFT: "logicalStructureLeft",
     MIND_MAP: "mindMap",
     ORGANIZATION_STRUCTURE: "organizationStructure",
     CATALOG_ORGANIZATION: "catalogOrganization",
@@ -24244,6 +24245,10 @@ var CONSTANTS = {
     DEFAULT: "default",
     NOT_ACTIVE: "notActive",
     ACTIVE_ONLY: "activeOnly"
+  },
+  TAG_POSITION: {
+    RIGHT: "right",
+    BOTTOM: "bottom"
   }
 };
 var initRootNodePositionMap = {
@@ -24257,6 +24262,10 @@ var layoutList = [
   {
     name: "\u903B\u8F91\u7ED3\u6784\u56FE",
     value: CONSTANTS.LAYOUT.LOGICAL_STRUCTURE
+  },
+  {
+    name: "\u5411\u5DE6\u903B\u8F91\u7ED3\u6784\u56FE",
+    value: CONSTANTS.LAYOUT.LOGICAL_STRUCTURE_LEFT
   },
   {
     name: "\u601D\u7EF4\u5BFC\u56FE",
@@ -24289,6 +24298,7 @@ var layoutList = [
 ];
 var layoutValueList = [
   CONSTANTS.LAYOUT.LOGICAL_STRUCTURE,
+  CONSTANTS.LAYOUT.LOGICAL_STRUCTURE_LEFT,
   CONSTANTS.LAYOUT.MIND_MAP,
   CONSTANTS.LAYOUT.CATALOG_ORGANIZATION,
   CONSTANTS.LAYOUT.ORGANIZATION_STRUCTURE,
@@ -24319,7 +24329,9 @@ var nodeDataNoStylePropList = [
   "associativeLinePoint",
   "associativeLineText",
   "attachmentUrl",
-  "attachmentName"
+  "attachmentName",
+  "notation",
+  "outerFrame"
 ];
 var ERROR_TYPES = {
   READ_CLIPBOARD_ERROR: "read_clipboard_error",
@@ -24385,9 +24397,10 @@ var View = class {
     this.mindMap.keyCommand.addShortcut("Control+i", () => {
       this.fit();
     });
-    this.mindMap.event.on("mousedown", () => {
+    this.mindMap.event.on("mousedown", (e) => {
       if (this.mindMap.opt.isDisableDrag)
         return;
+      e.preventDefault();
       this.sx = this.x;
       this.sy = this.y;
     });
@@ -24815,6 +24828,7 @@ var Event2 = class extends import_eventemitter3.default {
   }
   //  鼠标按下事件
   onMousedown(e) {
+    e.preventDefault();
     if (e.which === 1) {
       this.isLeftMousedown = true;
     } else if (e.which === 3) {
@@ -24828,6 +24842,7 @@ var Event2 = class extends import_eventemitter3.default {
   }
   //  鼠标移动事件
   onMousemove(e) {
+    e.preventDefault();
     let { useLeftKeySelectionRightKeyDrag } = this.mindMap.opt;
     this.mousemovePos.x = e.clientX;
     this.mousemovePos.y = e.clientY;
@@ -30677,16 +30692,10 @@ var copyRenderTree = (tree, root2, removeActiveState = false) => {
   tree.data = simpleDeepClone(root2.data);
   if (removeActiveState) {
     tree.data.isActive = false;
-    const generalization = tree.data.generalization;
-    if (generalization) {
-      if (Array.isArray(generalization)) {
-        generalization.forEach((item) => {
-          item.isActive = false;
-        });
-      } else {
-        generalization.isActive = false;
-      }
-    }
+    const generalizationList = formatGetNodeGeneralization(tree.data);
+    generalizationList.forEach((item) => {
+      item.isActive = false;
+    });
   }
   tree.children = [];
   if (root2.children && root2.children.length > 0) {
@@ -30718,7 +30727,7 @@ var copyNodeTree = (tree, root2, removeActiveState = false, removeId = true) => 
   }
   return tree;
 };
-var imgToDataUrl = (src) => {
+var imgToDataUrl = (src, returnBlob = false) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.setAttribute("crossOrigin", "anonymous");
@@ -30729,7 +30738,13 @@ var imgToDataUrl = (src) => {
         canvas.height = img.height;
         let ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, img.width, img.height);
-        resolve(canvas.toDataURL());
+        if (returnBlob) {
+          canvas.toBlob((blob) => {
+            resolve(blob);
+          });
+        } else {
+          resolve(canvas.toDataURL());
+        }
       } catch (e) {
         reject(e);
       }
@@ -31007,18 +31022,6 @@ var replaceHtmlText = (html2, searchText, replaceText) => {
   walk2(replaceHtmlTextEl);
   return replaceHtmlTextEl.innerHTML;
 };
-var removeHtmlNodeByClassEl = null;
-var removeHtmlNodeByClass = (html2, selector) => {
-  if (!removeHtmlNodeByClassEl) {
-    removeHtmlNodeByClassEl = document.createElement("div");
-  }
-  removeHtmlNodeByClassEl.innerHTML = html2;
-  const node2 = removeHtmlNodeByClassEl.querySelector(selector);
-  if (node2) {
-    node2.parentNode.removeChild(node2);
-  }
-  return removeHtmlNodeByClassEl.innerHTML;
-};
 var isWhite = (color) => {
   color = String(color).replaceAll(/\s+/g, "");
   return ["#fff", "#ffffff", "#FFF", "#FFFFFF", "rgb(255,255,255)"].includes(
@@ -31260,7 +31263,7 @@ var addDataToAppointNodes = (appointNodes, data2 = {}) => {
   walk2(appointNodes);
   return appointNodes;
 };
-var createUidForAppointNodes = (appointNodes, createNewId = false) => {
+var createUidForAppointNodes = (appointNodes, createNewId = false, handle = null) => {
   const walk2 = (list2) => {
     list2.forEach((node2) => {
       if (!node2.data) {
@@ -31269,6 +31272,7 @@ var createUidForAppointNodes = (appointNodes, createNewId = false) => {
       if (createNewId || isUndef(node2.data.uid)) {
         node2.data.uid = createUid();
       }
+      handle && handle(node2);
       if (node2.children && node2.children.length > 0) {
         walk2(node2.children);
       }
@@ -31475,6 +31479,9 @@ var transformTreeDataToObject = (data2) => {
   walk2(data2, null);
   return res;
 };
+var getTwoPointDistance = (x1, y1, x2, y2) => {
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+};
 var getRectRelativePosition = (rect1, rect2) => {
   const rect1CenterX = rect1.x + rect1.width / 2;
   const rect1CenterY = rect1.y + rect1.height / 2;
@@ -31516,10 +31523,8 @@ var handleGetSvgDataExtraContent = ({
         return;
       const { el, cssText, height: height2 } = res;
       if (el instanceof HTMLElement) {
-        el.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-        const foreignObject = new ForeignObject();
-        foreignObject.height(height2);
-        foreignObject.add(el);
+        addXmlns(el);
+        const foreignObject = createForeignObjectNode({ el, height: height2 });
         callback(foreignObject, height2);
       }
       if (cssText) {
@@ -31543,28 +31548,31 @@ var handleGetSvgDataExtraContent = ({
     footerHeight
   };
 };
-var getNodeTreeBoundingRect = (node2, x2 = 0, y2 = 0, paddingX = 0, paddingY = 0, excludeSelf = false) => {
+var getNodeTreeBoundingRect = (node2, x2 = 0, y2 = 0, paddingX = 0, paddingY = 0, excludeSelf = false, excludeGeneralization = false) => {
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
   const walk2 = (root2, isRoot) => {
-    if (!(isRoot && excludeSelf)) {
-      const { x: x3, y: y3, width: width2, height: height2 } = root2.group.findOne(".smm-node-shape").rbox();
-      if (x3 < minX) {
-        minX = x3;
-      }
-      if (x3 + width2 > maxX) {
-        maxX = x3 + width2;
-      }
-      if (y3 < minY) {
-        minY = y3;
-      }
-      if (y3 + height2 > maxY) {
-        maxY = y3 + height2;
+    if (!(isRoot && excludeSelf) && root2.group) {
+      try {
+        const { x: x3, y: y3, width: width2, height: height2 } = root2.group.findOne(".smm-node-shape").rbox();
+        if (x3 < minX) {
+          minX = x3;
+        }
+        if (x3 + width2 > maxX) {
+          maxX = x3 + width2;
+        }
+        if (y3 < minY) {
+          minY = y3;
+        }
+        if (y3 + height2 > maxY) {
+          maxY = y3 + height2;
+        }
+      } catch (e) {
       }
     }
-    if (root2._generalizationList.length > 0) {
+    if (!excludeGeneralization && root2._generalizationList.length > 0) {
       root2._generalizationList.forEach((item) => {
         walk2(item.generalizationNode);
       });
@@ -31587,6 +31595,41 @@ var getNodeTreeBoundingRect = (node2, x2 = 0, y2 = 0, paddingX = 0, paddingY = 0
     height: maxY - minY
   };
 };
+var getNodeListBoundingRect = (nodeList, x2 = 0, y2 = 0, paddingX = 0, paddingY = 0) => {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  nodeList.forEach((node2) => {
+    const { left, top, width: width2, height: height2 } = getNodeTreeBoundingRect(
+      node2,
+      x2,
+      y2,
+      paddingX,
+      paddingY,
+      false,
+      true
+    );
+    if (left < minX) {
+      minX = left;
+    }
+    if (left + width2 > maxX) {
+      maxX = left + width2;
+    }
+    if (top < minY) {
+      minY = top;
+    }
+    if (top + height2 > maxY) {
+      maxY = top + height2;
+    }
+  });
+  return {
+    left: minX,
+    top: minY,
+    width: maxX - minX,
+    height: maxY - minY
+  };
+};
 var getOnfullscreEnevt = () => {
   if (document.documentElement.requestFullScreen) {
     return "fullscreenchange";
@@ -31599,6 +31642,53 @@ var getOnfullscreEnevt = () => {
   }
 };
 var fullscrrenEvent = getOnfullscreEnevt();
+var fullScreen = (element2) => {
+  if (element2.requestFullScreen) {
+    element2.requestFullScreen();
+  } else if (element2.webkitRequestFullScreen) {
+    element2.webkitRequestFullScreen();
+  } else if (element2.mozRequestFullScreen) {
+    element2.mozRequestFullScreen();
+  }
+};
+var exitFullScreen = () => {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.mozCancelFullScreen) {
+    document.mozCancelFullScreen();
+  }
+};
+var createForeignObjectNode = ({ el, width: width2, height: height2 }) => {
+  const foreignObject = new ForeignObject();
+  if (width2 !== void 0) {
+    foreignObject.width(width2);
+  }
+  if (height2 !== void 0) {
+    foreignObject.height(height2);
+  }
+  foreignObject.add(el);
+  return foreignObject;
+};
+var formatGetNodeGeneralization = (data2) => {
+  const generalization = data2.generalization;
+  if (generalization) {
+    return Array.isArray(generalization) ? generalization : [generalization];
+  } else {
+    return [];
+  }
+};
+var addXmlns = (el) => {
+  el.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+};
+var sortNodeList = (nodeList) => {
+  nodeList = [...nodeList];
+  nodeList.sort((a, b) => {
+    return a.sortIndex - b.sortIndex;
+  });
+  return nodeList;
+};
 
 // ../simple-mind-map/src/core/render/node/Style.js
 var rootProp = ["paddingX", "paddingY"];
@@ -31655,17 +31745,17 @@ var Style2 = class {
   //  合并样式
   merge(prop, root2) {
     let themeConfig = this.ctx.mindMap.themeConfig;
-    let defaultConfig = themeConfig.node;
+    let defaultConfig2 = themeConfig.node;
     if (root2 || rootProp.includes(prop)) {
-      defaultConfig = themeConfig;
+      defaultConfig2 = themeConfig;
     } else if (this.ctx.isGeneralization) {
-      defaultConfig = themeConfig.generalization;
+      defaultConfig2 = themeConfig.generalization;
     } else if (this.ctx.layerIndex === 0) {
-      defaultConfig = themeConfig.root;
+      defaultConfig2 = themeConfig.root;
     } else if (this.ctx.layerIndex === 1) {
-      defaultConfig = themeConfig.second;
+      defaultConfig2 = themeConfig.second;
     }
-    return this.getSelfStyle(prop) !== void 0 ? this.getSelfStyle(prop) : defaultConfig[prop];
+    return this.getSelfStyle(prop) !== void 0 ? this.getSelfStyle(prop) : defaultConfig2[prop];
   }
   //  获取某个样式值
   getStyle(prop, root2) {
@@ -31743,18 +31833,21 @@ var Style2 = class {
     node2.style.fontStyle = this.merge("fontStyle");
   }
   //  标签文字
-  tagText(node2) {
+  tagText(node2, style) {
     node2.fill({
       color: "#fff"
     }).css({
-      "font-size": "12px"
+      "font-size": style.fontSize + "px"
     });
   }
   //  标签矩形
-  tagRect(node2, text4, color) {
+  tagRect(node2, style) {
     node2.fill({
-      color: color || generateColorByContent(text4.node.textContent)
+      color: style.fill
     });
+    if (style.radius) {
+      node2.radius(style.radius);
+    }
   }
   //  内置图标
   iconNode(node2) {
@@ -32178,7 +32271,7 @@ function updateGeneralization() {
   this.removeGeneralization();
   this.createGeneralizationNode();
 }
-function renderGeneralization() {
+function renderGeneralization(forceRender) {
   if (this.isGeneralization)
     return;
   this.updateGeneralizationData();
@@ -32194,7 +32287,8 @@ function renderGeneralization() {
   this.renderer.layout.renderGeneralization(this._generalizationList);
   this._generalizationList.forEach((item) => {
     this.style.generalizationLine(item.generalizationLine);
-    item.generalizationNode.render();
+    item.generalizationNode.render(() => {
+    }, forceRender);
   });
 }
 function updateGeneralizationData() {
@@ -32312,7 +32406,7 @@ function createExpandNodeContent() {
   }
   let { close: close3, open: open3 } = this.mindMap.opt.expandBtnIcon || {};
   if (this.mindMap.opt.isShowExpandNum) {
-    this._openExpandNode = SVG().text().size(this.expandBtnSize, this.expandBtnSize);
+    this._openExpandNode = new Text2();
     this._openExpandNode.attr({
       "text-anchor": "middle",
       "dominant-baseline": "middle",
@@ -32370,7 +32464,7 @@ function updateExpandBtnNode() {
         });
         let count = this.sumNode(this.nodeData.children);
         count = expandBtnNumHandler(count);
-        node2.text(count);
+        node2.text(String(count));
       } else {
         this._fillExpandNode.stroke("none");
       }
@@ -32406,11 +32500,7 @@ function renderExpandBtn() {
     });
     this._expandBtn.on("click", (e) => {
       e.stopPropagation();
-      this.mindMap.execCommand(
-        "SET_NODE_EXPAND",
-        this,
-        !this.getData("expand")
-      );
+      this.mindMap.execCommand("SET_NODE_EXPAND", this, !this.getData("expand"));
       this.mindMap.emit("expand_btn_click", this);
     });
     this._expandBtn.on("dblclick", (e) => {
@@ -32806,6 +32896,19 @@ var icons_default = {
 };
 
 // ../simple-mind-map/src/core/render/node/nodeCreateContents.js
+var defaultTagStyle = {
+  radius: 3,
+  // 标签矩形的圆角大小
+  fontSize: 12,
+  // 字号，建议文字高度不要大于height
+  fill: "",
+  // 标签矩形的背景颜色
+  height: 20,
+  // 标签矩形的高度
+  paddingX: 8
+  // 水平内边距，如果设置了width，将忽略该配置
+  //width: 30 // 标签矩形的宽度，如果不设置，默认以文字的宽度+paddingX*2为宽度
+};
 function createImgNode() {
   const img = this.getData("image");
   if (!img) {
@@ -32923,13 +33026,15 @@ function createRichTextNode() {
     this.mindMap.commonCaches.measureRichtextNodeTextSizeEl = document.createElement("div");
     this.mindMap.commonCaches.measureRichtextNodeTextSizeEl.style.position = "fixed";
     this.mindMap.commonCaches.measureRichtextNodeTextSizeEl.style.left = "-999999px";
-    this.mindMap.el.appendChild(this.mindMap.commonCaches.measureRichtextNodeTextSizeEl);
+    this.mindMap.el.appendChild(
+      this.mindMap.commonCaches.measureRichtextNodeTextSizeEl
+    );
   }
   let div = this.mindMap.commonCaches.measureRichtextNodeTextSizeEl;
   div.innerHTML = html2;
   let el = div.children[0];
   el.classList.add("smm-richtext-node-wrap");
-  el.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+  addXmlns(el);
   el.style.maxWidth = textAutoWrapWidth + "px";
   let { width: width2, height: height2 } = el.getBoundingClientRect();
   if (height2 <= 0) {
@@ -32943,10 +33048,11 @@ function createRichTextNode() {
   height2 = Math.ceil(height2);
   g.attr("data-width", width2);
   g.attr("data-height", height2);
-  let foreignObject = new ForeignObject();
-  foreignObject.width(width2);
-  foreignObject.height(height2);
-  foreignObject.add(div.children[0]);
+  const foreignObject = createForeignObjectNode({
+    el: div.children[0],
+    width: width2,
+    height: height2
+  });
   g.add(foreignObject);
   return {
     node: g,
@@ -33018,11 +33124,15 @@ function createHyperlinkNode() {
   if (!hyperlink2) {
     return;
   }
+  const { customHyperlinkJump } = this.mindMap.opt;
   let iconSize = this.mindMap.themeConfig.iconSize;
   let node2 = new SVG().size(iconSize, iconSize);
   let a = new A().to(hyperlink2).target("_blank");
   a.node.addEventListener("click", (e) => {
-    e.stopPropagation();
+    if (typeof customHyperlinkJump === "function") {
+      e.preventDefault();
+      customHyperlinkJump(hyperlink2, this);
+    }
   });
   if (hyperlinkTitle) {
     node2.add(SVG(`<title>${hyperlinkTitle}</title>`));
@@ -33039,25 +33149,57 @@ function createHyperlinkNode() {
   };
 }
 function createTagNode() {
-  let tagData = this.getData("tag");
+  const tagData = this.getData("tag");
   if (!tagData || tagData.length <= 0) {
     return [];
   }
-  let nodes = [];
-  tagData.slice(0, this.mindMap.opt.maxTag).forEach((item, index2) => {
-    let tag = new G();
-    let text4 = new Text2().text(item).x(8).cy(8);
-    this.style.tagText(text4, index2);
-    let { width: width2 } = text4.bbox();
-    let rect = new Rect().size(width2 + 16, 20);
-    const tagsColorList = this.mindMap.opt.tagsColorMap || {};
-    const color = tagsColorList[text4.node.textContent];
-    this.style.tagRect(rect, text4, color);
+  let { maxTag, tagsColorMap } = this.mindMap.opt;
+  tagsColorMap = tagsColorMap || {};
+  const nodes = [];
+  tagData.slice(0, maxTag).forEach((item, index2) => {
+    let str = "";
+    let style = {
+      ...defaultTagStyle
+    };
+    if (typeof item === "string") {
+      str = item;
+    } else {
+      str = item.text;
+      style = { ...defaultTagStyle, ...item.style };
+    }
+    const hasCustomWidth = typeof style.width !== "undefined";
+    const tag = new G();
+    tag.on("click", () => {
+      this.mindMap.emit("node_tag_click", this, item, index2, tag);
+    });
+    const text4 = new Text2().text(str);
+    this.style.tagText(text4, style);
+    const { width: textWidth, height: textHeight } = text4.bbox();
+    const rectWidth = hasCustomWidth ? style.width : textWidth + style.paddingX * 2;
+    const maxWidth = hasCustomWidth ? Math.max(rectWidth, textWidth) : rectWidth;
+    const maxHeight = Math.max(style.height, textHeight);
+    if (hasCustomWidth) {
+      text4.x((maxWidth - textWidth) / 2);
+    } else {
+      text4.x(hasCustomWidth ? 0 : style.paddingX);
+    }
+    text4.cy(-maxHeight / 2);
+    const rect = new Rect().size(rectWidth, style.height).cy(-maxHeight / 2);
+    if (hasCustomWidth) {
+      rect.x((maxWidth - rectWidth) / 2);
+    }
+    this.style.tagRect(rect, {
+      ...style,
+      fill: style.fill || // 优先节点自身配置
+      tagsColorMap[text4.node.textContent] || // 否则尝试从实例化选项tagsColorMap映射中获取颜色
+      generateColorByContent(text4.node.textContent)
+      // 否则按照标签内容生成
+    });
     tag.add(rect).add(text4);
     nodes.push({
       node: tag,
-      width: width2 + 16,
-      height: 20
+      width: maxWidth,
+      height: maxHeight
     });
   });
   return nodes;
@@ -33067,7 +33209,7 @@ function createNoteNode() {
     return null;
   }
   let iconSize = this.mindMap.themeConfig.iconSize;
-  let node2 = new SVG().attr("cursor", "pointer").size(iconSize, iconSize);
+  let node2 = new SVG().attr("cursor", "pointer").addClass("smm-node-note").size(iconSize, iconSize);
   node2.add(new Rect().size(iconSize, iconSize).fill({ color: "transparent" }));
   let iconNode = SVG(icons_default.note).size(iconSize, iconSize);
   this.style.iconNode(iconNode);
@@ -33162,7 +33304,9 @@ function measureCustomNodeContentSize(content3) {
       left: -99999px;
       top: -99999px;
     `;
-    this.mindMap.el.appendChild(this.mindMap.commonCaches.measureCustomNodeContentSizeEl);
+    this.mindMap.el.appendChild(
+      this.mindMap.commonCaches.measureCustomNodeContentSizeEl
+    );
   }
   this.mindMap.commonCaches.measureCustomNodeContentSizeEl.innerHTML = "";
   this.mindMap.commonCaches.measureCustomNodeContentSizeEl.appendChild(content3);
@@ -33339,6 +33483,7 @@ var nodeCooperate_default = {
 var Node2 = class {
   //  构造函数
   constructor(opt = {}) {
+    this.opt = opt;
     this.nodeData = this.handleData(opt.data || {});
     this.uid = opt.uid;
     this.mindMap = opt.mindMap;
@@ -33379,6 +33524,8 @@ var Node2 = class {
     this.noteEl = null;
     this.noteContentIsShow = false;
     this._attachmentData = null;
+    this._prefixData = null;
+    this._postfixData = null;
     this._expandBtn = null;
     this._lastExpandBtnType = null;
     this._showExpandBtn = false;
@@ -33404,25 +33551,29 @@ var Node2 = class {
     this.isMultipleChoice = false;
     this.needLayout = false;
     this.isHide = false;
-    Object.keys(nodeGeneralization_default).forEach((item) => {
-      this[item] = nodeGeneralization_default[item].bind(this);
-    });
-    Object.keys(nodeExpandBtn_default).forEach((item) => {
-      this[item] = nodeExpandBtn_default[item].bind(this);
-    });
-    Object.keys(nodeExpandBtnPlaceholderRect_default).forEach((item) => {
-      this[item] = nodeExpandBtnPlaceholderRect_default[item].bind(this);
-    });
-    Object.keys(nodeCommandWraps_default).forEach((item) => {
-      this[item] = nodeCommandWraps_default[item].bind(this);
-    });
-    Object.keys(nodeCreateContents_default).forEach((item) => {
-      this[item] = nodeCreateContents_default[item].bind(this);
-    });
-    if (this.mindMap.cooperate) {
-      Object.keys(nodeCooperate_default).forEach((item) => {
-        this[item] = nodeCooperate_default[item].bind(this);
+    const proto = Object.getPrototypeOf(this);
+    if (!proto.bindEvent) {
+      Object.keys(nodeGeneralization_default).forEach((item) => {
+        proto[item] = nodeGeneralization_default[item];
       });
+      Object.keys(nodeExpandBtn_default).forEach((item) => {
+        proto[item] = nodeExpandBtn_default[item];
+      });
+      Object.keys(nodeExpandBtnPlaceholderRect_default).forEach((item) => {
+        proto[item] = nodeExpandBtnPlaceholderRect_default[item];
+      });
+      Object.keys(nodeCommandWraps_default).forEach((item) => {
+        proto[item] = nodeCommandWraps_default[item];
+      });
+      Object.keys(nodeCreateContents_default).forEach((item) => {
+        proto[item] = nodeCreateContents_default[item];
+      });
+      if (this.mindMap.cooperate) {
+        Object.keys(nodeCooperate_default).forEach((item) => {
+          proto[item] = nodeCooperate_default[item];
+        });
+      }
+      proto.bindEvent = true;
     }
     this.getSize();
   }
@@ -33461,15 +33612,17 @@ var Node2 = class {
   }
   //  创建节点的各个内容对象数据
   createNodeData() {
-    let { isUseCustomNodeContent: isUseCustomNodeContent2, customCreateNodeContent } = this.mindMap.opt;
+    let {
+      isUseCustomNodeContent: isUseCustomNodeContent2,
+      customCreateNodeContent,
+      createNodePrefixContent,
+      createNodePostfixContent
+    } = this.mindMap.opt;
     if (isUseCustomNodeContent2 && customCreateNodeContent) {
       this._customNodeContent = customCreateNodeContent(this);
     }
     if (this._customNodeContent) {
-      this._customNodeContent.setAttribute(
-        "xmlns",
-        "http://www.w3.org/1999/xhtml"
-      );
+      addXmlns(this._customNodeContent);
       return;
     }
     this._imgData = this.createImgNode();
@@ -33479,6 +33632,14 @@ var Node2 = class {
     this._tagData = this.createTagNode();
     this._noteData = this.createNoteNode();
     this._attachmentData = this.createAttachmentNode();
+    this._prefixData = createNodePrefixContent ? createNodePrefixContent(this) : null;
+    if (this._prefixData && this._prefixData.el) {
+      addXmlns(this._prefixData.el);
+    }
+    this._postfixData = createNodePostfixContent ? createNodePostfixContent(this) : null;
+    if (this._postfixData && this._postfixData.el) {
+      addXmlns(this._postfixData.el);
+    }
   }
   //  计算节点的宽高
   getSize() {
@@ -33501,13 +33662,21 @@ var Node2 = class {
         height: rect.height
       };
     }
+    const { tagPosition } = this.mindMap.opt;
+    const tagIsBottom = tagPosition === CONSTANTS.TAG_POSITION.BOTTOM;
     let imgContentWidth = 0;
     let imgContentHeight = 0;
     let textContentWidth = 0;
     let textContentHeight = 0;
+    let tagContentWidth = 0;
+    let tagContentHeight = 0;
     if (this._imgData) {
       this._rectInfo.imgContentWidth = imgContentWidth = this._imgData.width;
       this._rectInfo.imgContentHeight = imgContentHeight = this._imgData.height;
+    }
+    if (this._prefixData) {
+      textContentWidth += this._prefixData.width;
+      textContentHeight = Math.max(textContentHeight, this._prefixData.height);
     }
     if (this._iconData.length > 0) {
       textContentWidth += this._iconData.reduce((sum2, cur) => {
@@ -33527,10 +33696,18 @@ var Node2 = class {
       );
     }
     if (this._tagData.length > 0) {
-      textContentWidth += this._tagData.reduce((sum2, cur) => {
-        textContentHeight = Math.max(textContentHeight, cur.height);
+      let maxTagHeight = 0;
+      const totalTagWidth = this._tagData.reduce((sum2, cur) => {
+        maxTagHeight = Math.max(maxTagHeight, cur.height);
         return sum2 += cur.width + this.textContentItemMargin;
       }, 0);
+      if (tagIsBottom) {
+        tagContentWidth = totalTagWidth;
+        tagContentHeight = maxTagHeight;
+      } else {
+        textContentWidth += totalTagWidth;
+        textContentHeight = Math.max(textContentHeight, maxTagHeight);
+      }
     }
     if (this._noteData) {
       textContentWidth += this._noteData.width;
@@ -33543,12 +33720,21 @@ var Node2 = class {
         this._attachmentData.height
       );
     }
+    if (this._postfixData) {
+      textContentWidth += this._postfixData.width;
+      textContentHeight = Math.max(textContentHeight, this._postfixData.height);
+    }
     this._rectInfo.textContentWidth = textContentWidth;
     this._rectInfo.textContentHeight = textContentHeight;
     let margin = imgContentHeight > 0 && textContentHeight > 0 ? this.blockContentMargin : 0;
     let { paddingX, paddingY } = this.getPaddingVale();
     let _width = Math.max(imgContentWidth, textContentWidth);
     let _height = imgContentHeight + textContentHeight;
+    if (tagIsBottom && tagContentHeight > 0 && textContentHeight > 0) {
+      margin += this.blockContentMargin;
+      _width = Math.max(_width, tagContentWidth);
+      _height += tagContentHeight;
+    }
     let { paddingX: shapePaddingX, paddingY: shapePaddingY } = this.shapeInstance.getShapePadding(_width, _height, paddingX, paddingY);
     this.shapePadding.paddingX = shapePaddingX;
     this.shapePadding.paddingY = shapePaddingY;
@@ -33561,7 +33747,7 @@ var Node2 = class {
   //  定位节点内容
   layout() {
     this.group.clear();
-    const { hoverRectPadding } = this.mindMap.opt;
+    const { hoverRectPadding, tagPosition } = this.mindMap.opt;
     let { width: width2, height: height2, textContentItemMargin } = this;
     let { paddingY } = this.getPaddingVale();
     const halfBorderWidth = this.getBorderWidth() / 2;
@@ -33584,14 +33770,17 @@ var Node2 = class {
       this.group.add(this.hoverNode);
     };
     if (this.isUseCustomNodeContent()) {
-      let foreignObject = new ForeignObject();
-      foreignObject.width(width2);
-      foreignObject.height(height2);
-      foreignObject.add(this._customNodeContent);
+      const foreignObject = createForeignObjectNode({
+        el: this._customNodeContent,
+        width: width2,
+        height: height2
+      });
       this.group.add(foreignObject);
       addHoverNode();
       return;
     }
+    const tagIsBottom = tagPosition === CONSTANTS.TAG_POSITION.BOTTOM;
+    const { textContentHeight } = this._rectInfo;
     let imgHeight = 0;
     if (this._imgData) {
       imgHeight = this._imgData.height;
@@ -33600,11 +33789,21 @@ var Node2 = class {
     }
     let textContentNested = new G();
     let textContentOffsetX = 0;
+    if (this._prefixData) {
+      const foreignObject = createForeignObjectNode({
+        el: this._prefixData.el,
+        width: this._prefixData.width,
+        height: this._prefixData.height
+      });
+      foreignObject.x(textContentOffsetX).y((textContentHeight - this._prefixData.height) / 2);
+      textContentNested.add(foreignObject);
+      textContentOffsetX += this._prefixData.width + textContentItemMargin;
+    }
     let iconNested = new G();
     if (this._iconData && this._iconData.length > 0) {
       let iconLeft = 0;
       this._iconData.forEach((item) => {
-        item.node.x(textContentOffsetX + iconLeft).y((this._rectInfo.textContentHeight - item.height) / 2);
+        item.node.x(textContentOffsetX + iconLeft).y((textContentHeight - item.height) / 2);
         iconNested.add(item.node);
         iconLeft += item.width + textContentItemMargin;
       });
@@ -33612,43 +33811,76 @@ var Node2 = class {
       textContentOffsetX += iconLeft;
     }
     if (this._textData) {
+      const oldX = this._textData.node.attr("data-offsetx") || 0;
       this._textData.node.attr("data-offsetx", textContentOffsetX);
-      (this._textData.nodeContent || this._textData.node).x(textContentOffsetX).y(0);
+      (this._textData.nodeContent || this._textData.node).x(-oldX).x(textContentOffsetX).y((textContentHeight - this._textData.height) / 2);
       textContentNested.add(this._textData.node);
       textContentOffsetX += this._textData.width + textContentItemMargin;
     }
     if (this._hyperlinkData) {
-      this._hyperlinkData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._hyperlinkData.height) / 2);
+      this._hyperlinkData.node.x(textContentOffsetX).y((textContentHeight - this._hyperlinkData.height) / 2);
       textContentNested.add(this._hyperlinkData.node);
       textContentOffsetX += this._hyperlinkData.width + textContentItemMargin;
     }
     let tagNested = new G();
     if (this._tagData && this._tagData.length > 0) {
-      let tagLeft = 0;
-      this._tagData.forEach((item) => {
-        item.node.x(textContentOffsetX + tagLeft).y((this._rectInfo.textContentHeight - item.height) / 2);
-        tagNested.add(item.node);
-        tagLeft += item.width + textContentItemMargin;
-      });
-      textContentNested.add(tagNested);
-      textContentOffsetX += tagLeft;
+      if (tagIsBottom) {
+        let tagLeft = 0;
+        this._tagData.forEach((item) => {
+          item.node.x(tagLeft).y(0);
+          tagNested.add(item.node);
+          tagLeft += item.width + textContentItemMargin;
+        });
+        tagNested.cx(width2 / 2).y(
+          paddingY + // 内边距
+          imgHeight + // 图片高度
+          textContentHeight + // 文本区域高度
+          (imgHeight > 0 && textContentHeight > 0 ? this.blockContentMargin : 0) + // 图片和文本之间的间距
+          this.blockContentMargin
+          // 标签和文本之间的间距
+        );
+        this.group.add(tagNested);
+      } else {
+        let tagLeft = 0;
+        this._tagData.forEach((item) => {
+          item.node.x(textContentOffsetX + tagLeft).y((textContentHeight - item.height) / 2);
+          tagNested.add(item.node);
+          tagLeft += item.width + textContentItemMargin;
+        });
+        textContentNested.add(tagNested);
+        textContentOffsetX += tagLeft;
+      }
     }
     if (this._noteData) {
-      this._noteData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._noteData.height) / 2);
+      this._noteData.node.x(textContentOffsetX).y((textContentHeight - this._noteData.height) / 2);
       textContentNested.add(this._noteData.node);
       textContentOffsetX += this._noteData.width;
     }
     if (this._attachmentData) {
-      this._attachmentData.node.x(textContentOffsetX).y((this._rectInfo.textContentHeight - this._attachmentData.height) / 2);
+      this._attachmentData.node.x(textContentOffsetX).y((textContentHeight - this._attachmentData.height) / 2);
       textContentNested.add(this._attachmentData.node);
       textContentOffsetX += this._attachmentData.width;
     }
+    if (this._postfixData) {
+      const foreignObject = createForeignObjectNode({
+        el: this._postfixData.el,
+        width: this._postfixData.width,
+        height: this._postfixData.height
+      });
+      foreignObject.x(textContentOffsetX).y((textContentHeight - this._postfixData.height) / 2);
+      textContentNested.add(foreignObject);
+      textContentOffsetX += this._postfixData.width;
+    }
+    this.group.add(textContentNested);
     textContentNested.translate(
       width2 / 2 - textContentNested.bbox().width / 2,
-      imgHeight + paddingY + (imgHeight > 0 && this._rectInfo.textContentHeight > 0 ? this.blockContentMargin : 0)
+      paddingY + // 内边距
+      imgHeight + // 图片高度
+      (imgHeight > 0 && textContentHeight > 0 ? this.blockContentMargin : 0)
+      // 和图片的间距
     );
-    this.group.add(textContentNested);
     addHoverNode();
+    this.mindMap.emit("node_layout_end", this);
   }
   // 给节点绑定事件
   bindGroupEvent() {
@@ -33665,6 +33897,7 @@ var Node2 = class {
       this.active(e);
     });
     this.group.on("mousedown", (e) => {
+      e.preventDefault();
       const {
         readonly,
         enableCtrlKeyNodeSelection,
@@ -33681,7 +33914,7 @@ var Node2 = class {
           }
         }
       }
-      if ((e.ctrlKey || e.metaKey) && enableCtrlKeyNodeSelection) {
+      if (!readonly && (e.ctrlKey || e.metaKey) && enableCtrlKeyNodeSelection) {
         this.isMultipleChoice = true;
         let isActive = this.getData("isActive");
         if (!isActive)
@@ -33690,7 +33923,7 @@ var Node2 = class {
             this,
             this.renderer.activeNodeList
           );
-        this.mindMap.renderer[isActive ? "removeNodeFromActiveList" : "addNodeToActiveList"](this);
+        this.mindMap.renderer[isActive ? "removeNodeFromActiveList" : "addNodeToActiveList"](this, true);
         this.renderer.emitNodeActiveEvent(isActive ? null : this);
       }
       this.mindMap.emit("node_mousedown", this, e);
@@ -33760,7 +33993,7 @@ var Node2 = class {
     }
     this.mindMap.emit("before_node_active", this, this.renderer.activeNodeList);
     this.renderer.clearActiveNodeList();
-    this.renderer.addNodeToActiveList(this);
+    this.renderer.addNodeToActiveList(this, true);
     this.renderer.emitNodeActiveEvent(this);
   }
   // 取消激活该节点
@@ -33769,7 +34002,7 @@ var Node2 = class {
     this.mindMap.renderer.emitNodeActiveEvent();
   }
   //  更新节点
-  update() {
+  update(forceRender) {
     if (!this.group) {
       return;
     }
@@ -33792,7 +34025,7 @@ var Node2 = class {
         this.showExpandBtn();
       }
     }
-    this.renderGeneralization();
+    this.renderGeneralization(forceRender);
     if (this.updateUserListNode)
       this.updateUserListNode();
     let t = this.group.transform();
@@ -33810,6 +34043,11 @@ var Node2 = class {
       left,
       top
     };
+  }
+  // 判断节点是否可见
+  checkIsInClient(padding = 0) {
+    const { left: nx, top: ny } = this.getNodePosInClient(this.left, this.top);
+    return nx + this.width > 0 - padding && ny + this.height > 0 - padding && nx < this.mindMap.width + padding && ny < this.mindMap.height + padding;
   }
   // 重新渲染节点，即重新创建节点内容、计算节点大小、计算节点内容布局、更新展开收起按钮，概要及位置
   reRender() {
@@ -33836,38 +34074,58 @@ var Node2 = class {
       this.updateNodeActiveClass();
     }
   }
-  //  递归渲染
+  // 递归渲染
+  // forceRender：强制渲染，无论是否处于画布可视区域
+  // async：异步渲染
   render(callback = () => {
-  }) {
+  }, forceRender = false, async = false) {
     this.renderLine();
-    if (!this.group) {
-      this.group = new G();
-      this.group.addClass("smm-node");
-      this.group.css({
-        cursor: "default"
-      });
-      this.bindGroupEvent();
-      this.nodeDraw.add(this.group);
-      this.layout();
-      this.update();
-    } else {
-      this.nodeDraw.add(this.group);
-      if (this.needLayout) {
-        this.needLayout = false;
+    const { openPerformance, performanceConfig } = this.mindMap.opt;
+    if (forceRender || !openPerformance || this.checkIsInClient(performanceConfig.padding) || this.isRoot) {
+      if (!this.group) {
+        this.group = new G();
+        this.group.addClass("smm-node");
+        this.group.css({
+          cursor: "default"
+        });
+        this.bindGroupEvent();
+        this.nodeDraw.add(this.group);
         this.layout();
+        this.update(forceRender);
+      } else {
+        if (!this.nodeDraw.has(this.group)) {
+          this.nodeDraw.add(this.group);
+        }
+        if (this.needLayout) {
+          this.needLayout = false;
+          this.layout();
+        }
+        this.updateExpandBtnPlaceholderRect();
+        this.update(forceRender);
       }
-      this.updateExpandBtnPlaceholderRect();
-      this.update();
+    } else if (openPerformance && performanceConfig.removeNodeWhenOutCanvas) {
+      this.removeSelf();
     }
     if (this.children && this.children.length && this.getData("expand") !== false) {
       let index2 = 0;
       this.children.forEach((item) => {
-        item.render(() => {
-          index2++;
-          if (index2 >= this.children.length) {
-            callback();
-          }
-        });
+        const renderChild = () => {
+          item.render(
+            () => {
+              index2++;
+              if (index2 >= this.children.length) {
+                callback();
+              }
+            },
+            forceRender,
+            async
+          );
+        };
+        if (async) {
+          setTimeout(renderChild, 0);
+        } else {
+          renderChild();
+        }
       });
     } else {
       callback();
@@ -33875,10 +34133,15 @@ var Node2 = class {
     if (this.nodeData.inserting) {
       delete this.nodeData.inserting;
       this.active();
-      setTimeout(() => {
-        this.mindMap.emit("node_dblclick", this, null, true);
-      }, 0);
+      this.mindMap.emit("node_dblclick", this, null, true);
     }
+  }
+  // 删除自身，只是从画布删除，节点容器还在，后续还可以重新插回画布
+  removeSelf() {
+    if (!this.group)
+      return;
+    this.group.remove();
+    this.removeGeneralization();
   }
   //  递归删除，只是从画布删除，节点容器还在，后续还可以重新插回画布
   remove() {
@@ -33895,6 +34158,10 @@ var Node2 = class {
   }
   // 销毁节点，不但会从画布删除，而且原节点直接置空，后续无法再插回画布
   destroy() {
+    this.removeLine();
+    if (this.parent) {
+      this.parent.removeLine();
+    }
     if (!this.group)
       return;
     if (this.emptyUser) {
@@ -33903,11 +34170,7 @@ var Node2 = class {
     this.resetWhenDelete();
     this.group.remove();
     this.removeGeneralization();
-    this.removeLine();
     this.group = null;
-    if (this.parent) {
-      this.parent.removeLine();
-    }
     this.style.onRemove();
   }
   //  隐藏节点
@@ -34211,6 +34474,18 @@ var Node2 = class {
     if (this.group)
       this.group.removeClass("smm-node-highlight");
   }
+  // 伪克隆节点
+  // 克隆出的节点并不能真正当做一个节点使用
+  fakeClone() {
+    const newNode = new Node2({
+      ...this.opt,
+      uid: createUid()
+    });
+    Object.keys(this).forEach((item) => {
+      newNode[item] = this[item];
+    });
+    return newNode;
+  }
 };
 var Node_default = Node2;
 
@@ -34317,6 +34592,11 @@ var Base2 = class {
       );
       newNode.reset();
       newNode.layerIndex = layerIndex;
+      if (isRoot) {
+        newNode.isRoot = true;
+      } else {
+        newNode.parent = parent._node;
+      }
       this.cacheNode(data2._node.uid, newNode);
       this.checkIsLayoutChangeRerenderExpandBtnPlaceholderRect(newNode);
       if (this.checkIsNeedResizeSources() || isLayerTypeChange || newNode.getData("resetRichText")) {
@@ -34333,6 +34613,11 @@ var Base2 = class {
       newNode.reset();
       newNode.nodeData = newNode.handleData(data2 || {});
       newNode.layerIndex = layerIndex;
+      if (isRoot) {
+        newNode.isRoot = true;
+      } else {
+        newNode.parent = parent._node;
+      }
       this.cacheNode(uid, newNode);
       this.checkIsLayoutChangeRerenderExpandBtnPlaceholderRect(newNode);
       data2._node = newNode;
@@ -34350,7 +34635,9 @@ var Base2 = class {
         renderer: this.renderer,
         mindMap: this.mindMap,
         draw: this.draw,
-        layerIndex
+        layerIndex,
+        isRoot,
+        parent: !isRoot ? parent._node : null
       });
       data2.data.uid = newUid;
       this.cacheNode(newUid, newNode);
@@ -34365,10 +34652,8 @@ var Base2 = class {
       });
     }
     if (isRoot) {
-      newNode.isRoot = true;
       this.root = newNode;
     } else {
-      newNode.parent = parent._node;
       parent._node.addChildren(newNode);
     }
     return newNode;
@@ -34689,8 +34974,9 @@ var Base_default = Base2;
 // ../simple-mind-map/src/layouts/LogicalStructure.js
 var LogicalStructure = class extends Base_default {
   //  构造函数
-  constructor(opt = {}) {
+  constructor(opt = {}, layout) {
     super(opt);
+    this.isUseLeft = layout === CONSTANTS.LAYOUT.LOGICAL_STRUCTURE_LEFT;
   }
   //  布局
   doLayout(callback) {
@@ -34712,15 +34998,22 @@ var LogicalStructure = class extends Base_default {
   }
   //  遍历数据计算节点的left、width、height
   computedBaseValue() {
+    let sortIndex = 0;
     walk(
       this.renderer.renderTree,
       null,
       (cur, parent, isRoot, layerIndex) => {
         let newNode = this.createNode(cur, parent, isRoot, layerIndex);
+        newNode.sortIndex = sortIndex;
+        sortIndex++;
         if (isRoot) {
           this.setNodeCenter(newNode);
         } else {
-          newNode.left = parent._node.left + parent._node.width + this.getMarginX(layerIndex);
+          if (this.isUseLeft) {
+            newNode.left = parent._node.left - newNode.width - this.getMarginX(layerIndex);
+          } else {
+            newNode.left = parent._node.left + parent._node.width + this.getMarginX(layerIndex);
+          }
         }
         if (!cur.data.expand) {
           return true;
@@ -34823,13 +35116,21 @@ var LogicalStructure = class extends Base_default {
     }
     let marginX = this.getMarginX(node2.layerIndex + 1);
     let s1 = (marginX - expandBtnSize) * 0.6;
+    if (this.isUseLeft) {
+      s1 *= -1;
+    }
     let nodeUseLineStyle = this.mindMap.themeConfig.nodeUseLineStyle;
     node2.children.forEach((item, index2) => {
-      let x1 = node2.layerIndex === 0 ? left + width2 : left + width2 + expandBtnSize;
+      let x1;
+      if (this.isUseLeft) {
+        x1 = node2.layerIndex === 0 ? left : left - expandBtnSize;
+      } else {
+        x1 = node2.layerIndex === 0 ? left + width2 : left + width2 + expandBtnSize;
+      }
       let y1 = top + height2 / 2;
-      let x2 = item.left;
+      let x2 = this.isUseLeft ? item.left + item.width : item.left;
       let y2 = item.top + item.height / 2;
-      let nodeUseLineStyleOffset = nodeUseLineStyle ? item.width : 0;
+      let nodeUseLineStyleOffset = nodeUseLineStyle ? item.width * (this.isUseLeft ? -1 : 1) : 0;
       y1 = nodeUseLineStyle && !node2.isRoot ? y1 + height2 / 2 : y1;
       y2 = nodeUseLineStyle ? y2 + item.height / 2 : y2;
       let path2 = this.createFoldLine([
@@ -34855,13 +35156,13 @@ var LogicalStructure = class extends Base_default {
       if (node2.layerIndex === 0) {
         expandBtnSize = 0;
       }
-      let x1 = left + width2 + expandBtnSize;
+      let x1 = this.isUseLeft ? left - expandBtnSize : left + width2 + expandBtnSize;
       let y1 = top + height2 / 2;
-      let x2 = item.left;
+      let x2 = this.isUseLeft ? item.left + item.width : item.left;
       let y2 = item.top + item.height / 2;
       y1 = nodeUseLineStyle && !node2.isRoot ? y1 + height2 / 2 : y1;
       y2 = nodeUseLineStyle ? y2 + item.height / 2 : y2;
-      let nodeUseLineStylePath = nodeUseLineStyle ? ` L ${item.left + item.width},${y2}` : "";
+      let nodeUseLineStylePath = nodeUseLineStyle ? ` L ${this.isUseLeft ? item.left : item.left + item.width},${y2}` : "";
       let path2 = `M ${x1},${y1} L ${x2},${y2}` + nodeUseLineStylePath;
       this.setLineStyle(style, lines[index2], path2, item);
     });
@@ -34884,14 +35185,24 @@ var LogicalStructure = class extends Base_default {
       if (node2.layerIndex === 0) {
         expandBtnSize = 0;
       }
-      let x1 = node2.layerIndex === 0 && !rootLineStartPositionKeepSameInCurve ? left + width2 / 2 : left + width2 + expandBtnSize;
+      let x1;
+      if (this.isUseLeft) {
+        x1 = node2.layerIndex === 0 && !rootLineStartPositionKeepSameInCurve ? left + width2 / 2 : left - expandBtnSize;
+      } else {
+        x1 = node2.layerIndex === 0 && !rootLineStartPositionKeepSameInCurve ? left + width2 / 2 : left + width2 + expandBtnSize;
+      }
       let y1 = top + height2 / 2;
-      let x2 = item.left;
+      let x2 = this.isUseLeft ? item.left + item.width : item.left;
       let y2 = item.top + item.height / 2;
       let path2 = "";
       y1 = nodeUseLineStyle && !node2.isRoot ? y1 + height2 / 2 : y1;
       y2 = nodeUseLineStyle ? y2 + item.height / 2 : y2;
-      let nodeUseLineStylePath = nodeUseLineStyle ? ` L ${item.left + item.width},${y2}` : "";
+      let nodeUseLineStylePath;
+      if (this.isUseLeft) {
+        nodeUseLineStylePath = nodeUseLineStyle ? ` L ${item.left},${y2}` : "";
+      } else {
+        nodeUseLineStylePath = nodeUseLineStyle ? ` L ${item.left + item.width},${y2}` : "";
+      }
       if (node2.isRoot && !rootLineKeepSameInCurve) {
         path2 = this.quadraticCurvePath(x1, y1, x2, y2) + nodeUseLineStylePath;
       } else {
@@ -34902,10 +35213,13 @@ var LogicalStructure = class extends Base_default {
   }
   //  渲染按钮
   renderExpandBtn(node2, btn) {
-    let { width: width2, height: height2 } = node2;
+    let { width: width2, height: height2, expandBtnSize, layerIndex } = node2;
+    if (layerIndex === 0) {
+      expandBtnSize = 0;
+    }
     let { translateX, translateY } = btn.transform();
     let nodeUseLineStyleOffset = this.mindMap.themeConfig.nodeUseLineStyle ? height2 / 2 : 0;
-    let _x = width2;
+    let _x = this.isUseLeft ? 0 - expandBtnSize : width2;
     let _y = height2 / 2 + nodeUseLineStyleOffset;
     if (_x === translateX && _y === translateY) {
       return;
@@ -34916,27 +35230,33 @@ var LogicalStructure = class extends Base_default {
   renderGeneralization(list2) {
     list2.forEach((item) => {
       let {
+        left,
         top,
         bottom,
         right,
         generalizationLineMargin,
         generalizationNodeMargin
       } = this.getNodeGeneralizationRenderBoundaries(item, "h");
-      let x1 = right + generalizationLineMargin;
+      let x2 = this.isUseLeft ? left - generalizationLineMargin : right + generalizationLineMargin;
+      let x1 = x2;
       let y1 = top;
-      let x2 = right + generalizationLineMargin;
+      let x22 = x2;
       let y2 = bottom;
-      let cx3 = x1 + 20;
+      let cx3 = x1 + (this.isUseLeft ? -20 : 20);
       let cy3 = y1 + (y2 - y1) / 2;
-      let path2 = `M ${x1},${y1} Q ${cx3},${cy3} ${x2},${y2}`;
+      let path2 = `M ${x1},${y1} Q ${cx3},${cy3} ${x22},${y2}`;
       item.generalizationLine.plot(path2);
-      item.generalizationNode.left = right + generalizationNodeMargin;
+      item.generalizationNode.left = x2 + (this.isUseLeft ? -generalizationNodeMargin : generalizationNodeMargin) - (this.isUseLeft ? item.generalizationNode.width : 0);
       item.generalizationNode.top = top + (bottom - top - item.generalizationNode.height) / 2;
     });
   }
   // 渲染展开收起按钮的隐藏占位元素
-  renderExpandBtnRect(rect, expandBtnSize, width2, height2, node2) {
-    rect.size(expandBtnSize, height2).x(width2).y(0);
+  renderExpandBtnRect(rect, expandBtnSize, width2, height2) {
+    if (this.isUseLeft) {
+      rect.size(expandBtnSize, height2).x(-expandBtnSize).y(0);
+    } else {
+      rect.size(expandBtnSize, height2).x(width2).y(0);
+    }
   }
 };
 var LogicalStructure_default = LogicalStructure;
@@ -37101,7 +37421,8 @@ var TextEdit = class {
   }
   // 处理画布缩放
   onScale() {
-    if (!this.currentNode)
+    const node2 = this.getCurrentEditNode();
+    if (!node2)
       return;
     if (this.mindMap.richText) {
       this.mindMap.richText.cacheEditingText = this.mindMap.richText.getEditText();
@@ -37111,7 +37432,7 @@ var TextEdit = class {
       this.showTextEdit = false;
     }
     this.show({
-      node: this.currentNode,
+      node: node2,
       isFromScale: true
     });
   }
@@ -37187,7 +37508,6 @@ var TextEdit = class {
   }
   //  隐藏文本编辑框
   hideEditTextBox() {
-    this.currentNode = null;
     if (this.mindMap.richText) {
       return this.mindMap.richText.hideEditText();
     }
@@ -37205,8 +37525,10 @@ var TextEdit = class {
     this.mindMap.emit(
       "hide_text_edit",
       this.textEditNode,
-      this.renderer.activeNodeList
+      this.renderer.activeNodeList,
+      this.currentNode
     );
+    this.currentNode = null;
     this.textEditNode.style.display = "none";
     this.textEditNode.innerHTML = "";
     this.textEditNode.style.fontFamily = "inherit";
@@ -37253,7 +37575,7 @@ var default_default = {
   // 曲线（curve）【仅支持logicalStructure、mindMap、verticalTimeline三种结构】、直线（straight）、直连（direct）【仅支持logicalStructure、mindMap、organizationStructure、verticalTimeline四种结构】
   // 曲线连接时，根节点和其他节点的连接线样式保持统一，默认根节点为 ( 型，其他节点为 { 型，设为true后，都为 { 型。仅支持logicalStructure、mindMap两种结构
   rootLineKeepSameInCurve: true,
-  // 曲线连接时，根节点和其他节点的连线起始位置保持统一，默认根节点的连线起始位置在节点中心，其他节点在节点右侧，如果该配置设为true，那么根节点的连线起始位置也会在节点右侧
+  // 曲线连接时，根节点和其他节点的连线起始位置保持统一，默认根节点的连线起始位置在节点中心，其他节点在节点右侧（或左侧），如果该配置设为true，那么根节点的连线起始位置也会在节点右侧（或左侧）
   rootLineStartPositionKeepSameInCurve: false,
   // 直线连接(straight)时，连线的圆角大小，设置为0代表没有圆角，仅支持logicalStructure、mindMap、verticalTimeline三种结构
   lineRadius: 5,
@@ -37439,6 +37761,8 @@ var lineStyleProps = [
 var layouts = {
   // 逻辑结构图
   [CONSTANTS.LAYOUT.LOGICAL_STRUCTURE]: LogicalStructure_default,
+  // 向左逻辑结构图
+  [CONSTANTS.LAYOUT.LOGICAL_STRUCTURE_LEFT]: LogicalStructure_default,
   // 思维导图
   [CONSTANTS.LAYOUT.MIND_MAP]: MindMap_default,
   // 目录组织图
@@ -37509,6 +37833,50 @@ var Render = class {
         return;
       this.setRootNodeCenter();
     });
+    this.performanceMode();
+  }
+  // 性能模式，懒加载节点
+  performanceMode() {
+    const { openPerformance, performanceConfig } = this.mindMap.opt;
+    const onViewDataChange = throttle(() => {
+      if (this.root) {
+        this.mindMap.emit("node_tree_render_start");
+        this.root.render(
+          () => {
+            this.mindMap.emit("node_tree_render_end");
+          },
+          false,
+          true
+        );
+      }
+    }, performanceConfig.time);
+    let lastOpen = false;
+    this.mindMap.on("before_update_config", (opt) => {
+      lastOpen = opt.openPerformance;
+    });
+    this.mindMap.on("after_update_config", (opt) => {
+      if (opt.openPerformance && !lastOpen) {
+        this.mindMap.on("view_data_change", onViewDataChange);
+        this.forceLoadNode();
+      }
+      if (!opt.openPerformance && lastOpen) {
+        this.mindMap.off("view_data_change", onViewDataChange);
+        this.forceLoadNode();
+      }
+    });
+    if (!openPerformance)
+      return;
+    this.mindMap.on("view_data_change", onViewDataChange);
+  }
+  // 强制渲染节点，不考虑是否在画布可视区域内
+  forceLoadNode(node2) {
+    node2 = node2 || this.root;
+    if (node2) {
+      this.mindMap.emit("node_tree_render_start");
+      node2.render(() => {
+        this.mindMap.emit("node_tree_render_end");
+      }, true);
+    }
   }
   //  注册命令
   registerCommands() {
@@ -37730,6 +38098,8 @@ var Render = class {
       this.mindMap.emit("node_tree_render_end");
       return;
     }
+    this.mindMap.emit("node_tree_render_start");
+    this.root = null;
     this.layout.doLayout((root2) => {
       Object.keys(this.lastNodeCache).forEach((uid) => {
         if (!this.nodeCache[uid]) {
@@ -37741,7 +38111,6 @@ var Render = class {
       this.root = root2;
       this.root.render(() => {
         this.isRendering = false;
-        this.mindMap.emit("node_tree_render_end");
         callback && callback();
         if (this.hasWaitRendering) {
           const params = this.waitRenderingParams;
@@ -37757,6 +38126,7 @@ var Render = class {
             this.mindMap.command.addHistory();
           }
         }
+        this.mindMap.emit("node_tree_render_end");
       });
     });
     this.emitNodeActiveEvent();
@@ -37790,11 +38160,14 @@ var Render = class {
     this.activeNodeList = [];
   }
   // 添加节点到激活列表里
-  addNodeToActiveList(node2) {
+  addNodeToActiveList(node2, notEmitBeforeNodeActiveEvent = false) {
     if (this.mindMap.opt.onlyOneEnableActiveNodeOnCooperate && node2.userList.length > 0)
       return;
     const index2 = this.findActiveNodeIndex(node2);
     if (index2 === -1) {
+      if (!notEmitBeforeNodeActiveEvent) {
+        this.mindMap.emit("before_node_active", node2, this.activeNodeList);
+      }
       this.mindMap.execCommand("SET_NODE_ACTIVE", node2, true);
       this.activeNodeList.push(node2);
     }
@@ -38205,16 +38578,13 @@ var Render = class {
         const _hasCustomStyles = this._handleRemoveCustomStyles(node2.data);
         if (_hasCustomStyles)
           hasCustomStyles = true;
-        let generalization = node2.data.generalization;
-        if (generalization) {
-          generalization = Array.isArray(generalization) ? generalization : [generalization];
-          if (generalization.length > 0) {
-            generalization.forEach((generalizationData) => {
-              const _hasCustomStyles2 = this._handleRemoveCustomStyles(generalizationData);
-              if (_hasCustomStyles2)
-                hasCustomStyles = true;
-            });
-          }
+        const generalizationList = formatGetNodeGeneralization(node2.data);
+        if (generalizationList.length > 0) {
+          generalizationList.forEach((generalizationData) => {
+            const _hasCustomStyles2 = this._handleRemoveCustomStyles(generalizationData);
+            if (_hasCustomStyles2)
+              hasCustomStyles = true;
+          });
         }
       });
     }
@@ -38227,13 +38597,17 @@ var Render = class {
     this.beingCopyData = this.copyNode();
     if (!this.beingCopyData)
       return;
-    setDataToClipboard(createSmmFormatData(this.beingCopyData));
+    if (!this.mindMap.opt.disabledClipboard) {
+      setDataToClipboard(createSmmFormatData(this.beingCopyData));
+    }
   }
   // 剪切节点
   cut() {
     this.mindMap.execCommand("CUT_NODE", (copyData) => {
       this.beingCopyData = copyData;
-      setDataToClipboard(createSmmFormatData(copyData));
+      if (!this.mindMap.opt.disabledClipboard) {
+        setDataToClipboard(createSmmFormatData(copyData));
+      }
     });
   }
   // 粘贴
@@ -38241,16 +38615,19 @@ var Render = class {
     const {
       errorHandler,
       handleIsSplitByWrapOnPasteCreateNewNode,
-      handleNodePasteImg
+      handleNodePasteImg,
+      disabledClipboard
     } = this.mindMap.opt;
-    let text4 = null;
+    let text4 = "";
     let img = null;
-    try {
-      const res = await getDataFromClipboard();
-      text4 = res.text;
-      img = res.img;
-    } catch (error2) {
-      errorHandler(ERROR_TYPES.READ_CLIPBOARD_ERROR, error2);
+    if (!disabledClipboard) {
+      try {
+        const res = await getDataFromClipboard();
+        text4 = res.text || "";
+        img = res.img || null;
+      } catch (error2) {
+        errorHandler(ERROR_TYPES.READ_CLIPBOARD_ERROR, error2);
+      }
     }
     const imgSize = img ? img.size : 0;
     if (this.beingPasteText !== text4 || this.beingPasteImgSize !== imgSize) {
@@ -38399,6 +38776,9 @@ var Render = class {
   // 如果是富文本模式，那么某些层级变化需要更新样式
   checkNodeLayerChange(node2, toNode3, toNodeIsParent = false) {
     if (this.mindMap.richText) {
+      if (this.mindMap.richText.checkNodeHasCustomRichTextStyle(node2)) {
+        return;
+      }
       const toIndex = toNodeIsParent ? toNode3.layerIndex + 1 : toNode3.layerIndex;
       let nodeLayerChanged = node2.layerIndex === 1 && toIndex !== 1 || node2.layerIndex !== 1 && toIndex === 1;
       if (nodeLayerChanged) {
@@ -38528,7 +38908,8 @@ var Render = class {
     if (this.activeNodeList.length <= 0) {
       return null;
     }
-    const nodeList = getTopAncestorsFomNodeList(this.activeNodeList);
+    let nodeList = getTopAncestorsFomNodeList(this.activeNodeList);
+    nodeList = sortNodeList(nodeList);
     return nodeList.map((node2) => {
       return copyNodeTree({}, node2, true);
     });
@@ -38538,11 +38919,12 @@ var Render = class {
     if (this.activeNodeList.length <= 0) {
       return;
     }
-    const nodeList = getTopAncestorsFomNodeList(this.activeNodeList).filter(
+    let nodeList = getTopAncestorsFomNodeList(this.activeNodeList).filter(
       (node2) => {
         return !node2.isRoot;
       }
     );
+    nodeList = sortNodeList(nodeList);
     const copyData = nodeList.map((node2) => {
       return copyNodeTree({}, node2, true);
     });
@@ -38565,6 +38947,9 @@ var Render = class {
       this.checkNodeLayerChange(item, toNode3, true);
       this.removeNodeFromActiveList(item);
       removeFromParentNodeData(item);
+      toNode3.setData({
+        expand: true
+      });
       toNode3.nodeData.children.push(item.nodeData);
     });
     this.emitNodeActiveEvent();
@@ -38577,10 +38962,20 @@ var Render = class {
       return;
     }
     this.activeNodeList.forEach((node2) => {
+      node2.setData({
+        expand: true
+      });
       node2.nodeData.children.push(
         ...data2.map((item) => {
           const newData = simpleDeepClone(item);
-          createUidForAppointNodes([newData], true);
+          createUidForAppointNodes([newData], true, (node3) => {
+            if (this.mindMap.richText) {
+              if (this.mindMap.richText.checkNodeHasCustomRichTextStyle(node3.data)) {
+                return;
+              }
+              node3.data.resetRichText = true;
+            }
+          });
           return newData;
         })
       );
@@ -38703,7 +39098,7 @@ var Render = class {
   //  切换激活节点的展开状态
   toggleActiveExpand() {
     this.activeNodeList.forEach((node2) => {
-      if (node2.nodeData.children.length <= 0) {
+      if (node2.nodeData.children.length <= 0 || node2.isRoot) {
         return;
       }
       this.toggleNodeExpand(node2);
@@ -38792,11 +39187,14 @@ var Render = class {
       return !node2.isRoot && !node2.isGeneralization && !node2.checkHasSelfGeneralization();
     });
     const list2 = parseAddGeneralizationNodeList(nodeList);
+    if (list2.length <= 0)
+      return;
     const isRichText = !!this.mindMap.richText;
     const { focusNewNode, inserting } = this.getNewNodeBehavior(
       openEdit,
       list2.length > 1
     );
+    let needRender = false;
     list2.forEach((item) => {
       const newData = {
         inserting,
@@ -38810,15 +39208,19 @@ var Render = class {
         isActive: focusNewNode
       };
       let generalization = item.node.getData("generalization");
-      if (generalization) {
-        if (Array.isArray(generalization)) {
-          generalization.push(newData);
-        } else {
-          generalization = [generalization, newData];
+      generalization = generalization ? Array.isArray(generalization) ? generalization : [generalization] : [];
+      if (item.range) {
+        const isExist = !!generalization.find((item2) => {
+          return item2.range && item2.range[0] === item.range[0] && item2.range[1] === item.range[1];
+        });
+        if (isExist) {
+          return;
         }
+        generalization.push(newData);
       } else {
-        generalization = [newData];
+        generalization.push(newData);
       }
+      needRender = true;
       this.mindMap.execCommand("SET_NODE_DATA", item.node, {
         generalization
       });
@@ -38826,6 +39228,8 @@ var Render = class {
         expand: true
       });
     });
+    if (!needRender)
+      return;
     if (focusNewNode) {
       this.clearActiveNodeList();
     }
@@ -38925,21 +39329,34 @@ var Render = class {
       this.mindMap.emit("node_tree_render_end");
     }
   }
-  //  移动节点到画布中心
-  moveNodeToCenter(node2) {
+  // 移动节点到画布中心
+  // resetScale参数指定是否要将画布缩放值复位为100%，当你没有显式传递时，默认值为undefined，因为实例化选项的resetScaleOnMoveNodeToCenter配置也会决定是否复位缩放，所以当你没有显式传递时使用resetScaleOnMoveNodeToCenter配置，否则使用resetScale配置
+  moveNodeToCenter(node2, resetScale) {
+    let { resetScaleOnMoveNodeToCenter } = this.mindMap.opt;
+    if (resetScale !== void 0) {
+      resetScaleOnMoveNodeToCenter = resetScale;
+    }
+    let { transform: transform2, state } = this.mindMap.view.getTransformData();
+    let { left, top, width: width2, height: height2 } = node2;
+    if (!resetScaleOnMoveNodeToCenter) {
+      left *= transform2.scaleX;
+      top *= transform2.scaleY;
+      width2 *= transform2.scaleX;
+      height2 *= transform2.scaleY;
+    }
     let halfWidth = this.mindMap.width / 2;
     let halfHeight = this.mindMap.height / 2;
-    let { left, top, width: width2, height: height2 } = node2;
     let nodeCenterX = left + width2 / 2;
     let nodeCenterY = top + height2 / 2;
-    let { state } = this.mindMap.view.getTransformData();
     let targetX = halfWidth - state.x;
     let targetY = halfHeight - state.y;
     let offsetX = targetX - nodeCenterX;
     let offsetY = targetY - nodeCenterY;
     this.mindMap.view.translateX(offsetX);
     this.mindMap.view.translateY(offsetY);
-    this.mindMap.view.setScale(1);
+    if (resetScaleOnMoveNodeToCenter) {
+      this.mindMap.view.setScale(1);
+    }
   }
   // 回到中心主题，即设置根节点到画布中心
   setRootNodeCenter() {
@@ -38953,14 +39370,24 @@ var Render = class {
       return;
     }
     let parentsList = [];
+    let isGeneralization = false;
     const cache = {};
     bfsWalk(this.renderTree, (node2, parent) => {
       if (node2.data.uid === uid) {
         parentsList = parent ? [...cache[parent.data.uid], parent] : [];
         return "stop";
-      } else {
-        cache[node2.data.uid] = parent ? [...cache[parent.data.uid], parent] : [];
       }
+      const generalizationList = formatGetNodeGeneralization(node2.data);
+      generalizationList.forEach((item) => {
+        if (item.uid === uid) {
+          parentsList = parent ? [...cache[parent.data.uid], parent] : [];
+          isGeneralization = true;
+        }
+      });
+      if (isGeneralization) {
+        return "stop";
+      }
+      cache[node2.data.uid] = parent ? [...cache[parent.data.uid], parent] : [];
     });
     let needRender = false;
     parentsList.forEach((node2) => {
@@ -38969,6 +39396,17 @@ var Render = class {
         node2.data.expand = true;
       }
     });
+    if (isGeneralization) {
+      const lastNode = parentsList[parentsList.length - 1];
+      if (lastNode) {
+        walk(lastNode, null, (node2) => {
+          if (!node2.data.expand) {
+            needRender = true;
+            node2.data.expand = true;
+          }
+        });
+      }
+    }
     if (needRender) {
       this.mindMap.render(callback);
     } else {
@@ -38981,6 +39419,16 @@ var Render = class {
     walk(this.root, null, (node2) => {
       if (node2.getData("uid") === uid) {
         res = node2;
+        return true;
+      }
+      let isGeneralization = false;
+      (node2._generalizationList || []).forEach((item) => {
+        if (item.generalizationNode.getData("uid") === uid) {
+          res = item.generalizationNode;
+          isGeneralization = true;
+        }
+      });
+      if (isGeneralization) {
         return true;
       }
     });
@@ -40813,6 +41261,11 @@ var BatchExecution_default = BatchExecution;
 
 // ../simple-mind-map/src/constants/defaultOptions.js
 var defaultOpt = {
+  // 【基本】
+  // 容器元素，必传，必须为DOM元素
+  el: null,
+  // 思维导图回显数据
+  data: null,
   // 是否只读
   readonly: false,
   // 布局
@@ -40830,16 +41283,14 @@ var defaultOpt = {
   mouseScaleCenterUseMousePosition: true,
   // 最多显示几个标签
   maxTag: 5,
+  // 标签显示的位置，相对于节点文本，bottom（下方）、right（右侧）
+  tagPosition: CONSTANTS.TAG_POSITION.RIGHT,
   // 展开收缩按钮尺寸
   expandBtnSize: 20,
   // 节点里图片和文字的间距
   imgTextMargin: 5,
   // 节点里各种文字信息的间距，如图标和文字的间距
   textContentMargin: 2,
-  // 多选节点时鼠标移动到边缘时的画布移动偏移量
-  selectTranslateStep: 3,
-  // 多选节点时鼠标移动距边缘多少距离时开始偏移
-  selectTranslateLimit: 20,
   // 自定义节点备注内容显示
   customNoteContentShow: null,
   /*
@@ -40848,22 +41299,6 @@ var defaultOpt = {
               hide(){}
           }
       */
-  // 是否开启节点自由拖拽
-  enableFreeDrag: false,
-  // 水印配置
-  watermarkConfig: {
-    onlyExport: false,
-    // 是否仅在导出时添加水印
-    text: "",
-    lineSpacing: 100,
-    textSpacing: 100,
-    angle: 30,
-    textStyle: {
-      color: "#999",
-      opacity: 0.5,
-      fontSize: 14
-    }
-  },
   // 达到该宽度文本自动换行
   textAutoWrapWidth: 500,
   // 自定义鼠标滚轮事件处理
@@ -40903,9 +41338,6 @@ var defaultOpt = {
   enableShortcutOnlyWhenMouseInSvg: true,
   // 初始根节点的位置
   initRootNodePosition: null,
-  // 导出png、svg、pdf时的图形内边距，注意是单侧内边距
-  exportPaddingX: 10,
-  exportPaddingY: 10,
   // 节点文本编辑框的z-index
   nodeTextEditZIndex: 3e3,
   // 节点备注浮层的z-index
@@ -40931,8 +41363,6 @@ var defaultOpt = {
   ],
   // 节点最大缓存数量
   maxNodeCacheCount: 1e3,
-  // 关联线默认文字
-  defaultAssociativeLineText: "\u5173\u8054",
   // 思维导图适应画布大小时的内边距
   fitPadding: 50,
   // 是否开启按住ctrl键多选节点功能
@@ -40947,14 +41377,9 @@ var defaultOpt = {
   customCreateNodeContent: null,
   // 指定内部一些元素（节点文本编辑元素、节点备注显示元素、关联线文本编辑元素、节点图片调整按钮元素）添加到的位置，默认添加到document.body下
   customInnerElsAppendTo: null,
-  // 拖拽元素时，指示元素新位置的块的最大高度
-  nodeDragPlaceholderMaxSize: 20,
   // 是否在存在一个激活节点时，当按下中文、英文、数字按键时自动进入文本编辑模式
   // 开启该特性后，需要给你的输入框绑定keydown事件，并禁止冒泡
   enableAutoEnterTextEditWhenKeydown: false,
-  // 设置富文本节点编辑框和节点大小一致，形成伪原地编辑的效果
-  // 需要注意的是，只有当节点内只有文本、且形状是矩形才会有比较好的效果
-  richTextEditFakeInPlace: false,
   // 自定义对剪贴板文本的处理。当按ctrl+v粘贴时会读取用户剪贴板中的文本和图片，默认只会判断文本是否是普通文本和simple-mind-map格式的节点数据，如果你想处理其他思维导图的数据，比如processon、zhixi等，那么可以传递一个函数，接受当前剪贴板中的文本为参数，返回处理后的数据，可以返回两种类型：
   /*
       1.返回一个纯文本，那么会直接以该文本创建一个子节点
@@ -40976,26 +41401,12 @@ var defaultOpt = {
   customHandleClipboardText: null,
   // 禁止鼠标滚轮缩放，你仍旧可以使用api进行缩放
   disableMouseWheelZoom: false,
-  // 禁止双指缩放，你仍旧可以使用api进行缩放
-  // 需要注册TouchEvent插件后生效
-  disableTouchZoom: false,
   // 错误处理函数
   errorHandler: (code, error2) => {
     console.error(code, error2);
   },
-  // 设置导出图片和svg时，针对富文本节点内容，也就是嵌入到svg中的html节点的默认样式覆盖
-  // 如果不覆盖，会发生偏移问题
-  resetCss: `
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-  `,
   // 是否在鼠标双击时回到根节点，也就是让根节点居中显示
   enableDblclickBackToRootNode: false,
-  // 导出图片时canvas的缩放倍数，该配置会和window.devicePixelRatio值取最大值
-  minExportImgCanvasScale: 2,
   // 节点鼠标hover和激活时显示的矩形边框的颜色
   hoverRectColor: "rgb(94, 200, 248)",
   // 节点鼠标hover和激活时显示的矩形边框距节点内容的距离
@@ -41004,26 +41415,8 @@ var defaultOpt = {
   selectTextOnEnterEditText: false,
   // 删除节点后激活相邻节点
   deleteNodeActive: true,
-  // 拖拽节点时鼠标移动到画布边缘是否开启画布自动移动
-  autoMoveWhenMouseInEdgeOnDrag: true,
   // 是否首次加载fit view
   fit: false,
-  // 拖拽多个节点时随鼠标移动的示意矩形的样式配置
-  dragMultiNodeRectConfig: {
-    width: 40,
-    height: 20,
-    fill: ""
-    // 填充颜色，如果不传默认使用连线的颜色
-  },
-  // 节点拖拽时新位置的示意矩形的填充颜色，如果不传默认使用连线的颜色
-  dragPlaceholderRectFill: "",
-  // 节点拖拽时的透明度配置
-  dragOpacityConfig: {
-    cloneNodeOpacity: 0.5,
-    // 跟随鼠标移动的克隆节点或矩形的透明度
-    beingDragNodeOpacity: 0.3
-    // 被拖拽节点的透明度
-  },
   // 自定义标签的颜色
   // {pass: 'green, unpass: 'red'}
   tagsColorMap: {},
@@ -41034,9 +41427,8 @@ var defaultOpt = {
     fontSize: 12
     // 如果是文字头像，那么文字的大小
   },
-  // 关联线是否始终显示在节点上层
-  // false：即创建关联线和激活关联线时处于最顶层，其他情况下处于节点下方
-  associativeLineIsAlwaysAboveNode: true,
+  // 协同编辑时，同一个节点不能同时被多人选中
+  onlyOneEnableActiveNodeOnCooperate: false,
   // 插入概要的默认文本
   defaultGeneralizationText: "\u6982\u8981",
   // 粘贴文本的方式创建新节点时，控制是否按换行自动分割节点，即如果存在换行，那么会根据换行创建多个节点，否则只会创建一个节点
@@ -41063,8 +41455,6 @@ var defaultOpt = {
   // 是否将思维导图限制在画布内
   // 比如向右拖动时，思维导图图形的最左侧到达画布中心时将无法继续向右拖动，其他同理
   isLimitMindMapInCanvas: false,
-  // 当注册了滚动条插件（Scrollbar）时，是否将思维导图限制在画布内，isLimitMindMapInCanvas不再起作用
-  isLimitMindMapInCanvasWhenHasScrollbar: true,
   // 在节点上粘贴剪贴板中的图片的处理方法，默认是转换为data:url数据插入到节点中，你可以通过该方法来将图片数据上传到服务器，实现保存图片的url
   // 可以传递一个异步方法，接收Blob类型的图片数据，需要返回如下结构：
   /*
@@ -41077,6 +41467,131 @@ var defaultOpt = {
     }
   */
   handleNodePasteImg: null,
+  // 自定义创建节点形状的方法，可以传一个函数，均接收一个参数
+  // 矩形、圆角矩形、椭圆、圆等形状会调用该方法
+  // 接收svg path字符串，返回svg节点
+  customCreateNodePath: null,
+  // 菱形、平行四边形、八角矩形、外三角矩形、内三角矩形等形状会调用该方法
+  // 接收points数组点位，返回svg节点
+  customCreateNodePolygon: null,
+  // 自定义转换节点连线路径的方法
+  // 接收svg path字符串，返回转换后的svg path字符串
+  customTransformNodeLinePath: null,
+  // 快捷键操作即将执行前的生命周期函数，返回true可以阻止操作执行
+  // 函数接收两个参数：key（快捷键）、activeNodeList（当前激活的节点列表）
+  beforeShortcutRun: null,
+  // 移动节点到画布中心、回到根节点等操作时是否将缩放层级复位为100%
+  // 该选项实际影响的是render.moveNodeToCenter方法，moveNodeToCenter方法本身也存在第二个参数resetScale来设置是否复位，如果resetScale参数没有传递，那么使用resetScaleOnMoveNodeToCenter配置，否则使用resetScale配置
+  resetScaleOnMoveNodeToCenter: false,
+  // 添加附加的节点前置内容，前置内容指和文本同一行的区域中的前置内容，不包括节点图片部分
+  createNodePrefixContent: null,
+  // 添加附加的节点后置内容，后置内容指和文本同一行的区域中的后置内容，不包括节点图片部分
+  createNodePostfixContent: null,
+  // 禁止粘贴用户剪贴板中的数据，禁止将复制的数据写入用户的剪贴板中
+  disabledClipboard: false,
+  // 自定义超链接的跳转
+  // 如果不传，默认会以新窗口的方式打开超链接，可以传递一个函数，函数接收两个参数：link（超链接的url）、node（所属节点实例），只要传递了函数，就会阻止默认的跳转
+  customHyperlinkJump: null,
+  // 是否开启性能模式，默认情况下所有节点都会直接渲染，无论是否处于画布可视区域，这样当节点数量比较多时（1000+）会比较卡，如果你的数据量比较大，那么可以通过该配置开启性能模式，即只渲染画布可视区域内的节点，超出的节点不渲染，这样会大幅提高渲染速度，当然同时也会带来一些其他问题，比如：1.当拖动或是缩放画布时会实时计算并渲染未节点的节点，所以会带来一定卡顿；2.导出图片、svg、pdf时需要先渲染全部节点，所以会比较慢；3.其他目前未发现的问题
+  openPerformance: false,
+  // 性能优化模式配置
+  performanceConfig: {
+    time: 250,
+    // 当视图改变后多久刷新一次节点，单位：ms，
+    padding: 100,
+    // 超出画布四周指定范围内依旧渲染节点
+    removeNodeWhenOutCanvas: true
+    // 节点移除画布可视区域后从画布删除
+  },
+  // 【Select插件】
+  // 多选节点时鼠标移动到边缘时的画布移动偏移量
+  selectTranslateStep: 3,
+  // 多选节点时鼠标移动距边缘多少距离时开始偏移
+  selectTranslateLimit: 20,
+  // 【Drag插件】
+  // 是否开启节点自由拖拽
+  enableFreeDrag: false,
+  // 拖拽节点时鼠标移动到画布边缘是否开启画布自动移动
+  autoMoveWhenMouseInEdgeOnDrag: true,
+  // 拖拽多个节点时随鼠标移动的示意矩形的样式配置
+  dragMultiNodeRectConfig: {
+    width: 40,
+    height: 20,
+    fill: "rgb(94, 200, 248)"
+    // 填充颜色
+  },
+  // 节点拖拽时新位置的示意矩形的填充颜色
+  dragPlaceholderRectFill: "rgb(94, 200, 248)",
+  // 节点拖拽时新位置的示意连线的样式配置
+  dragPlaceholderLineConfig: {
+    color: "rgb(94, 200, 248)",
+    width: 2
+  },
+  // 节点拖拽时的透明度配置
+  dragOpacityConfig: {
+    cloneNodeOpacity: 0.5,
+    // 跟随鼠标移动的克隆节点或矩形的透明度
+    beingDragNodeOpacity: 0.3
+    // 被拖拽节点的透明度
+  },
+  // 拖拽单个节点时会克隆被拖拽节点，如果想修改该克隆节点，那么可以通过该选项提供一个处理函数，函数接收克隆节点对象
+  // 需要注意的是节点对象指的是@svgdotjs/svg.js库的元素对象，所以你需要阅读该库的文档来操作该对象
+  handleDragCloneNode: null,
+  // 即将拖拽完成前调用该函数，函数接收一个对象作为参数：{overlapNodeUid,prevNodeUid,nextNodeUid}，代表拖拽信息，如果要阻止本次拖拽，那么可以返回true，此时node_dragend事件不会再触发。函数可以是异步函数，返回Promise实例
+  beforeDragEnd: null,
+  // 即将开始调整节点前调用该函数，函数接收当前即将被拖拽的节点实例列表作为参数，如果要阻止本次拖拽，那么可以返回true
+  beforeDragStart: null,
+  // 【Watermark插件】
+  // 水印配置
+  watermarkConfig: {
+    onlyExport: false,
+    // 是否仅在导出时添加水印
+    text: "",
+    lineSpacing: 100,
+    textSpacing: 100,
+    angle: 30,
+    textStyle: {
+      color: "#999",
+      opacity: 0.5,
+      fontSize: 14
+    },
+    belowNode: false
+  },
+  // 【Export插件】
+  // 导出png、svg、pdf时的图形内边距，注意是单侧内边距
+  exportPaddingX: 10,
+  exportPaddingY: 10,
+  // 设置导出图片和svg时，针对富文本节点内容，也就是嵌入到svg中的html节点的默认样式覆盖
+  // 如果不覆盖，会发生偏移问题
+  resetCss: `
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+  `,
+  // 导出图片时canvas的缩放倍数，该配置会和window.devicePixelRatio值取最大值
+  minExportImgCanvasScale: 2,
+  // 导出png、svg、pdf时在头部和尾部添加自定义内容
+  // 可传递一个函数，这个函数可以返回null代表不添加内容，也可以返回如下数据：
+  /*
+    {
+      el,// 要追加的自定义DOM节点，样式可内联
+      cssText,// 可选，如果样式不想内联，可以传递该值，一个css字符串
+      height: 50// 返回的DOM节点的高度，必须传递
+    }
+  */
+  addContentToHeader: null,
+  addContentToFooter: null,
+  // 导出png、svg、pdf时会获取画布上的svg数据进行克隆，然后通过该克隆的元素进行导出，如果你想对该克隆元素做一些处理，比如新增、替换、修改其中的一些元素，那么可以通过该参数传递一个处理函数，接收svg元素对象，处理后，需要返回原svg元素对象。
+  // 需要注意的是svg对象指的是@svgdotjs/svg.js库的元素对象，所以你需要阅读该库的文档来操作该对象
+  handleBeingExportSvg: null,
+  // 【AssociativeLine插件】
+  // 关联线默认文字
+  defaultAssociativeLineText: "\u5173\u8054",
+  // 关联线是否始终显示在节点上层
+  // false：即创建关联线和激活关联线时处于最顶层，其他情况下处于节点下方
+  associativeLineIsAlwaysAboveNode: true,
   // 默认情况下，新创建的关联线两个端点的位置是根据两个节点中心点的相对位置来计算的，如果你想固定位置，可以通过这个属性来配置
   // from和to都不传，则都自动计算，如果只传一个，另一个则会自动计算
   associativeLineInitPointsPosition: {
@@ -41088,20 +41603,21 @@ var defaultOpt = {
   },
   // 是否允许调整关联线两个端点的位置
   enableAdjustAssociativeLinePoints: true,
-  // 自定义创建节点形状的方法，可以传一个函数，均接收一个参数
-  // 矩形、圆角矩形、椭圆、圆等形状会调用该方法
-  // 接收svg path字符串，返回svg节点
-  customCreateNodePath: null,
-  // 菱形、平行四边形、八角矩形、外三角矩形、内三角矩形等形状会调用该方法
-  // 接收points数组点位，返回svg节点
-  customCreateNodePolygon: null,
-  // 自定义转换节点连线路径的方法
-  // 接收svg path字符串，返回转换后的svg path字符串
-  customTransformNodeLinePath: null,
+  // 【TouchEvent插件】
+  // 禁止双指缩放，你仍旧可以使用api进行缩放
+  // 需要注册TouchEvent插件后生效
+  disableTouchZoom: false,
+  // 允许最大和最小的缩放值，百分数
+  // 传-1代表不限制
+  minTouchZoomScale: 20,
+  maxTouchZoomScale: -1,
+  // 【Scrollbar插件】
+  // 当注册了滚动条插件（Scrollbar）时，是否将思维导图限制在画布内，isLimitMindMapInCanvas不再起作用
+  isLimitMindMapInCanvasWhenHasScrollbar: true,
+  // 【Search插件】
   // 是否仅搜索当前渲染的节点，被收起的节点不会被搜索到
   isOnlySearchCurrentRenderNodes: false,
-  // 协同编辑时，同一个节点不能同时被多人选中
-  onlyOneEnableActiveNodeOnCooperate: false,
+  // 【Cooperate插件】
   // 协同编辑时，节点操作即将更新到其他客户端前的生命周期函数
   // 函数接收一个对象作为参数：
   /*
@@ -41111,9 +41627,7 @@ var defaultOpt = {
     }
   */
   beforeCooperateUpdate: null,
-  // 快捷键操作即将执行前的生命周期函数，返回true可以阻止操作执行
-  // 函数接收两个参数：key（快捷键）、activeNodeList（当前激活的节点列表）
-  beforeShortcutRun: null,
+  // 【RainbowLines插件】
   // 彩虹线条配置，需要先注册RainbowLines插件
   rainbowLinesConfig: {
     open: false,
@@ -41132,19 +41646,29 @@ var defaultOpt = {
     ]
     */
   },
-  // 导出png、svg、pdf时在头部和尾部添加自定义内容
-  // 可传递一个函数，这个函数可以返回null代表不添加内容，也可以返回如下数据：
-  /*
-    {
-      el,// 要追加的自定义DOM节点，样式可内联
-      cssText,// 可选，如果样式不想内联，可以传递该值，一个css字符串
-      height: 50// 返回的DOM节点的高度，必须传递
-    }
-  */
-  addContentToHeader: null,
-  addContentToFooter: null,
+  // 【Demonstrate插件】
   // 演示插件配置
-  demonstrateConfig: null
+  demonstrateConfig: null,
+  // 【Formula插件】
+  // 是否开启在富文本编辑框中直接编辑数学公式
+  enableEditFormulaInRichTextEdit: true,
+  // katex库的字体文件的请求路径。仅当katex的output配置为html时才会请求字体文件。可以通过mindMap.formula.getKatexConfig()方法来获取当前的配置
+  // 字体文件可以从node_modules中找到：katex/dist/fonts/。可以上传到你的服务器或cdn
+  // 最终的字体请求路径为`${katexFontPath}fonts/KaTeX_AMS-Regular.woff2`，可以自行拼接进行测试是否可以访问
+  katexFontPath: "https://unpkg.com/katex@0.16.11/dist/",
+  // 自定义katex库的输出模式。默认当Chrome内核100以下会使用html方式，否则使用mathml方式，如果你有自己的规则，那么可以传递一个函数，函数返回值为：mathml或html
+  getKatexOutputType: null,
+  // 【RichText插件】
+  // 转换富文本内容，当进入富文本编辑时，可以通过该参数传递一个函数，函数接收文本内容，需要返回你处理后的文本内容
+  transformRichTextOnEnterEdit: null,
+  // 可以传递一个函数，即将结束富文本编辑前会执行该函数，函数接收richText实例，所以你可以在此时机更新quill文档数据
+  beforeHideRichTextEdit: null,
+  // 设置富文本节点编辑框和节点大小一致，形成伪原地编辑的效果
+  // 需要注意的是，只有当节点内只有文本、且形状是矩形才会有比较好的效果
+  richTextEditFakeInPlace: false,
+  // 【OuterFrame】插件
+  outerFramePaddingX: 10,
+  outerFramePaddingY: 10
 };
 
 // ../simple-mind-map/index.js
@@ -41215,6 +41739,7 @@ var MindMap2 = class {
   // 创建容器元素
   initContainer() {
     const { associativeLineIsAlwaysAboveNode } = this.opt;
+    this.el.classList.add("smm-mind-map-container");
     const createAssociativeLineDraw = () => {
       this.associativeLineDraw = this.draw.group();
       this.associativeLineDraw.addClass("smm-associative-line-container");
@@ -41265,7 +41790,7 @@ var MindMap2 = class {
     this.renderer.reRender = true;
     this.renderer.clearCache();
     this.clearDraw();
-    this.render(callback, source = "");
+    this.render(callback, source);
   }
   // 获取或更新容器尺寸位置信息
   getElRectInfo() {
@@ -41277,8 +41802,13 @@ var MindMap2 = class {
   }
   //  容器尺寸变化，调整尺寸
   resize() {
+    const oldWidth = this.width;
+    const oldHeight = this.height;
     this.getElRectInfo();
     this.svg.size(this.width, this.height);
+    if (oldWidth !== this.width || oldHeight !== this.height) {
+      this.render();
+    }
     this.emit("resize");
   }
   //  监听事件
@@ -41341,7 +41871,9 @@ var MindMap2 = class {
   }
   // 更新配置
   updateConfig(opt = {}) {
+    this.emit("before_update_config", this.opt);
     this.opt = this.handleOpt(import_deepmerge33.default.all([defaultOpt, this.opt, opt]));
+    this.emit("after_update_config", this.opt);
   }
   //  获取当前布局结构
   getLayout() {
@@ -41424,6 +41956,9 @@ var MindMap2 = class {
   //  导出
   async export(...args) {
     try {
+      if (!this.doExport) {
+        throw new Error("\u8BF7\u6CE8\u518CExport\u63D2\u4EF6\uFF01");
+      }
       let result = await this.doExport.export(...args);
       return result;
     } catch (error2) {
@@ -41457,6 +41992,10 @@ var MindMap2 = class {
     addContentToFooter,
     node: node2
   } = {}) {
+    const { watermarkConfig, openPerformance } = this.opt;
+    if (openPerformance) {
+      this.renderer.forceLoadNode(node2);
+    }
     const { cssTextList, header, headerHeight, footer, footerHeight } = handleGetSvgDataExtraContent({
       addContentToHeader,
       addContentToFooter
@@ -41471,7 +42010,13 @@ var MindMap2 = class {
     const rect = draw.rbox();
     let clipData = null;
     if (node2) {
-      clipData = getNodeTreeBoundingRect(node2, rect.x, rect.y, paddingX, paddingY);
+      clipData = getNodeTreeBoundingRect(
+        node2,
+        rect.x,
+        rect.y,
+        paddingX,
+        paddingY
+      );
     }
     const fixHeight = 0;
     rect.width += paddingX * 2;
@@ -41483,7 +42028,7 @@ var MindMap2 = class {
     const hasWatermark = this.watermark && this.watermark.hasWatermark();
     if (!ignoreWatermark && hasWatermark) {
       this.watermark.isInExport = true;
-      const { onlyExport } = this.opt.watermarkConfig;
+      const { onlyExport } = watermarkConfig;
       const needReDrawWatermark = rect.width > origWidth || rect.height > origHeight;
       if (needReDrawWatermark) {
         this.width = rect.width;
@@ -41602,6 +42147,7 @@ var MindMap2 = class {
     this.event.unbind();
     this.svg.remove();
     Style_default.removeBackgroundStyle(this.el);
+    this.el.classList.remove("smm-mind-map-container");
     this.el.innerHTML = "";
     this.el = null;
     this.removeCss();
@@ -41642,6 +42188,7 @@ var MiniMap = class {
       x: 0,
       y: 0
     };
+    this.currentState = null;
   }
   //  计算小地图的渲染数据
   /**
@@ -41670,12 +42217,14 @@ var MiniMap = class {
     let miniMapBoxScale = actWidth / rect.width;
     let miniMapBoxLeft = (boxWidth - actWidth) / 2;
     let miniMapBoxTop = (boxHeight - actHeight) / 2;
-    let _rectX = rect.x - (rect.width * scaleX - rect.width) / 2;
-    let _rectX2 = rect.x2 + (rect.width * scaleX - rect.width) / 2;
-    let _rectY = rect.y - (rect.height * scaleY - rect.height) / 2;
-    let _rectY2 = rect.y2 + (rect.height * scaleY - rect.height) / 2;
     let _rectWidth = rect.width * scaleX;
     let _rectHeight = rect.height * scaleY;
+    let _rectWidthOffsetHalf = (_rectWidth - rect.width) / 2;
+    let _rectHeightOffsetHalf = (_rectHeight - rect.height) / 2;
+    let _rectX = rect.x - _rectWidthOffsetHalf;
+    let _rectX2 = rect.x2 + _rectWidthOffsetHalf;
+    let _rectY = rect.y - _rectHeightOffsetHalf;
+    let _rectY2 = rect.y2 + _rectHeightOffsetHalf;
     let viewBoxStyle = {
       left: 0,
       top: 0,
@@ -41697,6 +42246,14 @@ var MiniMap = class {
     });
     this.removeNodeContent(svg2);
     const svgStr = svg2.svg();
+    this.currentState = {
+      viewBoxStyle: {
+        ...viewBoxStyle
+      },
+      miniMapBoxScale,
+      miniMapBoxLeft,
+      miniMapBoxTop
+    };
     return {
       getImgUrl: async (callback) => {
         const res = await this.mindMap.doExport.fixSvgStrAndToBlob(svgStr);
@@ -41748,7 +42305,7 @@ var MiniMap = class {
   }
   //  小地图鼠标移动事件
   onMousemove(e, sensitivityNum = 5) {
-    if (!this.isMousedown) {
+    if (!this.isMousedown || this.isViewBoxMousedown) {
       return;
     }
     let ox = e.clientX - this.mousedownPos.x;
@@ -41759,6 +42316,52 @@ var MiniMap = class {
   //  小地图鼠标松开事件
   onMouseup() {
     this.isMousedown = false;
+    this.isViewBoxMousedown = false;
+  }
+  // 视口框鼠标按下事件
+  onViewBoxMousedown(e) {
+    this.isViewBoxMousedown = true;
+    this.mousedownPos = {
+      x: e.clientX,
+      y: e.clientY
+    };
+    let transformData = this.mindMap.view.getTransformData();
+    this.startViewPos = {
+      x: transformData.state.x,
+      y: transformData.state.y
+    };
+  }
+  // 视口框鼠标移动事件
+  onViewBoxMousemove(e) {
+    if (!this.isViewBoxMousedown || !this.currentState || this.isMousedown)
+      return;
+    let ox = e.clientX - this.mousedownPos.x;
+    let oy = e.clientY - this.mousedownPos.y;
+    const { viewBoxStyle, miniMapBoxScale, miniMapBoxLeft, miniMapBoxTop } = this.currentState;
+    const left = Math.max(
+      miniMapBoxLeft,
+      Number.parseFloat(viewBoxStyle.left) + ox
+    );
+    const right = Math.max(
+      miniMapBoxLeft,
+      Number.parseFloat(viewBoxStyle.right) - ox
+    );
+    const top = Math.max(
+      miniMapBoxTop,
+      Number.parseFloat(viewBoxStyle.top) + oy
+    );
+    const bottom = Math.max(
+      miniMapBoxTop,
+      Number.parseFloat(viewBoxStyle.bottom) - oy
+    );
+    this.mindMap.emit("mini_map_view_box_position_change", {
+      left: left + "px",
+      right: right + "px",
+      top: top + "px",
+      bottom: bottom + "px"
+    });
+    this.mindMap.view.translateXTo(-ox / miniMapBoxScale + this.startViewPos.x);
+    this.mindMap.view.translateYTo(-oy / miniMapBoxScale + this.startViewPos.y);
   }
 };
 MiniMap.instanceName = "miniMap";
@@ -41800,7 +42403,19 @@ var Watermark = class {
   createContainer() {
     if (this.watermarkDraw)
       return;
-    this.watermarkDraw = this.mindMap.svg.group().css({ "pointer-events": "none", "user-select": "none" }).addClass("smm-water-mark-container");
+    this.watermarkDraw = new G().css({ "pointer-events": "none", "user-select": "none" }).addClass("smm-water-mark-container");
+    this.updateLayer();
+  }
+  // 更新水印容器层级
+  updateLayer() {
+    if (!this.watermarkDraw)
+      return;
+    const { belowNode } = this.mindMap.opt.watermarkConfig;
+    if (belowNode) {
+      this.watermarkDraw.insertBefore(this.mindMap.draw);
+    } else {
+      this.mindMap.svg.add(this.watermarkDraw);
+    }
   }
   // 删除水印容器
   removeContainer() {
@@ -41903,16 +42518,19 @@ var Watermark = class {
       this.mindMap.opt.watermarkConfig,
       config
     );
+    this.updateLayer();
     this.handleConfig(config);
     this.draw();
   }
   // 插件被移除前做的事情
   beforePluginRemove() {
     this.unBindEvent();
+    this.removeContainer();
   }
   // 插件被卸载前做的事情
   beforePluginDestroy() {
     this.unBindEvent();
+    this.removeContainer();
   }
 };
 Watermark.instanceName = "watermark";
@@ -42289,18 +42907,14 @@ var handleNodeImageToXmind = async (node2, newData, promiseList, imageList) => {
 var getXmindContentXmlData = () => {
   return `<?xml version="1.0" encoding="UTF-8" standalone="no"?><xmap-content xmlns="urn:xmind:xmap:xmlns:content:2.0" xmlns:fo="http://www.w3.org/1999/XSL/Format" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xlink="http://www.w3.org/1999/xlink" modified-by="bruce" timestamp="1503058545540" version="2.0">    <sheet id="7abtd0ssc7n4pi1nu6i7b6lsdh" modified-by="bruce" theme="0kdeemiijde6nuk97e4t0vpp54" timestamp="1503058545540">        <topic id="1vr0lcte2og4t2sopiogvdmifc" modified-by="bruce" structure-class="org.xmind.ui.logic.right" timestamp="1503058545417">            <title>Warning                \u8B66\u544A                Attention                Warnung                \uACBD\uACE0</title>            <children>                <topics type="attached">                    <topic id="71h1aip2t1o8vvm0a41nausaar" modified-by="bruce" timestamp="1503058545423">                        <title svg:width="500">This file can not be opened normally, please do not modify and save, otherwise the contents will be permanently lost\uFF01</title>                        <children>                            <topics type="attached">                                <topic id="428akmkh9a0tog6c91qj995qdl" modified-by="bruce" timestamp="1503058545427">                                    <title>You can try using XMind 8 Update 3 or later version to open</title>                                </topic>                            </topics>                        </children>                    </topic>                    <topic id="2kb87f8m38b3hnfhp450c7q35e" modified-by="bruce" timestamp="1503058545434">                        <title svg:width="500">\u8BE5\u6587\u4EF6\u65E0\u6CD5\u6B63\u5E38\u6253\u5F00\uFF0C\u8BF7\u52FF\u4FEE\u6539\u5E76\u4FDD\u5B58\uFF0C\u5426\u5219\u6587\u4EF6\u5185\u5BB9\u5C06\u4F1A\u6C38\u4E45\u6027\u4E22\u5931\uFF01</title>                        <children>                            <topics type="attached">                                <topic id="3m9hoo4a09n53ofl6fohdun99f" modified-by="bruce" timestamp="1503058545438">                                    <title>\u4F60\u53EF\u4EE5\u5C1D\u8BD5\u4F7F\u7528 XMind 8 Update 3 \u6216\u66F4\u65B0\u7248\u672C\u6253\u5F00</title>                                </topic>                            </topics>                        </children>                    </topic>                    <topic id="7r3r4617hvh931ot9obi595r8f" modified-by="bruce" timestamp="1503058545444">                        <title svg:width="500">\u8A72\u6587\u4EF6\u7121\u6CD5\u6B63\u5E38\u6253\u958B\uFF0C\u8ACB\u52FF\u4FEE\u6539\u4E26\u4FDD\u5B58\uFF0C\u5426\u5247\u6587\u4EF6\u5167\u5BB9\u5C07\u6703\u6C38\u4E45\u6027\u4E1F\u5931\uFF01</title>                        <children>                            <topics type="attached">                                <topic id="691pgka6gmgpgkacaa0h3f1hjb" modified-by="bruce" timestamp="1503058545448">                                    <title>\u4F60\u53EF\u4EE5\u5617\u8A66\u4F7F\u7528 XMind 8 Update 3 \u6216\u66F4\u65B0\u7248\u672C\u6253\u958B</title>                                </topic>                            </topics>                        </children>                    </topic>                    <topic id="0f2e3rpkfahg4spg4nda946r0b" modified-by="bruce" timestamp="1503058545453">                        <title svg:width="500">\u3053\u306E\u6587\u66F8\u306F\u6B63\u5E38\u306B\u958B\u304B\u306A\u3044\u306E\u3067\u3001\u4FEE\u6B63\u3057\u3066\u4FDD\u5B58\u3057\u306A\u3044\u3088\u3046\u306B\u3057\u3066\u304F\u3060\u3055\u3044\u3002\u305D\u3046\u3067\u306A\u3044\u3068\u3001\u66F8\u985E\u306E\u5185\u5BB9\u304C\u6C38\u4E45\u306B\u5931\u308F\u308C\u307E\u3059\u3002\uFF01</title>                        <children>                            <topics type="attached">                                <topic id="4vuubta53ksc1falk46mevge0t" modified-by="bruce" timestamp="1503058545457">                                    <title>XMind 8 Update 3 \u3084\u66F4\u65B0\u7248\u3092\u4F7F\u3063\u3066\u958B\u304F\u3053\u3068\u3082\u3067\u304D\u307E\u3059</title>                                </topic>                            </topics>                        </children>                    </topic>                    <topic id="70n9i4u3lb89sq9l1m1bs255j5" modified-by="bruce" timestamp="1503058545463">                        <title svg:width="500">Datei kann nicht richtig ge\xF6ffnet werden. Bitte \xE4ndern Sie diese Datei nicht und speichern Sie sie, sonst wird die Datei endg\xFCltig gel\xF6scht werden.</title>                        <children>                            <topics type="attached">                                <topic id="1qpc5ee298p2sqeqbinpca46b7" modified-by="bruce" timestamp="1503058545466">                                    <title svg:width="500">Bitte versuchen Sie, diese Datei mit XMind 8 Update 3 oder sp\xE4ter zu \xF6ffnen.</title>                                </topic>                            </topics>                        </children>                    </topic>                    <topic id="4dmes10uc19pq7enu8sc4bmvif" modified-by="bruce" timestamp="1503058545473">                        <title svg:width="500">Ce fichier ne peut pas ouvert normalement, veuillez le r\xE9diger et sauvegarder, sinon le fichier sera perdu en permanence. </title>                        <children>                            <topics type="attached">                                <topic id="5f0rivgubii2launodiln7sdkt" modified-by="bruce" timestamp="1503058545476">                                    <title svg:width="500">Vous pouvez essayer d'ouvrir avec XMind 8 Update 3 ou avec une version plus r\xE9cente.</title>                                </topic>                            </topics>                        </children>                    </topic>                    <topic id="10pn1os1sgfsnqa8akabom5pej" modified-by="bruce" timestamp="1503058545481">                        <title svg:width="500">\uD30C\uC77C\uC744 \uC815\uC0C1\uC801\uC73C\uB85C \uC5F4 \uC218 \uC5C6\uC73C\uBA70, \uC218\uC815 \uBC0F \uC800\uC7A5\uD558\uC9C0 \uB9C8\uC2ED\uC2DC\uC624. \uADF8\uB807\uC9C0 \uC54A\uC73C\uBA74 \uD30C\uC77C\uC758 \uB0B4\uC6A9\uC774 \uC601\uAD6C\uC801\uC73C\uB85C \uC190\uC2E4\uB429\uB2C8\uB2E4!</title>                        <children>                            <topics type="attached">                                <topic id="0l2nr0fq3em22rctapkj46ue58" modified-by="bruce" timestamp="1503058545484">                                    <title svg:width="500">XMind 8 Update 3 \uB610\uB294 \uC774\uD6C4 \uBC84\uC804\uC744 \uC0AC\uC6A9\uD558\uC5EC</title>                                </topic>                            </topics>                        </children>                    </topic>                </topics>            </children>            <extensions>                <extension provider="org.xmind.ui.map.unbalanced">                    <content>                        <right-number>-1</right-number>                    </content>                </extension>            </extensions>        </topic>        <title>Sheet 1</title>    </sheet></xmap-content>`;
 };
-var formatGetGeneralization2 = (data2) => {
-  const generalization = data2.generalization;
-  return Array.isArray(generalization) ? generalization : generalization ? [generalization] : [];
-};
 var getSelfGeneralization = (data2) => {
-  const list2 = formatGetGeneralization2(data2);
+  const list2 = formatGetNodeGeneralization(data2);
   return list2.filter((item) => {
     return !item.range || item.range.length <= 0;
   });
 };
 var getRangeGeneralization = (data2) => {
-  const list2 = formatGetGeneralization2(data2);
+  const list2 = formatGetNodeGeneralization(data2);
   return list2.filter((item) => {
     return item.range && item.range.length > 0;
   });
@@ -42343,7 +42957,7 @@ var parseNodeGeneralizationToXmind = (node2) => {
 };
 
 // ../simple-mind-map/src/parse/xmind.js
-var parseXmindFile = (file) => {
+var parseXmindFile = (file, handleMultiCanvas) => {
   return new Promise((resolve, reject) => {
     import_jszip.default.loadAsync(file).then(
       async (zip) => {
@@ -42353,7 +42967,7 @@ var parseXmindFile = (file) => {
           let xmlFile = zip.files["content.xml"] || zip.files["/content.xml"];
           if (jsonFile) {
             let json = await jsonFile.async("string");
-            content3 = await transformXmind(json, zip.files);
+            content3 = await transformXmind(json, zip.files, handleMultiCanvas);
           } else if (xmlFile) {
             let xml = await xmlFile.async("string");
             let json = import_xml_js.default.xml2json(xml);
@@ -42374,8 +42988,15 @@ var parseXmindFile = (file) => {
     );
   });
 };
-var transformXmind = async (content3, files) => {
-  const data2 = JSON.parse(content3)[0];
+var transformXmind = async (content3, files, handleMultiCanvas) => {
+  content3 = JSON.parse(content3);
+  let data2 = null;
+  if (content3.length > 1 && typeof handleMultiCanvas === "function") {
+    data2 = await handleMultiCanvas(content3);
+  }
+  if (!data2) {
+    data2 = content3[0];
+  }
   const nodeTree = data2.rootTopic;
   const newTree = {};
   const waitLoadImageList = [];
@@ -58670,7 +59291,8 @@ var Export = class {
       errorHandler,
       resetCss,
       addContentToHeader,
-      addContentToFooter
+      addContentToFooter,
+      handleBeingExportSvg
     } = this.mindMap.opt;
     let { svg: svg2, svgHTML, clipData } = this.mindMap.getSvgData({
       paddingX: exportPaddingX,
@@ -58683,6 +59305,7 @@ var Export = class {
       clipData.paddingX = exportPaddingX;
       clipData.paddingY = exportPaddingY;
     }
+    let svgIsChange = false;
     const task1 = this.createTransformImgTaskList(
       svg2,
       "image",
@@ -58700,15 +59323,31 @@ var Export = class {
     } catch (error2) {
       errorHandler(ERROR_TYPES.EXPORT_LOAD_IMAGE_ERROR, error2);
     }
-    let isAddResetCss;
     if (this.mindMap.richText) {
       const foreignObjectList = svg2.find("foreignObject");
       if (foreignObjectList.length > 0) {
         foreignObjectList[0].add(SVG(`<style>${resetCss}</style>`));
-        isAddResetCss = true;
+        svgIsChange = true;
+      }
+      if (this.mindMap.formula) {
+        const formulaList = svg2.find(".ql-formula");
+        if (formulaList.length > 0) {
+          const styleText2 = this.mindMap.formula.getStyleText();
+          if (styleText2) {
+            const styleEl = document.createElement("style");
+            styleEl.innerHTML = styleText2;
+            addXmlns(styleEl);
+            foreignObjectList[0].add(styleEl);
+            svgIsChange = true;
+          }
+        }
       }
     }
-    if (taskList.length > 0 || isAddResetCss) {
+    if (typeof handleBeingExportSvg === "function") {
+      svgIsChange = true;
+      svg2 = handleBeingExportSvg(svg2);
+    }
+    if (taskList.length > 0 || svgIsChange) {
       svgHTML = svg2.svg();
     }
     return {
@@ -58940,12 +59579,64 @@ var Export = class {
 Export.instanceName = "doExport";
 var Export_default = Export;
 
+// ../simple-mind-map/src/utils/AutoMove.js
+var AutoMove = class {
+  constructor(mindMap) {
+    this.mindMap = mindMap;
+    this.autoMoveTimer = null;
+  }
+  //  鼠标移动事件
+  onMove(x2, y2, callback = () => {
+  }, handle = () => {
+  }) {
+    callback();
+    let step = this.mindMap.opt.selectTranslateStep;
+    let limit = this.mindMap.opt.selectTranslateLimit;
+    let count = 0;
+    if (x2 <= this.mindMap.elRect.left + limit) {
+      handle("left", step);
+      this.mindMap.view.translateX(step);
+      count++;
+    }
+    if (x2 >= this.mindMap.elRect.right - limit) {
+      handle("right", step);
+      this.mindMap.view.translateX(-step);
+      count++;
+    }
+    if (y2 <= this.mindMap.elRect.top + limit) {
+      handle("top", step);
+      this.mindMap.view.translateY(step);
+      count++;
+    }
+    if (y2 >= this.mindMap.elRect.bottom - limit) {
+      handle("bottom", step);
+      this.mindMap.view.translateY(-step);
+      count++;
+    }
+    if (count > 0) {
+      this.startAutoMove(x2, y2, callback, handle);
+    }
+  }
+  //  开启自动移动
+  startAutoMove(x2, y2, callback, handle) {
+    this.autoMoveTimer = setTimeout(() => {
+      this.onMove(x2, y2, callback, handle);
+    }, 20);
+  }
+  // 清除自动移动定时器
+  clearAutoMoveTimer() {
+    clearTimeout(this.autoMoveTimer);
+  }
+};
+var AutoMove_default = AutoMove;
+
 // ../simple-mind-map/src/plugins/Drag.js
 var Drag = class extends Base_default {
   //  构造函数
   constructor({ mindMap }) {
     super(mindMap.renderer);
     this.mindMap = mindMap;
+    this.autoMove = new AutoMove_default(mindMap);
     this.reset();
     this.bindEvent();
   }
@@ -58961,6 +59652,10 @@ var Drag = class extends Base_default {
     this.drawTransform = null;
     this.clone = null;
     this.placeholder = null;
+    this.placeholderWidth = 50;
+    this.placeholderHeight = 10;
+    this.placeHolderLine = null;
+    this.placeHolderExtraLines = [];
     this.offsetX = 0;
     this.offsetY = 0;
     this.isMousedown = false;
@@ -59018,12 +59713,13 @@ var Drag = class extends Base_default {
     this.onMove(x2, y2, e);
   }
   //  鼠标松开事件
-  onMouseup(e) {
+  async onMouseup(e) {
     if (!this.isMousedown) {
       return;
     }
-    if (this.mindMap.opt.autoMoveWhenMouseInEdgeOnDrag && this.mindMap.select) {
-      this.mindMap.select.clearAutoMoveTimer();
+    const { autoMoveWhenMouseInEdgeOnDrag, enableFreeDrag, beforeDragEnd } = this.mindMap.opt;
+    if (autoMoveWhenMouseInEdgeOnDrag && this.mindMap.select) {
+      this.autoMove.clearAutoMoveTimer();
     }
     this.isMousedown = false;
     this.beingDragNodeList.forEach((node2) => {
@@ -59035,28 +59731,40 @@ var Drag = class extends Base_default {
     let overlapNodeUid = this.overlapNode ? this.overlapNode.getData("uid") : "";
     let prevNodeUid = this.prevNode ? this.prevNode.getData("uid") : "";
     let nextNodeUid = this.nextNode ? this.nextNode.getData("uid") : "";
+    if (this.isDragging && typeof beforeDragEnd === "function") {
+      const isCancel = await beforeDragEnd({
+        overlapNodeUid,
+        prevNodeUid,
+        nextNodeUid,
+        beingDragNodeList: [...this.beingDragNodeList]
+      });
+      if (isCancel) {
+        this.reset();
+        return;
+      }
+    }
     if (this.overlapNode) {
-      this.mindMap.execCommand("SET_NODE_ACTIVE", this.overlapNode, false);
+      this.removeNodeActive(this.overlapNode);
       this.mindMap.execCommand(
         "MOVE_NODE_TO",
         this.beingDragNodeList,
         this.overlapNode
       );
     } else if (this.prevNode) {
-      this.mindMap.execCommand("SET_NODE_ACTIVE", this.prevNode, false);
+      this.removeNodeActive(this.prevNode);
       this.mindMap.execCommand(
         "INSERT_AFTER",
         this.beingDragNodeList,
         this.prevNode
       );
     } else if (this.nextNode) {
-      this.mindMap.execCommand("SET_NODE_ACTIVE", this.nextNode, false);
+      this.removeNodeActive(this.nextNode);
       this.mindMap.execCommand(
         "INSERT_BEFORE",
         this.beingDragNodeList,
         this.nextNode
       );
-    } else if (this.clone && this.mindMap.opt.enableFreeDrag && this.beingDragNodeList.length === 1) {
+    } else if (this.clone && enableFreeDrag && this.beingDragNodeList.length === 1) {
       let { x: x2, y: y2 } = this.mindMap.toPos(
         e.clientX - this.offsetX,
         e.clientY - this.offsetY
@@ -59085,9 +59793,15 @@ var Drag = class extends Base_default {
     }
     this.reset();
   }
+  // 移除节点的激活状态
+  removeNodeActive(node2) {
+    if (node2.getData("isActive")) {
+      this.mindMap.execCommand("SET_NODE_ACTIVE", node2, false);
+    }
+  }
   //  拖动中
   onMove(x2, y2, e) {
-    if (!this.isMousedown) {
+    if (!this.isMousedown || !this.isDragging) {
       return;
     }
     let { scaleX, scaleY, translateX, translateY } = this.drawTransform;
@@ -59098,34 +59812,40 @@ var Drag = class extends Base_default {
     let t = this.clone.transform();
     this.clone.translate(x2 - t.translateX, y2 - t.translateY);
     this.checkOverlapNode();
-    if (this.mindMap.opt.autoMoveWhenMouseInEdgeOnDrag && this.mindMap.select) {
-      this.drawTransform = this.mindMap.draw.transform();
-      this.mindMap.select.clearAutoMoveTimer();
-      this.mindMap.select.onMove(e.clientX, e.clientY);
-    }
+    this.drawTransform = this.mindMap.draw.transform();
+    this.autoMove.clearAutoMoveTimer();
+    this.autoMove.onMove(e.clientX, e.clientY);
   }
   // 开始拖拽时初始化一些数据
-  handleStartMove() {
+  async handleStartMove() {
     if (!this.isDragging) {
-      this.isDragging = true;
       let node2 = this.mousedownNode;
       this.drawTransform = this.mindMap.draw.transform();
       let { scaleX, scaleY, translateX, translateY } = this.drawTransform;
       this.offsetX = this.mouseDownX - (node2.left * scaleX + translateX);
       this.offsetY = this.mouseDownY - (node2.top * scaleY + translateY);
       if (node2.getData("isActive")) {
-        this.beingDragNodeList = getTopAncestorsFomNodeList(
-          // 过滤掉根节点和概要节点
-          this.mindMap.renderer.activeNodeList.filter((item) => {
-            return !item.isRoot && !item.isGeneralization;
-          })
+        this.beingDragNodeList = sortNodeList(
+          getTopAncestorsFomNodeList(
+            // 过滤掉根节点和概要节点
+            this.mindMap.renderer.activeNodeList.filter((item) => {
+              return !item.isRoot && !item.isGeneralization;
+            })
+          )
         );
       } else {
         this.beingDragNodeList = [node2];
       }
+      const { beforeDragStart } = this.mindMap.opt;
+      if (typeof beforeDragStart === "function") {
+        const stop = await beforeDragStart([...this.beingDragNodeList]);
+        if (stop)
+          return;
+      }
       this.nodeTreeToList();
       this.createCloneNode();
       this.mindMap.execCommand("CLEAR_ACTIVE_NODE");
+      this.isDragging = true;
     }
   }
   // 节点由树转换成数组，从子节点到根节点
@@ -59150,7 +59870,9 @@ var Drag = class extends Base_default {
       const {
         dragMultiNodeRectConfig,
         dragPlaceholderRectFill,
-        dragOpacityConfig
+        dragPlaceholderLineConfig,
+        dragOpacityConfig,
+        handleDragCloneNode
       } = this.mindMap.opt;
       const {
         width: rectWidth,
@@ -59172,12 +59894,19 @@ var Drag = class extends Base_default {
           expandEl.remove();
         }
         this.mindMap.otherDraw.add(this.clone);
+        if (typeof handleDragCloneNode === "function") {
+          handleDragCloneNode(this.clone);
+        }
       }
       this.clone.opacity(dragOpacityConfig.cloneNodeOpacity);
       this.clone.css("z-index", 99999);
       this.placeholder = this.mindMap.otherDraw.rect().fill({
         color: dragPlaceholderRectFill || lineColor
-      });
+      }).radius(5);
+      this.placeHolderLine = this.mindMap.otherDraw.path().stroke({
+        color: dragPlaceholderLineConfig.color || lineColor,
+        width: dragPlaceholderLineConfig.width
+      }).fill({ color: "none" });
       this.beingDragNodeList.forEach((node3) => {
         node3.setOpacity(dragOpacityConfig.beingDragNodeOpacity);
         node3.hideChildren();
@@ -59192,16 +59921,38 @@ var Drag = class extends Base_default {
     }
     this.clone.remove();
     this.placeholder.remove();
+    this.placeHolderLine.remove();
+    this.removeExtraLines();
+  }
+  // 移除额外创建的连线
+  removeExtraLines() {
+    this.placeHolderExtraLines.forEach((item) => {
+      item.remove();
+    });
+    this.placeHolderExtraLines = [];
   }
   //  检测重叠节点
   checkOverlapNode() {
     if (!this.drawTransform || !this.placeholder) {
       return;
     }
+    const {
+      LOGICAL_STRUCTURE,
+      LOGICAL_STRUCTURE_LEFT,
+      MIND_MAP,
+      ORGANIZATION_STRUCTURE,
+      CATALOG_ORGANIZATION,
+      TIMELINE,
+      TIMELINE2,
+      VERTICAL_TIMELINE,
+      FISHBONE
+    } = CONSTANTS.LAYOUT;
     this.overlapNode = null;
     this.prevNode = null;
     this.nextNode = null;
     this.placeholder.size(0, 0);
+    this.placeHolderLine.hide();
+    this.removeExtraLines();
     this.nodeList.forEach((node2) => {
       if (node2.getData("isActive")) {
         this.mindMap.execCommand("SET_NODE_ACTIVE", node2, false);
@@ -59210,28 +59961,29 @@ var Drag = class extends Base_default {
         return;
       }
       switch (this.mindMap.opt.layout) {
-        case "logicalStructure":
+        case LOGICAL_STRUCTURE:
+        case LOGICAL_STRUCTURE_LEFT:
           this.handleLogicalStructure(node2);
           break;
-        case "mindMap":
+        case MIND_MAP:
           this.handleMindMap(node2);
           break;
-        case "organizationStructure":
+        case ORGANIZATION_STRUCTURE:
           this.handleOrganizationStructure(node2);
           break;
-        case "catalogOrganization":
+        case CATALOG_ORGANIZATION:
           this.handleCatalogOrganization(node2);
           break;
-        case "timeline":
+        case TIMELINE:
           this.handleTimeLine(node2);
           break;
-        case "timeline2":
+        case TIMELINE2:
           this.handleTimeLine2(node2);
           break;
-        case "verticalTimeline":
+        case VERTICAL_TIMELINE:
           this.handleLogicalStructure(node2);
           break;
-        case "fishbone":
+        case FISHBONE:
           this.handleFishbone(node2);
           break;
         default:
@@ -59239,50 +59991,279 @@ var Drag = class extends Base_default {
       }
     });
     if (this.overlapNode) {
-      this.mindMap.execCommand("SET_NODE_ACTIVE", this.overlapNode, true);
+      this.handleOverlapNode();
+    }
+  }
+  // 处理作为子节点的情况
+  handleOverlapNode() {
+    const {
+      LOGICAL_STRUCTURE,
+      LOGICAL_STRUCTURE_LEFT,
+      MIND_MAP,
+      ORGANIZATION_STRUCTURE,
+      CATALOG_ORGANIZATION,
+      TIMELINE,
+      TIMELINE2,
+      VERTICAL_TIMELINE,
+      FISHBONE
+    } = CONSTANTS.LAYOUT;
+    const { LEFT, TOP, RIGHT, BOTTOM } = CONSTANTS.LAYOUT_GROW_DIR;
+    const layerIndex = this.overlapNode.layerIndex;
+    const children = this.overlapNode.children;
+    const marginX = this.mindMap.renderer.layout.getMarginX(layerIndex + 1);
+    const marginY = this.mindMap.renderer.layout.getMarginY(layerIndex + 1);
+    const halfPlaceholderWidth = this.placeholderWidth / 2;
+    const halfPlaceholderHeight = this.placeholderHeight / 2;
+    let dir = "";
+    let x2 = "";
+    let y2 = "";
+    let rotate = false;
+    let notRenderPlaceholder = false;
+    if (children.length > 0) {
+      const lastChild = children[children.length - 1];
+      const lastNodeRect = this.getNodeRect(lastChild);
+      dir = this.getNewChildNodeDir(lastChild);
+      switch (this.mindMap.opt.layout) {
+        case LOGICAL_STRUCTURE:
+        case MIND_MAP:
+          x2 = dir === LEFT ? lastNodeRect.originRight - this.placeholderWidth : lastNodeRect.originLeft;
+          y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          break;
+        case LOGICAL_STRUCTURE_LEFT:
+          x2 = lastNodeRect.originRight - this.placeholderWidth;
+          y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          break;
+        case ORGANIZATION_STRUCTURE:
+          rotate = true;
+          x2 = lastNodeRect.originRight + this.minOffset - halfPlaceholderHeight;
+          y2 = lastNodeRect.originTop;
+          break;
+        case CATALOG_ORGANIZATION:
+          if (layerIndex === 0) {
+            rotate = true;
+            x2 = lastNodeRect.originRight + this.minOffset - halfPlaceholderHeight;
+            y2 = lastNodeRect.originTop;
+          } else {
+            x2 = lastNodeRect.originLeft;
+            y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          }
+          break;
+        case TIMELINE:
+          if (layerIndex === 0) {
+            rotate = true;
+            x2 = lastNodeRect.originRight + this.minOffset - halfPlaceholderHeight;
+            y2 = lastNodeRect.originTop + lastNodeRect.originHeight / 2 - halfPlaceholderWidth;
+          } else {
+            x2 = lastNodeRect.originLeft;
+            y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          }
+          break;
+        case TIMELINE2:
+          if (layerIndex === 0) {
+            rotate = true;
+            x2 = lastNodeRect.originRight + this.minOffset - halfPlaceholderHeight;
+            y2 = lastNodeRect.originTop + lastNodeRect.originHeight / 2 - halfPlaceholderWidth;
+          } else {
+            x2 = lastNodeRect.originLeft;
+            if (layerIndex === 1) {
+              y2 = dir === TOP ? lastNodeRect.originTop - this.placeholderHeight - this.minOffset + halfPlaceholderHeight : lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+            } else {
+              y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+            }
+          }
+          break;
+        case VERTICAL_TIMELINE:
+          if (layerIndex === 0) {
+            x2 = lastNodeRect.originLeft + lastNodeRect.originWidth / 2 - halfPlaceholderWidth;
+            y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          } else {
+            x2 = dir === RIGHT ? lastNodeRect.originLeft : lastNodeRect.originRight - this.placeholderWidth;
+            y2 = lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          }
+          break;
+        case FISHBONE:
+          if (layerIndex <= 1) {
+            notRenderPlaceholder = true;
+            this.mindMap.execCommand("SET_NODE_ACTIVE", this.overlapNode, true);
+          } else {
+            x2 = lastNodeRect.originLeft;
+            y2 = dir === TOP ? lastNodeRect.originBottom + this.minOffset - halfPlaceholderHeight : lastNodeRect.originTop - this.placeholderHeight - this.minOffset + halfPlaceholderHeight;
+          }
+          break;
+        default:
+      }
+    } else {
+      const nodeRect = this.getNodeRect(this.overlapNode);
+      dir = this.getNewChildNodeDir(this.overlapNode);
+      switch (this.mindMap.opt.layout) {
+        case LOGICAL_STRUCTURE:
+        case MIND_MAP:
+          x2 = dir === RIGHT ? nodeRect.originRight + marginX : nodeRect.originLeft - this.placeholderWidth - marginX;
+          y2 = nodeRect.originTop + (nodeRect.originHeight - this.placeholderHeight) / 2;
+          break;
+        case LOGICAL_STRUCTURE_LEFT:
+          x2 = nodeRect.originLeft - this.placeholderWidth - marginX;
+          y2 = nodeRect.originTop + (nodeRect.originHeight - this.placeholderHeight) / 2;
+          break;
+        case ORGANIZATION_STRUCTURE:
+          rotate = true;
+          x2 = nodeRect.originLeft + (nodeRect.originWidth - this.placeholderHeight) / 2;
+          y2 = nodeRect.originBottom + marginX;
+          break;
+        case CATALOG_ORGANIZATION:
+          if (layerIndex === 0) {
+            rotate = true;
+          }
+          x2 = nodeRect.originLeft + nodeRect.originWidth * 0.5;
+          y2 = nodeRect.originBottom + marginX;
+          break;
+        case TIMELINE:
+          if (layerIndex === 0) {
+            rotate = true;
+          }
+          x2 = nodeRect.originLeft + nodeRect.originWidth * 0.5;
+          y2 = nodeRect.originBottom + marginY;
+          break;
+        case TIMELINE2:
+          if (layerIndex === 0) {
+            rotate = true;
+          }
+          x2 = nodeRect.originLeft + nodeRect.originWidth * 0.5;
+          if (layerIndex === 1) {
+            y2 = dir === TOP ? nodeRect.originTop - this.placeholderHeight - marginX : nodeRect.originBottom + marginX;
+          } else {
+            y2 = nodeRect.originBottom + marginX;
+          }
+          break;
+        case VERTICAL_TIMELINE:
+          if (layerIndex === 0) {
+            rotate = true;
+          }
+          x2 = dir === RIGHT ? nodeRect.originRight + marginX : nodeRect.originLeft - this.placeholderWidth - marginX;
+          y2 = nodeRect.originTop + nodeRect.originHeight / 2 - halfPlaceholderHeight;
+          break;
+        case FISHBONE:
+          if (layerIndex <= 1) {
+            notRenderPlaceholder = true;
+            this.mindMap.execCommand("SET_NODE_ACTIVE", this.overlapNode, true);
+          } else {
+            x2 = nodeRect.originLeft + nodeRect.originWidth * 0.5;
+            y2 = dir === BOTTOM ? nodeRect.originTop - this.placeholderHeight - this.minOffset + halfPlaceholderHeight : nodeRect.originBottom + this.minOffset - halfPlaceholderHeight;
+          }
+          break;
+        default:
+      }
+    }
+    if (!notRenderPlaceholder) {
+      this.setPlaceholderRect({
+        x: x2,
+        y: y2,
+        dir,
+        rotate
+      });
+    }
+  }
+  // 获取节点的生长方向
+  getNewChildNodeDir(node2) {
+    const {
+      LOGICAL_STRUCTURE,
+      LOGICAL_STRUCTURE_LEFT,
+      MIND_MAP,
+      TIMELINE2,
+      VERTICAL_TIMELINE,
+      FISHBONE
+    } = CONSTANTS.LAYOUT;
+    switch (this.mindMap.opt.layout) {
+      case LOGICAL_STRUCTURE:
+        return CONSTANTS.LAYOUT_GROW_DIR.RIGHT;
+      case LOGICAL_STRUCTURE_LEFT:
+        return CONSTANTS.LAYOUT_GROW_DIR.LEFT;
+      case MIND_MAP:
+      case TIMELINE2:
+      case VERTICAL_TIMELINE:
+      case FISHBONE:
+        return node2.dir;
+      default:
+        return "";
     }
   }
   // 垂直方向比较
   // isReverse：是否反向
   handleVerticalCheck(node2, checkList, isReverse = false) {
-    let x2 = this.mouseMoveX;
-    let y2 = this.mouseMoveY;
-    let nodeRect = this.getNodeRect(node2);
-    if (isReverse) {
+    const { layout } = this.mindMap.opt;
+    const { LAYOUT, LAYOUT_GROW_DIR } = CONSTANTS;
+    const { VERTICAL_TIMELINE, FISHBONE } = LAYOUT;
+    const { BOTTOM, LEFT } = LAYOUT_GROW_DIR;
+    const mouseMoveX = this.mouseMoveX;
+    const mouseMoveY = this.mouseMoveY;
+    const nodeRect = this.getNodeRect(node2);
+    const dir = this.getNewChildNodeDir(node2);
+    const layerIndex = node2.layerIndex;
+    if (isReverse || layout === FISHBONE && dir === BOTTOM && layerIndex >= 3) {
       checkList = checkList.reverse();
     }
-    let oneFourthHeight = nodeRect.height / 4;
+    let oneFourthHeight = nodeRect.originHeight / 4;
     let { prevBrotherOffset, nextBrotherOffset } = this.getNodeDistanceToSiblingNode(checkList, node2, nodeRect, "v");
-    if (nodeRect.left <= x2 && nodeRect.right >= x2) {
+    if (nodeRect.left <= mouseMoveX && nodeRect.right >= mouseMoveX) {
       if (!this.overlapNode && !this.prevNode && !this.nextNode && !node2.isRoot) {
-        let checkIsPrevNode = nextBrotherOffset > 0 ? y2 > nodeRect.bottom && y2 <= nodeRect.bottom + nextBrotherOffset : y2 >= nodeRect.bottom - oneFourthHeight && y2 <= nodeRect.bottom;
-        let checkIsNextNode = prevBrotherOffset > 0 ? y2 < nodeRect.top && y2 >= nodeRect.top - prevBrotherOffset : y2 >= nodeRect.top && y2 <= nodeRect.top + oneFourthHeight;
+        let checkIsPrevNode = nextBrotherOffset > 0 ? mouseMoveY > nodeRect.bottom && mouseMoveY <= nodeRect.bottom + nextBrotherOffset : mouseMoveY >= nodeRect.bottom - oneFourthHeight && mouseMoveY <= nodeRect.bottom;
+        let checkIsNextNode = prevBrotherOffset > 0 ? mouseMoveY < nodeRect.top && mouseMoveY >= nodeRect.top - prevBrotherOffset : mouseMoveY >= nodeRect.top && mouseMoveY <= nodeRect.top + oneFourthHeight;
+        const { scaleY } = this.drawTransform;
+        let x2 = dir === LEFT ? nodeRect.originRight - this.placeholderWidth : nodeRect.originLeft;
+        let notRenderLine = false;
+        switch (layout) {
+          case VERTICAL_TIMELINE:
+            if (layerIndex === 1) {
+              x2 = nodeRect.originLeft + nodeRect.originWidth / 2 - this.placeholderWidth / 2;
+            }
+            break;
+          default:
+        }
         if (checkIsPrevNode) {
           if (isReverse) {
             this.nextNode = node2;
           } else {
             this.prevNode = node2;
           }
-          let size2 = this.formatPlaceholderSize(nextBrotherOffset);
-          this.setPlaceholderRect(
-            node2.width,
-            size2,
-            nodeRect.originLeft,
-            nodeRect.originBottom
-          );
+          let y2 = nodeRect.originBottom + nextBrotherOffset / scaleY - //nextBrotherOffset已经是实际间距的一半了
+          this.placeholderHeight / 2;
+          switch (layout) {
+            case FISHBONE:
+              if (layerIndex === 2) {
+                notRenderLine = true;
+                y2 = nodeRect.originBottom + this.minOffset - this.placeholderHeight / 2;
+              }
+              break;
+            default:
+          }
+          this.setPlaceholderRect({
+            x: x2,
+            y: y2,
+            dir,
+            notRenderLine
+          });
         } else if (checkIsNextNode) {
           if (isReverse) {
             this.prevNode = node2;
           } else {
             this.nextNode = node2;
           }
-          let size2 = this.formatPlaceholderSize(prevBrotherOffset);
-          this.setPlaceholderRect(
-            node2.width,
-            size2,
-            nodeRect.originLeft,
-            nodeRect.originTop - size2
-          );
+          let y2 = nodeRect.originTop - this.placeholderHeight - prevBrotherOffset / scaleY + this.placeholderHeight / 2;
+          switch (layout) {
+            case FISHBONE:
+              if (layerIndex === 2) {
+                notRenderLine = true;
+                y2 = nodeRect.originTop - this.placeholderHeight - this.minOffset + this.placeholderHeight / 2;
+              }
+              break;
+            default:
+          }
+          this.setPlaceholderRect({
+            x: x2,
+            y: y2,
+            dir,
+            notRenderLine
+          });
         }
       }
       this.checkIsOverlap({
@@ -59291,40 +60272,59 @@ var Drag = class extends Base_default {
         prevBrotherOffset,
         nextBrotherOffset,
         size: oneFourthHeight,
-        pos: y2,
+        pos: mouseMoveY,
         nodeRect
       });
     }
   }
   // 水平方向比较
   handleHorizontalCheck(node2, checkList) {
-    let x2 = this.mouseMoveX;
-    let y2 = this.mouseMoveY;
+    const { layout } = this.mindMap.opt;
+    const { LAYOUT } = CONSTANTS;
+    const { FISHBONE, TIMELINE, TIMELINE2 } = LAYOUT;
+    let mouseMoveX = this.mouseMoveX;
+    let mouseMoveY = this.mouseMoveY;
     let nodeRect = this.getNodeRect(node2);
-    let oneFourthWidth = nodeRect.width / 4;
+    let oneFourthWidth = nodeRect.originWidth / 4;
     let { prevBrotherOffset, nextBrotherOffset } = this.getNodeDistanceToSiblingNode(checkList, node2, nodeRect, "h");
-    if (nodeRect.top <= y2 && nodeRect.bottom >= y2) {
+    if (nodeRect.top <= mouseMoveY && nodeRect.bottom >= mouseMoveY) {
       if (!this.overlapNode && !this.prevNode && !this.nextNode && !node2.isRoot) {
-        let checkIsPrevNode = nextBrotherOffset > 0 ? x2 < nodeRect.right + nextBrotherOffset && x2 >= nodeRect.right : x2 <= nodeRect.right && x2 >= nodeRect.right - oneFourthWidth;
-        let checkIsNextNode = prevBrotherOffset > 0 ? x2 > nodeRect.left - prevBrotherOffset && x2 <= nodeRect.left : x2 <= nodeRect.left + oneFourthWidth && x2 >= nodeRect.left;
+        let checkIsPrevNode = nextBrotherOffset > 0 ? mouseMoveX < nodeRect.right + nextBrotherOffset && mouseMoveX >= nodeRect.right : mouseMoveX <= nodeRect.right && mouseMoveX >= nodeRect.right - oneFourthWidth;
+        let checkIsNextNode = prevBrotherOffset > 0 ? mouseMoveX > nodeRect.left - prevBrotherOffset && mouseMoveX <= nodeRect.left : mouseMoveX <= nodeRect.left + oneFourthWidth && mouseMoveX >= nodeRect.left;
+        const { scaleX } = this.drawTransform;
+        const layerIndex = node2.layerIndex;
+        let y2 = nodeRect.originTop;
+        let notRenderLine = false;
+        switch (layout) {
+          case TIMELINE:
+          case TIMELINE2:
+            y2 = nodeRect.originTop + nodeRect.originHeight / 2 - this.placeholderWidth / 2;
+            break;
+          case FISHBONE:
+            if (layerIndex === 1) {
+              notRenderLine = true;
+              y2 = nodeRect.originTop + nodeRect.originHeight / 2 - this.placeholderWidth / 2;
+            }
+            break;
+          default:
+        }
         if (checkIsPrevNode) {
           this.prevNode = node2;
-          let size2 = this.formatPlaceholderSize(nextBrotherOffset);
-          this.setPlaceholderRect(
-            size2,
-            node2.height,
-            nodeRect.originRight,
-            nodeRect.originTop
-          );
+          this.setPlaceholderRect({
+            x: nodeRect.originRight + nextBrotherOffset / scaleX - //nextBrotherOffset已经是实际间距的一半了
+            this.placeholderHeight / 2,
+            y: y2,
+            rotate: true,
+            notRenderLine
+          });
         } else if (checkIsNextNode) {
           this.nextNode = node2;
-          let size2 = this.formatPlaceholderSize(prevBrotherOffset);
-          this.setPlaceholderRect(
-            size2,
-            node2.height,
-            nodeRect.originLeft - size2,
-            nodeRect.originTop
-          );
+          this.setPlaceholderRect({
+            x: nodeRect.originLeft - this.placeholderHeight - prevBrotherOffset / scaleX + this.placeholderHeight / 2,
+            y: y2,
+            rotate: true,
+            notRenderLine
+          });
         }
       }
       this.checkIsOverlap({
@@ -59333,15 +60333,19 @@ var Drag = class extends Base_default {
         prevBrotherOffset,
         nextBrotherOffset,
         size: oneFourthWidth,
-        pos: x2,
+        pos: mouseMoveX,
         nodeRect
       });
     }
   }
   // 获取节点距前一个和后一个节点的距离
   getNodeDistanceToSiblingNode(checkList, node2, nodeRect, dir) {
-    let dir1 = dir === "v" ? "top" : "left";
-    let dir2 = dir === "v" ? "bottom" : "right";
+    const { TOP, LEFT, BOTTOM, RIGHT } = CONSTANTS.LAYOUT_GROW_DIR;
+    let { scaleX, scaleY } = this.drawTransform;
+    let dir1 = dir === "v" ? TOP : LEFT;
+    let dir2 = dir === "v" ? BOTTOM : RIGHT;
+    let scale2 = dir === "v" ? scaleY : scaleX;
+    let minOffset = this.minOffset * scale2;
     let index2 = getNodeIndexInNodeList(node2, checkList);
     let prevBrother = null;
     let nextBrother = null;
@@ -59357,31 +60361,74 @@ var Drag = class extends Base_default {
     if (prevBrother) {
       let prevNodeRect = this.getNodeRect(prevBrother);
       prevBrotherOffset = nodeRect[dir1] - prevNodeRect[dir2];
-      prevBrotherOffset = prevBrotherOffset >= this.minOffset ? prevBrotherOffset / 2 : 0;
+      prevBrotherOffset = prevBrotherOffset >= minOffset ? prevBrotherOffset / 2 : 0;
     } else {
-      prevBrotherOffset = this.minOffset;
+      prevBrotherOffset = minOffset;
     }
     let nextBrotherOffset = 0;
     if (nextBrother) {
       let nextNodeRect = this.getNodeRect(nextBrother);
       nextBrotherOffset = nextNodeRect[dir1] - nodeRect[dir2];
-      nextBrotherOffset = nextBrotherOffset >= this.minOffset ? nextBrotherOffset / 2 : 0;
+      nextBrotherOffset = nextBrotherOffset >= minOffset ? nextBrotherOffset / 2 : 0;
     } else {
-      nextBrotherOffset = this.minOffset;
+      nextBrotherOffset = minOffset;
     }
     return {
+      prevBrother,
       prevBrotherOffset,
+      nextBrother,
       nextBrotherOffset
     };
   }
-  // 处理提示元素的大小
-  formatPlaceholderSize(size2) {
-    const { nodeDragPlaceholderMaxSize } = this.mindMap.opt;
-    return size2 > 0 ? Math.min(size2, nodeDragPlaceholderMaxSize) : 5;
-  }
   // 设置提示元素的大小和位置
-  setPlaceholderRect(w, h, x2, y2) {
+  setPlaceholderRect({ x: x2, y: y2, dir, rotate, notRenderLine }) {
+    let w = this.placeholderWidth;
+    let h = this.placeholderHeight;
+    if (rotate) {
+      const tmp = w;
+      w = h;
+      h = tmp;
+    }
     this.placeholder.size(w, h).move(x2, y2);
+    if (notRenderLine) {
+      return;
+    }
+    const { dragPlaceholderLineConfig } = this.mindMap.opt;
+    let node2 = null;
+    let parent = null;
+    if (this.overlapNode) {
+      node2 = this.overlapNode;
+      parent = this.overlapNode;
+    } else {
+      node2 = this.prevNode || this.nextNode;
+      parent = node2.parent;
+    }
+    parent = parent.fakeClone();
+    node2 = node2.fakeClone();
+    const tmpNode = this.beingDragNodeList[0].fakeClone();
+    tmpNode.dir = dir;
+    tmpNode.left = x2;
+    tmpNode.top = y2;
+    tmpNode.width = w;
+    tmpNode.height = h;
+    parent.children = [tmpNode];
+    parent._lines = [];
+    this.placeHolderLine.show();
+    this.mindMap.renderer.layout.renderLine(
+      parent,
+      [this.placeHolderLine],
+      (...args) => {
+      },
+      node2.style.getStyle("lineStyle", true)
+    );
+    this.placeHolderExtraLines = [...parent._lines];
+    this.placeHolderExtraLines.forEach((line) => {
+      this.mindMap.otherDraw.add(line);
+      line.stroke({
+        color: dragPlaceholderLineConfig.color,
+        width: dragPlaceholderLineConfig.width
+      }).fill({ color: "none" });
+    });
   }
   // 检测是否重叠
   checkIsOverlap({
@@ -59393,8 +60440,9 @@ var Drag = class extends Base_default {
     pos,
     nodeRect
   }) {
-    let dir1 = dir === "v" ? "top" : "left";
-    let dir2 = dir === "v" ? "bottom" : "right";
+    const { TOP, LEFT, BOTTOM, RIGHT } = CONSTANTS.LAYOUT_GROW_DIR;
+    let dir1 = dir === "v" ? TOP : LEFT;
+    let dir2 = dir === "v" ? BOTTOM : RIGHT;
     if (!this.overlapNode && !this.prevNode && !this.nextNode) {
       if (nodeRect[dir1] + (prevBrotherOffset > 0 ? 0 : size2) <= pos && nodeRect[dir2] - (nextBrotherOffset > 0 ? 0 : size2) >= pos) {
         this.overlapNode = node2;
@@ -59446,7 +60494,7 @@ var Drag = class extends Base_default {
     if (node2.layerIndex === 1) {
       this.handleHorizontalCheck(node2, checkList);
     } else {
-      if (node2.dir === "top" && node2.layerIndex === 2) {
+      if (node2.dir === CONSTANTS.LAYOUT_GROW_DIR.TOP && node2.layerIndex === 2) {
         this.handleVerticalCheck(node2, checkList, true);
       } else {
         this.handleVerticalCheck(node2, checkList);
@@ -59461,7 +60509,7 @@ var Drag = class extends Base_default {
     if (node2.layerIndex === 1) {
       this.handleHorizontalCheck(node2, checkList);
     } else {
-      if (node2.dir === "top" && node2.layerIndex === 2) {
+      if (node2.dir === CONSTANTS.LAYOUT_GROW_DIR.TOP && node2.layerIndex === 2) {
         this.handleVerticalCheck(node2, checkList, true);
       } else {
         this.handleVerticalCheck(node2, checkList);
@@ -59478,6 +60526,8 @@ var Drag = class extends Base_default {
   getNodeRect(node2) {
     let { scaleX, scaleY, translateX, translateY } = this.drawTransform;
     let { left, top, width: width2, height: height2 } = node2;
+    let originWidth = width2;
+    let originHeight = height2;
     let originLeft = left;
     let originTop = top;
     let originBottom = top + height2;
@@ -59487,12 +60537,12 @@ var Drag = class extends Base_default {
     left = left * scaleX + translateX;
     top = top * scaleY + translateY;
     return {
-      width: width2,
-      height: height2,
       left,
       top,
       right,
       bottom,
+      originWidth,
+      originHeight,
       originLeft,
       originTop,
       originBottom,
@@ -59530,6 +60580,7 @@ var Select = class {
     this.mouseMoveY = 0;
     this.isSelecting = false;
     this.cacheActiveList = [];
+    this.autoMove = new AutoMove_default(mindMap);
     this.bindEvent();
   }
   //  绑定事件
@@ -59581,18 +60632,20 @@ var Select = class {
     if (Math.abs(x2 - this.mouseDownX) <= 10 && Math.abs(y2 - this.mouseDownY) <= 10) {
       return;
     }
-    this.clearAutoMoveTimer();
-    this.onMove(
+    this.autoMove.clearAutoMoveTimer();
+    this.autoMove.onMove(
       e.clientX,
       e.clientY,
       () => {
         this.isSelecting = true;
-        this.rect.plot([
-          [this.mouseDownX, this.mouseDownY],
-          [this.mouseMoveX, this.mouseDownY],
-          [this.mouseMoveX, this.mouseMoveY],
-          [this.mouseDownX, this.mouseMoveY]
-        ]);
+        if (this.rect) {
+          this.rect.plot([
+            [this.mouseDownX, this.mouseDownY],
+            [this.mouseMoveX, this.mouseDownY],
+            [this.mouseMoveX, this.mouseMoveY],
+            [this.mouseDownX, this.mouseMoveY]
+          ]);
+        }
         this.checkInNodes();
       },
       (dir, step) => {
@@ -59624,7 +60677,7 @@ var Select = class {
       return;
     }
     this.checkTriggerNodeActiveEvent();
-    clearTimeout(this.autoMoveTimer);
+    this.autoMove.clearAutoMoveTimer();
     this.isMousedown = false;
     this.cacheActiveList = [];
     if (this.rect)
@@ -59652,48 +60705,6 @@ var Select = class {
     if (isNumChange || isNodeChange) {
       this.mindMap.renderer.emitNodeActiveEvent();
     }
-  }
-  //  鼠标移动事件
-  onMove(x2, y2, callback = () => {
-  }, handle = () => {
-  }) {
-    callback();
-    let step = this.mindMap.opt.selectTranslateStep;
-    let limit = this.mindMap.opt.selectTranslateLimit;
-    let count = 0;
-    if (x2 <= this.mindMap.elRect.left + limit) {
-      handle("left", step);
-      this.mindMap.view.translateX(step);
-      count++;
-    }
-    if (x2 >= this.mindMap.elRect.right - limit) {
-      handle("right", step);
-      this.mindMap.view.translateX(-step);
-      count++;
-    }
-    if (y2 <= this.mindMap.elRect.top + limit) {
-      handle("top", step);
-      this.mindMap.view.translateY(step);
-      count++;
-    }
-    if (y2 >= this.mindMap.elRect.bottom - limit) {
-      handle("bottom", step);
-      this.mindMap.view.translateY(-step);
-      count++;
-    }
-    if (count > 0) {
-      this.startAutoMove(x2, y2, callback, handle);
-    }
-  }
-  //  开启自动移动
-  startAutoMove(x2, y2, callback, handle) {
-    this.autoMoveTimer = setTimeout(() => {
-      this.onMove(x2, y2, callback, handle);
-    }, 20);
-  }
-  // 清除自动移动定时器
-  clearAutoMoveTimer() {
-    clearTimeout(this.autoMoveTimer);
   }
   //  创建矩形
   createRect(x2, y2) {
@@ -59723,11 +60734,13 @@ var Select = class {
           return;
         }
         this.mindMap.renderer.addNodeToActiveList(node2);
+        this.mindMap.renderer.emitNodeActiveEvent();
       } else if (node2.getData("isActive")) {
         if (!node2.getData("isActive")) {
           return;
         }
         this.mindMap.renderer.removeNodeFromActiveList(node2);
+        this.mindMap.renderer.emitNodeActiveEvent();
       }
     });
   }
@@ -60051,6 +61064,7 @@ function createOneControlNode(pointKey) {
 }
 function onControlPointMousedown(e, pointKey) {
   e.stopPropagation();
+  e.preventDefault();
   this.isControlPointMousedown = true;
   this.mousedownControlPointKey = pointKey;
 }
@@ -60462,10 +61476,12 @@ var AssociativeLine = class {
     this.onNodeDragging = this.onNodeDragging.bind(this);
     this.onNodeDragend = this.onNodeDragend.bind(this);
     this.onControlPointMouseup = this.onControlPointMouseup.bind(this);
+    this.cancelCreateLine = this.cancelCreateLine.bind(this);
     this.mindMap.on("node_tree_render_end", this.renderAllLines);
     this.mindMap.on("data_change", this.renderAllLines);
     this.mindMap.on("draw_click", this.onDrawClick);
     this.mindMap.on("node_click", this.onNodeClick);
+    this.mindMap.on("contextmenu", this.cancelCreateLine);
     this.mindMap.keyCommand.addShortcut("Del|Backspace", this.removeLine);
     this.mindMap.command.add("ADD_ASSOCIATIVE_LINE", this.addLine);
     this.mindMap.on("mousemove", this.onMousemove);
@@ -60480,6 +61496,7 @@ var AssociativeLine = class {
     this.mindMap.off("data_change", this.renderAllLines);
     this.mindMap.off("draw_click", this.onDrawClick);
     this.mindMap.off("node_click", this.onNodeClick);
+    this.mindMap.off("contextmenu", this.cancelCreateLine);
     this.mindMap.keyCommand.removeShortcut("Del|Backspace", this.removeLine);
     this.mindMap.command.remove("ADD_ASSOCIATIVE_LINE", this.addLine);
     this.mindMap.off("mousemove", this.onMousemove);
@@ -60490,10 +61507,12 @@ var AssociativeLine = class {
   }
   // 画布点击事件
   onDrawClick() {
-    if (this.isControlPointMousedown) {
-      return;
+    if (this.isCreatingLine) {
+      this.cancelCreateLine();
     }
-    this.clearActiveLine();
+    if (this.isControlPointMousedown) {
+      this.clearActiveLine();
+    }
   }
   // 节点点击事件
   onNodeClick(node2) {
@@ -60693,6 +61712,15 @@ var AssociativeLine = class {
     this.markerPath.stroke({ color: associativeLineColor }).fill({ color: associativeLineColor });
     this.creatingLine.marker("end", this.marker);
   }
+  // 取消创建关联线
+  cancelCreateLine() {
+    this.isCreatingLine = false;
+    this.creatingStartNode = null;
+    this.creatingLine.remove();
+    this.creatingLine = null;
+    this.overlapNode = null;
+    this.back();
+  }
   // 鼠标移动事件
   onMousemove(e) {
     this.onControlPointMousemove(e);
@@ -60762,12 +61790,7 @@ var AssociativeLine = class {
     if (this.overlapNode && this.overlapNode.getData("isActive")) {
       this.mindMap.execCommand("SET_NODE_ACTIVE", this.overlapNode, false);
     }
-    this.isCreatingLine = false;
-    this.creatingStartNode = null;
-    this.creatingLine.remove();
-    this.creatingLine = null;
-    this.overlapNode = null;
-    this.back();
+    this.cancelCreateLine();
   }
   // 添加连接线
   addLine(fromNode, toNode3) {
@@ -61060,7 +62083,8 @@ var RichText = class {
       customInnerElsAppendTo,
       nodeTextEditZIndex,
       textAutoWrapWidth,
-      selectTextOnEnterEditText
+      selectTextOnEnterEditText,
+      transformRichTextOnEnterEdit
     } = this.mindMap.opt;
     this.node = node2;
     this.isInserting = isInserting;
@@ -61126,7 +62150,10 @@ var RichText = class {
         this.textEditNode.style.borderRadius = (node2.height || 50) + "px";
       }
     }
-    const nodeText = node2.getData("text");
+    let nodeText = node2.getData("text");
+    if (typeof transformRichTextOnEnterEdit === "function") {
+      nodeText = transformRichTextOnEnterEdit(nodeText);
+    }
     const isEmptyText = isUndef(nodeText);
     const noneEmptyNoneRichText = !node2.getData("richText") && !isEmptyText;
     if (isEmptyText) {
@@ -61179,7 +62206,6 @@ var RichText = class {
   // 获取当前正在编辑的内容
   getEditText() {
     let html2 = this.quill.container.firstChild.innerHTML;
-    html2 = removeHtmlNodeByClass(html2, ".ql-cursor");
     return html2.replace(/<p><br><\/p>$/, "");
   }
   // 隐藏文本编辑控件，即完成编辑
@@ -61187,13 +62213,17 @@ var RichText = class {
     if (!this.showTextEdit) {
       return;
     }
+    const { beforeHideRichTextEdit } = this.mindMap.opt;
+    if (typeof beforeHideRichTextEdit === "function") {
+      beforeHideRichTextEdit(this);
+    }
     let html2 = this.getEditText();
     let list2 = nodes && nodes.length > 0 ? nodes : this.mindMap.renderer.activeNodeList;
     list2.forEach((node2) => {
       this.mindMap.execCommand("SET_NODE_TEXT", node2, html2, true);
       this.mindMap.render();
     });
-    this.mindMap.emit("hide_text_edit", this.textEditNode, list2);
+    this.mindMap.emit("hide_text_edit", this.textEditNode, list2, this.node);
     this.textEditNode.style.display = "none";
     this.showTextEdit = false;
     this.mindMap.emit("rich_text_selection_change", false);
@@ -61221,6 +62251,20 @@ var RichText = class {
         }
       },
       theme: "snow"
+    });
+    this.quill.root.addEventListener("copy", (event) => {
+      event.preventDefault();
+      const sel = window.getSelection();
+      const originStr = sel.toString();
+      try {
+        const range2 = sel.getRangeAt(0);
+        const div = document.createElement("div");
+        div.appendChild(range2.cloneContents());
+        const text4 = nodeRichTextToTextWithWrap(div.innerHTML);
+        event.clipboardData.setData("text/plain", text4);
+      } catch (e) {
+        event.clipboardData.setData("text/plain", originStr);
+      }
     });
     this.quill.on("selection-change", (range2) => {
       if (this.isInserting)
@@ -61267,11 +62311,11 @@ var RichText = class {
         this.lostStyle = false;
       }
     });
-    this.quill.clipboard.addMatcher(Node.TEXT_NODE, (node2) => {
+    this.quill.clipboard.addMatcher(Node_default.TEXT_NODE, (node2) => {
       let style = this.getPasteTextStyle();
       return new import_quill_delta.default().insert(this.formatPasteText(node2.data), style);
     });
-    this.quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node2, delta) => {
+    this.quill.clipboard.addMatcher(Node_default.ELEMENT_NODE, (node2, delta) => {
       let ops = [];
       let style = this.getPasteTextStyle();
       delta.ops.forEach((op2) => {
@@ -61475,6 +62519,24 @@ var RichText = class {
       this.hideEditText([node2]);
     }
   }
+  // 检查指定节点是否存在自定义的富文本样式
+  checkNodeHasCustomRichTextStyle(node2) {
+    const list2 = [
+      "fontFamily",
+      "fontSize",
+      "fontWeight",
+      "fontStyle",
+      "textDecoration",
+      "color"
+    ];
+    const nodeData = node2 instanceof Node_default ? node2.getData() : node2;
+    for (let i = 0; i < list2.length; i++) {
+      if (nodeData[list2[i]] !== void 0) {
+        return true;
+      }
+    }
+    return false;
+  }
   // 将所有节点转换成非富文本节点
   transformAllNodesToNormalNode() {
     if (!this.mindMap.renderer.renderTree)
@@ -61487,10 +62549,9 @@ var RichText = class {
           node2.data.richText = false;
           node2.data.text = getTextFromHtml(node2.data.text);
         }
-        let generalization = node2.data && node2.data.generalization ? node2.data.generalization : [];
-        generalization = Array.isArray(generalization) ? generalization : [generalization];
-        if (generalization.length > 0) {
-          generalization.forEach((item) => {
+        if (node2.data) {
+          const generalizationList = formatGetNodeGeneralization(node2.data);
+          generalizationList.forEach((item) => {
             item.richText = false;
             item.text = getTextFromHtml(item.text);
           });
@@ -61512,10 +62573,9 @@ var RichText = class {
         root2.data.richText = true;
         root2.data.resetRichText = true;
       }
-      let generalization = root2.data && root2.data.generalization ? root2.data.generalization : [];
-      generalization = Array.isArray(generalization) ? generalization : [generalization];
-      if (generalization.length > 0) {
-        generalization.forEach((item) => {
+      if (root2.data) {
+        const generalizationList = formatGetNodeGeneralization(root2.data);
+        generalizationList.forEach((item) => {
           item.richText = true;
           item.resetRichText = true;
         });
@@ -61684,6 +62744,7 @@ var NodeImgAdjust = class {
     });
     btnEl.addEventListener("mousedown", (e) => {
       e.stopPropagation();
+      e.preventDefault();
       this.onMousedown(e);
     });
     btnEl.addEventListener("mouseup", (e) => {
@@ -61800,6 +62861,8 @@ var TouchEvent = class {
     this.singleTouchstartEvent = null;
     this.clickNum = 0;
     this.touchStartScaleView = null;
+    this.lastTouchStartPosition = null;
+    this.lastTouchStartDistance = 0;
     this.bindEvent();
   }
   // 绑定事件
@@ -61808,10 +62871,12 @@ var TouchEvent = class {
     this.onTouchmove = this.onTouchmove.bind(this);
     this.onTouchcancel = this.onTouchcancel.bind(this);
     this.onTouchend = this.onTouchend.bind(this);
-    window.addEventListener("touchstart", this.onTouchstart);
-    window.addEventListener("touchmove", this.onTouchmove);
-    window.addEventListener("touchcancel", this.onTouchcancel);
-    window.addEventListener("touchend", this.onTouchend);
+    window.addEventListener("touchstart", this.onTouchstart, { passive: false });
+    window.addEventListener("touchmove", this.onTouchmove, { passive: false });
+    window.addEventListener("touchcancel", this.onTouchcancel, {
+      passive: false
+    });
+    window.addEventListener("touchend", this.onTouchend, { passive: false });
   }
   // 解绑事件
   unBindEvent() {
@@ -61826,6 +62891,18 @@ var TouchEvent = class {
     this.touchStartScaleView = null;
     if (this.touchesNum === 1) {
       let touch = e.touches[0];
+      if (this.lastTouchStartPosition) {
+        this.lastTouchStartDistance = getTwoPointDistance(
+          this.lastTouchStartPosition.x,
+          this.lastTouchStartPosition.y,
+          touch.clientX,
+          touch.clientY
+        );
+      }
+      this.lastTouchStartPosition = {
+        x: touch.clientX,
+        y: touch.clientY
+      };
       this.singleTouchstartEvent = touch;
       this.dispatchMouseEvent("mousedown", touch.target, touch);
     }
@@ -61837,8 +62914,11 @@ var TouchEvent = class {
       let touch = e.touches[0];
       this.dispatchMouseEvent("mousemove", touch.target, touch);
     } else if (len === 2) {
-      if (this.mindMap.opt.disableTouchZoom)
+      let { disableTouchZoom, minTouchZoomScale, maxTouchZoomScale } = this.mindMap.opt;
+      if (disableTouchZoom)
         return;
+      minTouchZoomScale = minTouchZoomScale === -1 ? -Infinity : minTouchZoomScale / 100;
+      maxTouchZoomScale = maxTouchZoomScale === -1 ? Infinity : maxTouchZoomScale / 100;
       let touch1 = e.touches[0];
       let touch2 = e.touches[1];
       let ox = touch1.clientX - touch2.clientX;
@@ -61871,8 +62951,9 @@ var TouchEvent = class {
       if (Math.abs(distance - viewBefore.distance) <= 10) {
         scale2 = viewBefore.scale;
       }
+      scale2 = scale2 < minTouchZoomScale ? minTouchZoomScale : scale2 > maxTouchZoomScale ? maxTouchZoomScale : scale2;
       const ratio = 1 - scale2 / viewBefore.scale;
-      view.scale = scale2 < 0.1 ? 0.1 : scale2;
+      view.scale = scale2;
       view.x = viewBefore.x + (cx3 - viewBefore.x) * ratio + (cx3 - viewBefore.cx) * scale2;
       view.y = viewBefore.y + (cy3 - viewBefore.y) * ratio + (cy3 - viewBefore.cy) * scale2;
       view.transform();
@@ -61889,9 +62970,11 @@ var TouchEvent = class {
       this.clickNum++;
       setTimeout(() => {
         this.clickNum = 0;
+        this.lastTouchStartPosition = null;
+        this.lastTouchStartDistance = 0;
       }, 300);
       let ev = this.singleTouchstartEvent;
-      if (this.clickNum > 1) {
+      if (this.clickNum > 1 && this.lastTouchStartDistance <= 5) {
         this.clickNum = 0;
         this.dispatchMouseEvent("dblclick", ev.target, ev);
       } else {
@@ -76855,13 +77938,1118 @@ var katex = {
 
 // ../simple-mind-map/src/plugins/Formula.js
 var import_quill2 = __toESM(require_quill());
+
+// ../simple-mind-map/src/plugins/FormulaStyle.js
+var getFontStyleText = (fontPath) => {
+  return `
+@font-face {
+  font-family: 'KaTeX_AMS';
+  src: url(${fontPath}fonts/KaTeX_AMS-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_AMS-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_AMS-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Caligraphic';
+  src: url(${fontPath}fonts/KaTeX_Caligraphic-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Caligraphic-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_Caligraphic-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Caligraphic';
+  src: url(${fontPath}fonts/KaTeX_Caligraphic-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Caligraphic-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Caligraphic-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Fraktur';
+  src: url(${fontPath}fonts/KaTeX_Fraktur-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Fraktur-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_Fraktur-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Fraktur';
+  src: url(${fontPath}fonts/KaTeX_Fraktur-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Fraktur-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Fraktur-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-BoldItalic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-BoldItalic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-BoldItalic.ttf) format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-Italic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-Italic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Main';
+  src: url(${fontPath}fonts/KaTeX_Main-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Main-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Main-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Math';
+  src: url(${fontPath}fonts/KaTeX_Math-BoldItalic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Math-BoldItalic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Math-BoldItalic.ttf) format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_Math';
+  src: url(${fontPath}fonts/KaTeX_Math-Italic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Math-Italic.woff) format('woff'), url(${fontPath}fonts/KaTeX_Math-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(${fontPath}fonts/KaTeX_SansSerif-Bold.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_SansSerif-Bold.woff) format('woff'), url(${fontPath}fonts/KaTeX_SansSerif-Bold.ttf) format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(${fontPath}fonts/KaTeX_SansSerif-Italic.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_SansSerif-Italic.woff) format('woff'), url(${fontPath}fonts/KaTeX_SansSerif-Italic.ttf) format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'KaTeX_SansSerif';
+  src: url(${fontPath}fonts/KaTeX_SansSerif-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_SansSerif-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_SansSerif-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Script';
+  src: url(${fontPath}fonts/KaTeX_Script-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Script-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Script-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size1';
+  src: url(${fontPath}fonts/KaTeX_Size1-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size1-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size1-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size2';
+  src: url(${fontPath}fonts/KaTeX_Size2-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size2-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size2-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size3';
+  src: url(${fontPath}fonts/KaTeX_Size3-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size3-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size3-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Size4';
+  src: url(${fontPath}fonts/KaTeX_Size4-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Size4-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Size4-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'KaTeX_Typewriter';
+  src: url(${fontPath}fonts/KaTeX_Typewriter-Regular.woff2) format('woff2'), url(${fontPath}fonts/KaTeX_Typewriter-Regular.woff) format('woff'), url(${fontPath}fonts/KaTeX_Typewriter-Regular.ttf) format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+    `;
+};
+var getBaseStyleText = () => {
+  return `
+.katex {
+  font: normal 1.21em KaTeX_Main, Times New Roman, serif;
+  line-height: 1.2;
+  text-indent: 0;
+  text-rendering: auto;
+}
+.katex * {
+  -ms-high-contrast-adjust: none !important;
+}
+.katex * {
+  border-color: currentColor;
+}
+.katex .katex-version::after {
+  content: "0.16.9";
+}
+.katex .katex-mathml {
+  /* Accessibility hack to only show to screen readers
+         Found at: http://a11yproject.com/posts/how-to-hide-content/ */
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  padding: 0;
+  border: 0;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+}
+.katex .katex-html {
+  /* 
+ewline is an empty block at top level, between .base elements */
+}
+.katex .katex-html > .newline {
+  display: block;
+}
+.katex .base {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  width: -webkit-min-content;
+  width: -moz-min-content;
+  width: min-content;
+}
+.katex .strut {
+  display: inline-block;
+}
+.katex .textbf {
+  font-weight: bold;
+}
+.katex .textit {
+  font-style: italic;
+}
+.katex .textrm {
+  font-family: KaTeX_Main;
+}
+.katex .textsf {
+  font-family: KaTeX_SansSerif;
+}
+.katex .texttt {
+  font-family: KaTeX_Typewriter;
+}
+.katex .mathnormal {
+  font-family: KaTeX_Math;
+  font-style: italic;
+}
+.katex .mathit {
+  font-family: KaTeX_Main;
+  font-style: italic;
+}
+.katex .mathrm {
+  font-style: normal;
+}
+.katex .mathbf {
+  font-family: KaTeX_Main;
+  font-weight: bold;
+}
+.katex .boldsymbol {
+  font-family: KaTeX_Math;
+  font-weight: bold;
+  font-style: italic;
+}
+.katex .amsrm {
+  font-family: KaTeX_AMS;
+}
+.katex .mathbb,
+.katex .textbb {
+  font-family: KaTeX_AMS;
+}
+.katex .mathcal {
+  font-family: KaTeX_Caligraphic;
+}
+.katex .mathfrak,
+.katex .textfrak {
+  font-family: KaTeX_Fraktur;
+}
+.katex .mathboldfrak,
+.katex .textboldfrak {
+  font-family: KaTeX_Fraktur;
+  font-weight: bold;
+}
+.katex .mathtt {
+  font-family: KaTeX_Typewriter;
+}
+.katex .mathscr,
+.katex .textscr {
+  font-family: KaTeX_Script;
+}
+.katex .mathsf,
+.katex .textsf {
+  font-family: KaTeX_SansSerif;
+}
+.katex .mathboldsf,
+.katex .textboldsf {
+  font-family: KaTeX_SansSerif;
+  font-weight: bold;
+}
+.katex .mathitsf,
+.katex .textitsf {
+  font-family: KaTeX_SansSerif;
+  font-style: italic;
+}
+.katex .mainrm {
+  font-family: KaTeX_Main;
+  font-style: normal;
+}
+.katex .vlist-t {
+  display: inline-table;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.katex .vlist-r {
+  display: table-row;
+}
+.katex .vlist {
+  display: table-cell;
+  vertical-align: bottom;
+  position: relative;
+}
+.katex .vlist > span {
+  display: block;
+  height: 0;
+  position: relative;
+}
+.katex .vlist > span > span {
+  display: inline-block;
+}
+.katex .vlist > span > .pstrut {
+  overflow: hidden;
+  width: 0;
+}
+.katex .vlist-t2 {
+  margin-right: -2px;
+}
+.katex .vlist-s {
+  display: table-cell;
+  vertical-align: bottom;
+  font-size: 1px;
+  width: 2px;
+  min-width: 2px;
+}
+.katex .vbox {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: baseline;
+}
+.katex .hbox {
+  display: inline-flex;
+  flex-direction: row;
+  width: 100%;
+}
+.katex .thinbox {
+  display: inline-flex;
+  flex-direction: row;
+  width: 0;
+  max-width: 0;
+}
+.katex .msupsub {
+  text-align: left;
+}
+.katex .mfrac > span > span {
+  text-align: center;
+}
+.katex .mfrac .frac-line {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: solid;
+}
+.katex .mfrac .frac-line,
+.katex .overline .overline-line,
+.katex .underline .underline-line,
+.katex .hline,
+.katex .hdashline,
+.katex .rule {
+  min-height: 1px;
+}
+.katex .mspace {
+  display: inline-block;
+}
+.katex .llap,
+.katex .rlap,
+.katex .clap {
+  width: 0;
+  position: relative;
+}
+.katex .llap > .inner,
+.katex .rlap > .inner,
+.katex .clap > .inner {
+  position: absolute;
+}
+.katex .llap > .fix,
+.katex .rlap > .fix,
+.katex .clap > .fix {
+  display: inline-block;
+}
+.katex .llap > .inner {
+  right: 0;
+}
+.katex .rlap > .inner,
+.katex .clap > .inner {
+  left: 0;
+}
+.katex .clap > .inner > span {
+  margin-left: -50%;
+  margin-right: 50%;
+}
+.katex .rule {
+  display: inline-block;
+  border: solid 0;
+  position: relative;
+}
+.katex .overline .overline-line,
+.katex .underline .underline-line,
+.katex .hline {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: solid;
+}
+.katex .hdashline {
+  display: inline-block;
+  width: 100%;
+  border-bottom-style: dashed;
+}
+.katex .sqrt > .root {
+  margin-left: 0.27777778em;
+  margin-right: -0.55555556em;
+}
+.katex .sizing.reset-size1.size1,
+.katex .fontsize-ensurer.reset-size1.size1 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size1.size2,
+.katex .fontsize-ensurer.reset-size1.size2 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size1.size3,
+.katex .fontsize-ensurer.reset-size1.size3 {
+  font-size: 1.4em;
+}
+.katex .sizing.reset-size1.size4,
+.katex .fontsize-ensurer.reset-size1.size4 {
+  font-size: 1.6em;
+}
+.katex .sizing.reset-size1.size5,
+.katex .fontsize-ensurer.reset-size1.size5 {
+  font-size: 1.8em;
+}
+.katex .sizing.reset-size1.size6,
+.katex .fontsize-ensurer.reset-size1.size6 {
+  font-size: 2em;
+}
+.katex .sizing.reset-size1.size7,
+.katex .fontsize-ensurer.reset-size1.size7 {
+  font-size: 2.4em;
+}
+.katex .sizing.reset-size1.size8,
+.katex .fontsize-ensurer.reset-size1.size8 {
+  font-size: 2.88em;
+}
+.katex .sizing.reset-size1.size9,
+.katex .fontsize-ensurer.reset-size1.size9 {
+  font-size: 3.456em;
+}
+.katex .sizing.reset-size1.size10,
+.katex .fontsize-ensurer.reset-size1.size10 {
+  font-size: 4.148em;
+}
+.katex .sizing.reset-size1.size11,
+.katex .fontsize-ensurer.reset-size1.size11 {
+  font-size: 4.976em;
+}
+.katex .sizing.reset-size2.size1,
+.katex .fontsize-ensurer.reset-size2.size1 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size2.size2,
+.katex .fontsize-ensurer.reset-size2.size2 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size2.size3,
+.katex .fontsize-ensurer.reset-size2.size3 {
+  font-size: 1.16666667em;
+}
+.katex .sizing.reset-size2.size4,
+.katex .fontsize-ensurer.reset-size2.size4 {
+  font-size: 1.33333333em;
+}
+.katex .sizing.reset-size2.size5,
+.katex .fontsize-ensurer.reset-size2.size5 {
+  font-size: 1.5em;
+}
+.katex .sizing.reset-size2.size6,
+.katex .fontsize-ensurer.reset-size2.size6 {
+  font-size: 1.66666667em;
+}
+.katex .sizing.reset-size2.size7,
+.katex .fontsize-ensurer.reset-size2.size7 {
+  font-size: 2em;
+}
+.katex .sizing.reset-size2.size8,
+.katex .fontsize-ensurer.reset-size2.size8 {
+  font-size: 2.4em;
+}
+.katex .sizing.reset-size2.size9,
+.katex .fontsize-ensurer.reset-size2.size9 {
+  font-size: 2.88em;
+}
+.katex .sizing.reset-size2.size10,
+.katex .fontsize-ensurer.reset-size2.size10 {
+  font-size: 3.45666667em;
+}
+.katex .sizing.reset-size2.size11,
+.katex .fontsize-ensurer.reset-size2.size11 {
+  font-size: 4.14666667em;
+}
+.katex .sizing.reset-size3.size1,
+.katex .fontsize-ensurer.reset-size3.size1 {
+  font-size: 0.71428571em;
+}
+.katex .sizing.reset-size3.size2,
+.katex .fontsize-ensurer.reset-size3.size2 {
+  font-size: 0.85714286em;
+}
+.katex .sizing.reset-size3.size3,
+.katex .fontsize-ensurer.reset-size3.size3 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size3.size4,
+.katex .fontsize-ensurer.reset-size3.size4 {
+  font-size: 1.14285714em;
+}
+.katex .sizing.reset-size3.size5,
+.katex .fontsize-ensurer.reset-size3.size5 {
+  font-size: 1.28571429em;
+}
+.katex .sizing.reset-size3.size6,
+.katex .fontsize-ensurer.reset-size3.size6 {
+  font-size: 1.42857143em;
+}
+.katex .sizing.reset-size3.size7,
+.katex .fontsize-ensurer.reset-size3.size7 {
+  font-size: 1.71428571em;
+}
+.katex .sizing.reset-size3.size8,
+.katex .fontsize-ensurer.reset-size3.size8 {
+  font-size: 2.05714286em;
+}
+.katex .sizing.reset-size3.size9,
+.katex .fontsize-ensurer.reset-size3.size9 {
+  font-size: 2.46857143em;
+}
+.katex .sizing.reset-size3.size10,
+.katex .fontsize-ensurer.reset-size3.size10 {
+  font-size: 2.96285714em;
+}
+.katex .sizing.reset-size3.size11,
+.katex .fontsize-ensurer.reset-size3.size11 {
+  font-size: 3.55428571em;
+}
+.katex .sizing.reset-size4.size1,
+.katex .fontsize-ensurer.reset-size4.size1 {
+  font-size: 0.625em;
+}
+.katex .sizing.reset-size4.size2,
+.katex .fontsize-ensurer.reset-size4.size2 {
+  font-size: 0.75em;
+}
+.katex .sizing.reset-size4.size3,
+.katex .fontsize-ensurer.reset-size4.size3 {
+  font-size: 0.875em;
+}
+.katex .sizing.reset-size4.size4,
+.katex .fontsize-ensurer.reset-size4.size4 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size4.size5,
+.katex .fontsize-ensurer.reset-size4.size5 {
+  font-size: 1.125em;
+}
+.katex .sizing.reset-size4.size6,
+.katex .fontsize-ensurer.reset-size4.size6 {
+  font-size: 1.25em;
+}
+.katex .sizing.reset-size4.size7,
+.katex .fontsize-ensurer.reset-size4.size7 {
+  font-size: 1.5em;
+}
+.katex .sizing.reset-size4.size8,
+.katex .fontsize-ensurer.reset-size4.size8 {
+  font-size: 1.8em;
+}
+.katex .sizing.reset-size4.size9,
+.katex .fontsize-ensurer.reset-size4.size9 {
+  font-size: 2.16em;
+}
+.katex .sizing.reset-size4.size10,
+.katex .fontsize-ensurer.reset-size4.size10 {
+  font-size: 2.5925em;
+}
+.katex .sizing.reset-size4.size11,
+.katex .fontsize-ensurer.reset-size4.size11 {
+  font-size: 3.11em;
+}
+.katex .sizing.reset-size5.size1,
+.katex .fontsize-ensurer.reset-size5.size1 {
+  font-size: 0.55555556em;
+}
+.katex .sizing.reset-size5.size2,
+.katex .fontsize-ensurer.reset-size5.size2 {
+  font-size: 0.66666667em;
+}
+.katex .sizing.reset-size5.size3,
+.katex .fontsize-ensurer.reset-size5.size3 {
+  font-size: 0.77777778em;
+}
+.katex .sizing.reset-size5.size4,
+.katex .fontsize-ensurer.reset-size5.size4 {
+  font-size: 0.88888889em;
+}
+.katex .sizing.reset-size5.size5,
+.katex .fontsize-ensurer.reset-size5.size5 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size5.size6,
+.katex .fontsize-ensurer.reset-size5.size6 {
+  font-size: 1.11111111em;
+}
+.katex .sizing.reset-size5.size7,
+.katex .fontsize-ensurer.reset-size5.size7 {
+  font-size: 1.33333333em;
+}
+.katex .sizing.reset-size5.size8,
+.katex .fontsize-ensurer.reset-size5.size8 {
+  font-size: 1.6em;
+}
+.katex .sizing.reset-size5.size9,
+.katex .fontsize-ensurer.reset-size5.size9 {
+  font-size: 1.92em;
+}
+.katex .sizing.reset-size5.size10,
+.katex .fontsize-ensurer.reset-size5.size10 {
+  font-size: 2.30444444em;
+}
+.katex .sizing.reset-size5.size11,
+.katex .fontsize-ensurer.reset-size5.size11 {
+  font-size: 2.76444444em;
+}
+.katex .sizing.reset-size6.size1,
+.katex .fontsize-ensurer.reset-size6.size1 {
+  font-size: 0.5em;
+}
+.katex .sizing.reset-size6.size2,
+.katex .fontsize-ensurer.reset-size6.size2 {
+  font-size: 0.6em;
+}
+.katex .sizing.reset-size6.size3,
+.katex .fontsize-ensurer.reset-size6.size3 {
+  font-size: 0.7em;
+}
+.katex .sizing.reset-size6.size4,
+.katex .fontsize-ensurer.reset-size6.size4 {
+  font-size: 0.8em;
+}
+.katex .sizing.reset-size6.size5,
+.katex .fontsize-ensurer.reset-size6.size5 {
+  font-size: 0.9em;
+}
+.katex .sizing.reset-size6.size6,
+.katex .fontsize-ensurer.reset-size6.size6 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size6.size7,
+.katex .fontsize-ensurer.reset-size6.size7 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size6.size8,
+.katex .fontsize-ensurer.reset-size6.size8 {
+  font-size: 1.44em;
+}
+.katex .sizing.reset-size6.size9,
+.katex .fontsize-ensurer.reset-size6.size9 {
+  font-size: 1.728em;
+}
+.katex .sizing.reset-size6.size10,
+.katex .fontsize-ensurer.reset-size6.size10 {
+  font-size: 2.074em;
+}
+.katex .sizing.reset-size6.size11,
+.katex .fontsize-ensurer.reset-size6.size11 {
+  font-size: 2.488em;
+}
+.katex .sizing.reset-size7.size1,
+.katex .fontsize-ensurer.reset-size7.size1 {
+  font-size: 0.41666667em;
+}
+.katex .sizing.reset-size7.size2,
+.katex .fontsize-ensurer.reset-size7.size2 {
+  font-size: 0.5em;
+}
+.katex .sizing.reset-size7.size3,
+.katex .fontsize-ensurer.reset-size7.size3 {
+  font-size: 0.58333333em;
+}
+.katex .sizing.reset-size7.size4,
+.katex .fontsize-ensurer.reset-size7.size4 {
+  font-size: 0.66666667em;
+}
+.katex .sizing.reset-size7.size5,
+.katex .fontsize-ensurer.reset-size7.size5 {
+  font-size: 0.75em;
+}
+.katex .sizing.reset-size7.size6,
+.katex .fontsize-ensurer.reset-size7.size6 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size7.size7,
+.katex .fontsize-ensurer.reset-size7.size7 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size7.size8,
+.katex .fontsize-ensurer.reset-size7.size8 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size7.size9,
+.katex .fontsize-ensurer.reset-size7.size9 {
+  font-size: 1.44em;
+}
+.katex .sizing.reset-size7.size10,
+.katex .fontsize-ensurer.reset-size7.size10 {
+  font-size: 1.72833333em;
+}
+.katex .sizing.reset-size7.size11,
+.katex .fontsize-ensurer.reset-size7.size11 {
+  font-size: 2.07333333em;
+}
+.katex .sizing.reset-size8.size1,
+.katex .fontsize-ensurer.reset-size8.size1 {
+  font-size: 0.34722222em;
+}
+.katex .sizing.reset-size8.size2,
+.katex .fontsize-ensurer.reset-size8.size2 {
+  font-size: 0.41666667em;
+}
+.katex .sizing.reset-size8.size3,
+.katex .fontsize-ensurer.reset-size8.size3 {
+  font-size: 0.48611111em;
+}
+.katex .sizing.reset-size8.size4,
+.katex .fontsize-ensurer.reset-size8.size4 {
+  font-size: 0.55555556em;
+}
+.katex .sizing.reset-size8.size5,
+.katex .fontsize-ensurer.reset-size8.size5 {
+  font-size: 0.625em;
+}
+.katex .sizing.reset-size8.size6,
+.katex .fontsize-ensurer.reset-size8.size6 {
+  font-size: 0.69444444em;
+}
+.katex .sizing.reset-size8.size7,
+.katex .fontsize-ensurer.reset-size8.size7 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size8.size8,
+.katex .fontsize-ensurer.reset-size8.size8 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size8.size9,
+.katex .fontsize-ensurer.reset-size8.size9 {
+  font-size: 1.2em;
+}
+.katex .sizing.reset-size8.size10,
+.katex .fontsize-ensurer.reset-size8.size10 {
+  font-size: 1.44027778em;
+}
+.katex .sizing.reset-size8.size11,
+.katex .fontsize-ensurer.reset-size8.size11 {
+  font-size: 1.72777778em;
+}
+.katex .sizing.reset-size9.size1,
+.katex .fontsize-ensurer.reset-size9.size1 {
+  font-size: 0.28935185em;
+}
+.katex .sizing.reset-size9.size2,
+.katex .fontsize-ensurer.reset-size9.size2 {
+  font-size: 0.34722222em;
+}
+.katex .sizing.reset-size9.size3,
+.katex .fontsize-ensurer.reset-size9.size3 {
+  font-size: 0.40509259em;
+}
+.katex .sizing.reset-size9.size4,
+.katex .fontsize-ensurer.reset-size9.size4 {
+  font-size: 0.46296296em;
+}
+.katex .sizing.reset-size9.size5,
+.katex .fontsize-ensurer.reset-size9.size5 {
+  font-size: 0.52083333em;
+}
+.katex .sizing.reset-size9.size6,
+.katex .fontsize-ensurer.reset-size9.size6 {
+  font-size: 0.5787037em;
+}
+.katex .sizing.reset-size9.size7,
+.katex .fontsize-ensurer.reset-size9.size7 {
+  font-size: 0.69444444em;
+}
+.katex .sizing.reset-size9.size8,
+.katex .fontsize-ensurer.reset-size9.size8 {
+  font-size: 0.83333333em;
+}
+.katex .sizing.reset-size9.size9,
+.katex .fontsize-ensurer.reset-size9.size9 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size9.size10,
+.katex .fontsize-ensurer.reset-size9.size10 {
+  font-size: 1.20023148em;
+}
+.katex .sizing.reset-size9.size11,
+.katex .fontsize-ensurer.reset-size9.size11 {
+  font-size: 1.43981481em;
+}
+.katex .sizing.reset-size10.size1,
+.katex .fontsize-ensurer.reset-size10.size1 {
+  font-size: 0.24108004em;
+}
+.katex .sizing.reset-size10.size2,
+.katex .fontsize-ensurer.reset-size10.size2 {
+  font-size: 0.28929605em;
+}
+.katex .sizing.reset-size10.size3,
+.katex .fontsize-ensurer.reset-size10.size3 {
+  font-size: 0.33751205em;
+}
+.katex .sizing.reset-size10.size4,
+.katex .fontsize-ensurer.reset-size10.size4 {
+  font-size: 0.38572806em;
+}
+.katex .sizing.reset-size10.size5,
+.katex .fontsize-ensurer.reset-size10.size5 {
+  font-size: 0.43394407em;
+}
+.katex .sizing.reset-size10.size6,
+.katex .fontsize-ensurer.reset-size10.size6 {
+  font-size: 0.48216008em;
+}
+.katex .sizing.reset-size10.size7,
+.katex .fontsize-ensurer.reset-size10.size7 {
+  font-size: 0.57859209em;
+}
+.katex .sizing.reset-size10.size8,
+.katex .fontsize-ensurer.reset-size10.size8 {
+  font-size: 0.69431051em;
+}
+.katex .sizing.reset-size10.size9,
+.katex .fontsize-ensurer.reset-size10.size9 {
+  font-size: 0.83317261em;
+}
+.katex .sizing.reset-size10.size10,
+.katex .fontsize-ensurer.reset-size10.size10 {
+  font-size: 1em;
+}
+.katex .sizing.reset-size10.size11,
+.katex .fontsize-ensurer.reset-size10.size11 {
+  font-size: 1.19961427em;
+}
+.katex .sizing.reset-size11.size1,
+.katex .fontsize-ensurer.reset-size11.size1 {
+  font-size: 0.20096463em;
+}
+.katex .sizing.reset-size11.size2,
+.katex .fontsize-ensurer.reset-size11.size2 {
+  font-size: 0.24115756em;
+}
+.katex .sizing.reset-size11.size3,
+.katex .fontsize-ensurer.reset-size11.size3 {
+  font-size: 0.28135048em;
+}
+.katex .sizing.reset-size11.size4,
+.katex .fontsize-ensurer.reset-size11.size4 {
+  font-size: 0.32154341em;
+}
+.katex .sizing.reset-size11.size5,
+.katex .fontsize-ensurer.reset-size11.size5 {
+  font-size: 0.36173633em;
+}
+.katex .sizing.reset-size11.size6,
+.katex .fontsize-ensurer.reset-size11.size6 {
+  font-size: 0.40192926em;
+}
+.katex .sizing.reset-size11.size7,
+.katex .fontsize-ensurer.reset-size11.size7 {
+  font-size: 0.48231511em;
+}
+.katex .sizing.reset-size11.size8,
+.katex .fontsize-ensurer.reset-size11.size8 {
+  font-size: 0.57877814em;
+}
+.katex .sizing.reset-size11.size9,
+.katex .fontsize-ensurer.reset-size11.size9 {
+  font-size: 0.69453376em;
+}
+.katex .sizing.reset-size11.size10,
+.katex .fontsize-ensurer.reset-size11.size10 {
+  font-size: 0.83360129em;
+}
+.katex .sizing.reset-size11.size11,
+.katex .fontsize-ensurer.reset-size11.size11 {
+  font-size: 1em;
+}
+.katex .delimsizing.size1 {
+  font-family: KaTeX_Size1;
+}
+.katex .delimsizing.size2 {
+  font-family: KaTeX_Size2;
+}
+.katex .delimsizing.size3 {
+  font-family: KaTeX_Size3;
+}
+.katex .delimsizing.size4 {
+  font-family: KaTeX_Size4;
+}
+.katex .delimsizing.mult .delim-size1 > span {
+  font-family: KaTeX_Size1;
+}
+.katex .delimsizing.mult .delim-size4 > span {
+  font-family: KaTeX_Size4;
+}
+.katex .nulldelimiter {
+  display: inline-block;
+  width: 0.12em;
+}
+.katex .delimcenter {
+  position: relative;
+}
+.katex .op-symbol {
+  position: relative;
+}
+.katex .op-symbol.small-op {
+  font-family: KaTeX_Size1;
+}
+.katex .op-symbol.large-op {
+  font-family: KaTeX_Size2;
+}
+.katex .op-limits > .vlist-t {
+  text-align: center;
+}
+.katex .accent > .vlist-t {
+  text-align: center;
+}
+.katex .accent .accent-body {
+  position: relative;
+}
+.katex .accent .accent-body:not(.accent-full) {
+  width: 0;
+}
+.katex .overlay {
+  display: block;
+}
+.katex .mtable .vertical-separator {
+  display: inline-block;
+  min-width: 1px;
+}
+.katex .mtable .arraycolsep {
+  display: inline-block;
+}
+.katex .mtable .col-align-c > .vlist-t {
+  text-align: center;
+}
+.katex .mtable .col-align-l > .vlist-t {
+  text-align: left;
+}
+.katex .mtable .col-align-r > .vlist-t {
+  text-align: right;
+}
+.katex .svg-align {
+  text-align: left;
+}
+.katex svg {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: inherit;
+  fill: currentColor;
+  stroke: currentColor;
+  fill-rule: nonzero;
+  fill-opacity: 1;
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-miterlimit: 4;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  stroke-opacity: 1;
+}
+.katex svg path {
+  stroke: none;
+}
+.katex img {
+  border-style: none;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+}
+.katex .stretchy {
+  width: 100%;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+.katex .stretchy::before,
+.katex .stretchy::after {
+  content: "";
+}
+.katex .hide-tail {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+.katex .halfarrow-left {
+  position: absolute;
+  left: 0;
+  width: 50.2%;
+  overflow: hidden;
+}
+.katex .halfarrow-right {
+  position: absolute;
+  right: 0;
+  width: 50.2%;
+  overflow: hidden;
+}
+.katex .brace-left {
+  position: absolute;
+  left: 0;
+  width: 25.1%;
+  overflow: hidden;
+}
+.katex .brace-center {
+  position: absolute;
+  left: 25%;
+  width: 50%;
+  overflow: hidden;
+}
+.katex .brace-right {
+  position: absolute;
+  right: 0;
+  width: 25.1%;
+  overflow: hidden;
+}
+.katex .x-arrow-pad {
+  padding: 0 0.5em;
+}
+.katex .cd-arrow-pad {
+  padding: 0 0.55556em 0 0.27778em;
+}
+.katex .x-arrow,
+.katex .mover,
+.katex .munder {
+  text-align: center;
+}
+.katex .boxpad {
+  padding: 0 0.3em;
+}
+.katex .fbox,
+.katex .fcolorbox {
+  box-sizing: border-box;
+  border: 0.04em solid;
+}
+.katex .cancel-pad {
+  padding: 0 0.2em;
+}
+.katex .cancel-lap {
+  margin-left: -0.2em;
+  margin-right: -0.2em;
+}
+.katex .sout {
+  border-bottom-style: solid;
+  border-bottom-width: 0.08em;
+}
+.katex .angl {
+  box-sizing: border-box;
+  border-top: 0.049em solid;
+  border-right: 0.049em solid;
+  margin-right: 0.03889em;
+}
+.katex .anglpad {
+  padding: 0 0.03889em;
+}
+.katex .eqn-num::before {
+  counter-increment: katexEqnNo;
+  content: "(" counter(katexEqnNo) ")";
+}
+.katex .mml-eqn-num::before {
+  counter-increment: mmlEqnNo;
+  content: "(" counter(mmlEqnNo) ")";
+}
+.katex .mtr-glue {
+  width: 50%;
+}
+.katex .cd-vert-arrow {
+  display: inline-block;
+  position: relative;
+}
+.katex .cd-label-left {
+  display: inline-block;
+  position: absolute;
+  right: calc(50% + 0.3em);
+  text-align: left;
+}
+.katex .cd-label-right {
+  display: inline-block;
+  position: absolute;
+  left: calc(50% + 0.3em);
+  text-align: right;
+}
+.katex-display {
+  display: block;
+  margin: 1em 0;
+  text-align: center;
+}
+.katex-display > .katex {
+  display: block;
+  text-align: center;
+  white-space: nowrap;
+}
+.katex-display > .katex > .katex-html {
+  display: block;
+  position: relative;
+}
+.katex-display > .katex > .katex-html > .tag {
+  position: absolute;
+  right: 0;
+}
+.katex-display.leqno > .katex > .katex-html > .tag {
+  left: 0;
+  right: auto;
+}
+.katex-display.fleqn > .katex {
+  text-align: left;
+  padding-left: 2em;
+}
+body {
+  counter-reset: katexEqnNo mmlEqnNo;
+}
+`;
+};
+
+// ../simple-mind-map/src/plugins/Formula.js
 var Formula = class {
   //  构造函数
   constructor(opt) {
     this.opt = opt;
     this.mindMap = opt.mindMap;
     window.katex = katex;
+    this.init();
+    this.config = this.getKatexConfig();
+    this.cssEl = null;
+    this.addStyle();
     this.extendQuill();
+  }
+  init() {
+    if (this.mindMap.opt.enableEditFormulaInRichTextEdit) {
+      this.mindMap.opt.transformRichTextOnEnterEdit = this.latexRichToText.bind(this);
+      this.mindMap.opt.beforeHideRichTextEdit = this.formatLatex.bind(this);
+    }
   }
   // 获取katex配置
   getKatexConfig() {
@@ -76871,10 +79059,15 @@ var Formula = class {
       output: "mathml"
       // 默认只输出公式
     };
-    const chromeVersion = getChromeVersion();
-    if (chromeVersion && chromeVersion <= 100) {
-      config.output = "html";
-    }
+    let { getKatexOutputType } = this.mindMap.opt;
+    getKatexOutputType = getKatexOutputType || function() {
+      const chromeVersion = getChromeVersion();
+      if (chromeVersion && chromeVersion <= 100) {
+        return "html";
+      }
+    };
+    const output = getKatexOutputType() || "mathml";
+    config.output = ["mathml", "html"].includes(output) ? output : "mathml";
     return config;
   }
   // 修改formula格式工具
@@ -76885,13 +79078,31 @@ var Formula = class {
       static create(value) {
         let node2 = super.create(value);
         if (typeof value === "string") {
-          katex.render(value, node2, self2.getKatexConfig());
+          katex.render(value, node2, self2.config);
           node2.setAttribute("data-value", value);
         }
         return node2;
       }
     }
     import_quill2.default.register("formats/formula", CustomFormulaBlot, true);
+  }
+  getStyleText() {
+    const { katexFontPath } = this.mindMap.opt;
+    let text4 = "";
+    if (this.config.output === "html") {
+      text4 = getFontStyleText(katexFontPath);
+    }
+    text4 += getBaseStyleText();
+    return text4;
+  }
+  addStyle() {
+    this.cssEl = document.createElement("style");
+    this.cssEl.type = "text/css";
+    this.cssEl.innerHTML = this.getStyleText();
+    document.head.appendChild(this.cssEl);
+  }
+  removeStyle() {
+    document.head.removeChild(this.cssEl);
   }
   // 给指定的节点插入指定公式
   insertFormulaToNode(node2, formula) {
@@ -76904,6 +79115,78 @@ var Formula = class {
     );
     richTextPlugin.setTextStyleIfNotRichText(richTextPlugin.node);
     richTextPlugin.hideEditText([node2]);
+  }
+  // 将公式富文本转换为公式源码
+  latexRichToText(nodeText) {
+    if (nodeText.indexOf('class="ql-formula"') !== -1) {
+      const parser2 = new DOMParser();
+      const doc = parser2.parseFromString(nodeText, "text/html");
+      const els = doc.getElementsByClassName("ql-formula");
+      for (const el of els)
+        nodeText = nodeText.replace(
+          el.outerHTML,
+          `$${el.getAttribute("data-value").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}$`
+        );
+    }
+    return nodeText;
+  }
+  // 使用格式化的 latex 字符串内容更新 quill 内容：输入 $*****$
+  formatLatex(richText) {
+    const contents = richText.quill.getContents();
+    const ops = contents.ops;
+    let mod = false;
+    for (let i = ops.length - 1; i >= 0; i--) {
+      const op2 = ops[i];
+      const insert = op2.insert;
+      if (insert && typeof insert !== "object" && insert !== "\n") {
+        if (/\$.+?\$/g.test(insert)) {
+          const m = [...insert.matchAll(/\$.+?\$/g)];
+          const arr = insert.split(/\$.+?\$/g);
+          for (let j = m.length - 1; j >= 0; j--) {
+            const exp = m[j] && m[j][0] ? m[j][0].slice(1, -1) || null : null;
+            if (exp !== null && exp.trim().length > 0) {
+              const isLegal = this.checkFormulaIsLegal(exp);
+              if (isLegal) {
+                arr.splice(j + 1, 0, { insert: { formula: exp } });
+                mod = true;
+              } else {
+                arr.splice(j + 1, 0, "");
+              }
+            } else
+              arr.splice(j + 1, 0, "");
+          }
+          while (arr.length > 0) {
+            let v = arr.pop();
+            if (typeof v === "string") {
+              if (v.length < 1)
+                continue;
+              v = { insert: v };
+            }
+            v["attributes"] = ops[i]["attributes"];
+            ops.splice(i + 1, 0, v);
+          }
+          ops.splice(i, 1);
+        }
+      }
+    }
+    if (mod)
+      richText.quill.setContents(contents);
+  }
+  checkFormulaIsLegal(str) {
+    try {
+      katex.renderToString(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  // 插件被移除前做的事情
+  beforePluginRemove() {
+    this.removeStyle();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.removeStyle();
   }
 };
 Formula.instanceName = "formula";
@@ -76987,6 +79270,703 @@ var RainbowLines = class {
 };
 RainbowLines.instanceName = "rainbowLines";
 var RainbowLines_default = RainbowLines;
+
+// ../simple-mind-map/src/plugins/Demonstrate.js
+var defaultConfig = {
+  boxShadowColor: "rgba(0, 0, 0, 0.8)",
+  // 高亮框四周的区域颜色
+  borderRadius: "5px",
+  // 高亮框的圆角大小
+  transition: "all 0.3s ease-out",
+  // 高亮框动画的过渡
+  zIndex: 9999,
+  // 高亮框元素的层级
+  padding: 20,
+  // 高亮框的内边距
+  margin: 50,
+  // 高亮框的外边距
+  openBlankMode: true
+  // 是否开启填空模式，即带下划线的文本默认不显示，按回车键才依次显示
+};
+var Demonstrate = class {
+  constructor(opt) {
+    this.mindMap = opt.mindMap;
+    this.stepList = [];
+    this.currentStepIndex = 0;
+    this.currentStepNode = null;
+    this.currentUnderlineTextData = null;
+    this.tmpStyleEl = null;
+    this.highlightEl = null;
+    this.transformState = null;
+    this.renderTree = null;
+    this.config = Object.assign(
+      { ...defaultConfig },
+      this.mindMap.opt.demonstrateConfig || {}
+    );
+    this.needRestorePerformanceMode = false;
+  }
+  // 进入演示模式
+  enter() {
+    this.bindFullscreenEvent();
+    if (document.fullscreenElement === this.mindMap.el) {
+      this._enter();
+    } else {
+      fullScreen(this.mindMap.el);
+    }
+  }
+  _enter() {
+    this.pausePerformanceMode();
+    this.addTmpStyles();
+    this.transformState = this.mindMap.view.getTransformData();
+    this.renderTree = this.mindMap.getData();
+    this.mindMap.command.pause();
+    this.mindMap.keyCommand.pause();
+    this.createHighlightEl();
+    this.getStepList();
+    this.mindMap.execCommand("UNEXPAND_ALL", false);
+    const onRenderEnd = () => {
+      this.mindMap.off("node_tree_render_end", onRenderEnd);
+      this.jump(this.currentStepIndex);
+      this.bindEvent();
+    };
+    this.mindMap.on("node_tree_render_end", onRenderEnd);
+  }
+  // 退出演示模式
+  exit() {
+    exitFullScreen(this.mindMap.el);
+    this.mindMap.updateData(this.renderTree);
+    this.mindMap.view.setTransformData(this.transformState);
+    this.renderTree = null;
+    this.transformState = null;
+    this.stepList = [];
+    this.currentStepIndex = 0;
+    this.currentStepNode = null;
+    this.currentUnderlineTextData = null;
+    this.unBindEvent();
+    this.removeTmpStyles();
+    this.removeHighlightEl();
+    this.mindMap.command.recovery();
+    this.mindMap.keyCommand.recovery();
+    this.restorePerformanceMode();
+    this.mindMap.emit("exit_demonstrate");
+  }
+  // 暂停性能模式
+  pausePerformanceMode() {
+    const { openPerformance } = this.mindMap.opt;
+    if (openPerformance) {
+      this.needRestorePerformanceMode = true;
+      this.mindMap.opt.openPerformance = false;
+      this.mindMap.renderer.forceLoadNode();
+    }
+  }
+  // 恢复性能模式
+  restorePerformanceMode() {
+    if (!this.needRestorePerformanceMode)
+      return;
+    this.mindMap.opt.openPerformance = true;
+    this.mindMap.renderer.forceLoadNode();
+  }
+  // 添加临时的样式
+  addTmpStyles() {
+    this.tmpStyleEl = document.createElement("style");
+    let cssText = `
+      /* \u753B\u5E03\u6240\u6709\u5143\u7D20\u7981\u6B62\u54CD\u5E94\u9F20\u6807\u4E8B\u4EF6 */
+      .smm-mind-map-container {
+        pointer-events: none;
+      }
+      /* \u8D85\u94FE\u63A5\u56FE\u6807\u5141\u8BB8\u54CD\u5E94\u9F20\u6807\u4E8B\u4EF6 */
+      .smm-node a {
+        pointer-events: all;
+      }
+      /* \u5907\u6CE8\u56FE\u6807\u5141\u8BB8\u54CD\u5E94\u9F20\u6807\u4E8B\u4EF6 */
+      .smm-node .smm-node-note {
+        pointer-events: all;
+      }
+    `;
+    if (this.config.openBlankMode) {
+      cssText += `
+        /* \u5E26\u4E0B\u5212\u7EBF\u7684\u6587\u672C\u5185\u5BB9\u5168\u90E8\u9690\u85CF */
+        .smm-richtext-node-wrap u {
+          opacity: 0;
+        }
+      `;
+    }
+    this.tmpStyleEl.innerText = cssText;
+    document.head.appendChild(this.tmpStyleEl);
+  }
+  // 移除临时的样式
+  removeTmpStyles() {
+    if (this.tmpStyleEl)
+      document.head.removeChild(this.tmpStyleEl);
+  }
+  // 创建高亮元素
+  createHighlightEl() {
+    if (!this.highlightEl) {
+      this.highlightEl = document.createElement("div");
+      this.highlightEl.style.cssText = `
+            position: absolute;
+            box-shadow: 0 0 0 5000px ${this.config.boxShadowColor};
+            border-radius: ${this.config.borderRadius};
+            transition: ${this.config.transition};
+            z-index: ${this.config.zIndex + 1};
+            pointer-events: none;
+        `;
+      this.mindMap.el.appendChild(this.highlightEl);
+    }
+  }
+  // 移除高亮元素
+  removeHighlightEl() {
+    if (this.highlightEl) {
+      this.mindMap.el.removeChild(this.highlightEl);
+      this.highlightEl = null;
+    }
+  }
+  // 更新高亮元素的位置和大小
+  updateHighlightEl({ left, top, width: width2, height: height2 }) {
+    const padding = this.config.padding;
+    if (left) {
+      this.highlightEl.style.left = left - padding + "px";
+    }
+    if (top) {
+      this.highlightEl.style.top = top - padding + "px";
+    }
+    if (width2) {
+      this.highlightEl.style.width = width2 + padding * 2 + "px";
+    }
+    if (height2) {
+      this.highlightEl.style.height = height2 + padding * 2 + "px";
+    }
+  }
+  // 绑定事件
+  bindEvent() {
+    this.onKeydown = this.onKeydown.bind(this);
+    window.addEventListener("keydown", this.onKeydown);
+  }
+  // 绑定全屏事件
+  bindFullscreenEvent() {
+    this.onFullscreenChange = this.onFullscreenChange.bind(this);
+    document.addEventListener(fullscrrenEvent, this.onFullscreenChange);
+  }
+  // 解绑事件
+  unBindEvent() {
+    window.removeEventListener("keydown", this.onKeydown);
+    document.removeEventListener(fullscrrenEvent, this.onFullscreenChange);
+  }
+  // 全屏状态改变
+  onFullscreenChange() {
+    if (!document.fullscreenElement) {
+      this.exit();
+    } else if (document.fullscreenElement === this.mindMap.el) {
+      this._enter();
+    }
+  }
+  // 按键事件
+  onKeydown(e) {
+    if (e.keyCode === keyMap.Left) {
+      this.prev();
+    } else if (e.keyCode === keyMap.Right) {
+      this.next();
+    } else if (e.keyCode === keyMap.Esc) {
+      this.exit();
+    } else if (e.keyCode === keyMap.Enter) {
+      this.showNextUnderlineText();
+    }
+  }
+  // 上一张
+  prev() {
+    if (this.currentStepIndex > 0) {
+      this.jump(this.currentStepIndex - 1);
+    }
+  }
+  // 下一张
+  next() {
+    const stepLength = this.stepList.length;
+    if (this.currentStepIndex < stepLength - 1) {
+      this.jump(this.currentStepIndex + 1);
+    }
+  }
+  // 显示隐藏的下划线文本
+  showNextUnderlineText() {
+    if (!this.config.openBlankMode || !this.currentStepNode || !this.currentUnderlineTextData)
+      return;
+    const { index: index2, list: list2, length: length2 } = this.currentUnderlineTextData;
+    if (index2 >= length2)
+      return;
+    const node2 = list2[index2];
+    this.currentUnderlineTextData.index++;
+    node2.node.style.opacity = 1;
+  }
+  // 跳转到某一张
+  jump(index2) {
+    if (this.currentUnderlineTextData) {
+      this.currentUnderlineTextData.list.forEach((item) => {
+        item.node.style.opacity = "";
+      });
+      this.currentUnderlineTextData = null;
+    }
+    this.currentStepNode = null;
+    this.currentStepIndex = index2;
+    this.mindMap.emit(
+      "demonstrate_jump",
+      this.currentStepIndex,
+      this.stepList.length
+    );
+    const step = this.stepList[index2];
+    const nodeData = step.node;
+    const uid = nodeData.data.uid;
+    const node2 = this.mindMap.renderer.findNodeByUid(uid);
+    if (!node2) {
+      this.mindMap.renderer.expandToNodeUid(uid, () => {
+        const node3 = this.mindMap.renderer.findNodeByUid(uid);
+        if (node3) {
+          this.jump(index2);
+        }
+      });
+      return;
+    }
+    if (step.type === "node") {
+      this.currentStepNode = node2;
+      const uNodeList = this.config.openBlankMode ? node2.group.find("u") : null;
+      if (uNodeList && uNodeList.length > 0) {
+        this.currentUnderlineTextData = {
+          index: 0,
+          list: uNodeList,
+          length: uNodeList.length
+        };
+      }
+      this.mindMap.view.fit(
+        () => {
+          return node2.group.rbox();
+        },
+        true,
+        this.config.padding + this.config.margin
+      );
+      const rect = node2.group.rbox();
+      this.updateHighlightEl({
+        left: rect.x,
+        top: rect.y,
+        width: rect.width,
+        height: rect.height
+      });
+    } else {
+      const task = () => {
+        nodeData.children.forEach((item) => {
+          item.data.expand = false;
+        });
+        this.mindMap.render(() => {
+          this.mindMap.view.fit(
+            () => {
+              const res2 = getNodeTreeBoundingRect(node2, 0, 0, 0, 0, true);
+              return {
+                ...res2,
+                x: res2.left,
+                y: res2.top
+              };
+            },
+            true,
+            this.config.padding + this.config.margin
+          );
+          const res = getNodeTreeBoundingRect(node2, 0, 0, 0, 0, true);
+          this.updateHighlightEl(res);
+        });
+      };
+      if (!nodeData.data.expand) {
+        this.mindMap.execCommand("SET_NODE_EXPAND", node2, true);
+        const onRenderEnd = () => {
+          this.mindMap.off("node_tree_render_end", onRenderEnd);
+          task();
+        };
+        this.mindMap.on("node_tree_render_end", onRenderEnd);
+      } else {
+        task();
+      }
+    }
+  }
+  // 深度度优先遍历所有节点，返回步骤列表
+  getStepList() {
+    walk(this.mindMap.renderer.renderTree, null, (node2) => {
+      this.stepList.push({
+        type: "node",
+        node: node2
+      });
+      const generalizationList = formatGetNodeGeneralization(node2.data);
+      generalizationList.forEach((item) => {
+        if (item.uid) {
+          this.stepList.push({
+            type: "node",
+            node: {
+              data: item
+            }
+          });
+        }
+      });
+      if (node2.children.length > 1) {
+        this.stepList.push({
+          type: "children",
+          node: node2
+        });
+      }
+    });
+  }
+  // 插件被移除前做的事情
+  beforePluginRemove() {
+    this.unBindEvent();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.unBindEvent();
+  }
+};
+Demonstrate.instanceName = "demonstrate";
+var Demonstrate_default = Demonstrate;
+
+// ../simple-mind-map/src/plugins/OuterFrame.js
+var parseAddNodeList = (list2) => {
+  list2 = getTopAncestorsFomNodeList(list2);
+  const cache = {};
+  const uidToParent = {};
+  list2.forEach((node2) => {
+    const parent = node2.parent;
+    if (parent) {
+      const pUid = parent.uid;
+      uidToParent[pUid] = parent;
+      const index2 = node2.getIndexInBrothers();
+      const data2 = {
+        node: node2,
+        index: index2
+      };
+      if (cache[pUid]) {
+        if (!cache[pUid].find((item) => {
+          return item.index === data2.index;
+        })) {
+          cache[pUid].push(data2);
+        }
+      } else {
+        cache[pUid] = [data2];
+      }
+    }
+  });
+  const res = [];
+  Object.keys(cache).forEach((uid) => {
+    const indexList = cache[uid];
+    const parentNode = uidToParent[uid];
+    if (indexList.length > 1) {
+      const rangeList = indexList.map((item) => {
+        return item.index;
+      }).sort((a, b) => {
+        return a - b;
+      });
+      const minIndex = rangeList[0];
+      const maxIndex = rangeList[rangeList.length - 1];
+      let curStart = -1;
+      let curEnd = -1;
+      for (let i = minIndex; i <= maxIndex; i++) {
+        if (rangeList.includes(i)) {
+          if (curStart === -1) {
+            curStart = i;
+          }
+          curEnd = i;
+        } else {
+          if (curStart !== -1 && curEnd !== -1) {
+            res.push({
+              node: parentNode,
+              range: [curStart, curEnd]
+            });
+          }
+          curStart = -1;
+          curEnd = -1;
+        }
+      }
+      if (curStart !== -1 && curEnd !== -1) {
+        res.push({
+          node: parentNode,
+          range: [curStart, curEnd]
+        });
+      }
+    } else {
+      res.push({
+        node: parentNode,
+        range: [indexList[0].index, indexList[0].index]
+      });
+    }
+  });
+  return res;
+};
+var getNodeOuterFrameList = (node2) => {
+  const children = node2.children;
+  if (!children || children.length <= 0)
+    return;
+  const res = [];
+  const map3 = {};
+  children.forEach((item, index2) => {
+    const outerFrameData = item.getData("outerFrame");
+    if (!outerFrameData)
+      return;
+    const groupId = outerFrameData.groupId;
+    if (groupId) {
+      if (!map3[groupId]) {
+        map3[groupId] = [];
+      }
+      map3[groupId].push({
+        node: item,
+        index: index2
+      });
+    } else {
+      res.push({
+        nodeList: [item],
+        range: [index2, index2]
+      });
+    }
+  });
+  Object.keys(map3).forEach((id) => {
+    const list2 = map3[id];
+    res.push({
+      nodeList: list2.map((item) => {
+        return item.node;
+      }),
+      range: [list2[0].index, list2[list2.length - 1].index]
+    });
+  });
+  return res;
+};
+var defaultStyle = {
+  radius: 5,
+  strokeWidth: 2,
+  strokeColor: "#0984e3",
+  strokeDasharray: "5,5",
+  fill: "rgba(9,132,227,0.05)"
+};
+var OuterFrame = class {
+  constructor(opt = {}) {
+    this.mindMap = opt.mindMap;
+    this.draw = null;
+    this.createDrawContainer();
+    this.outerFrameElList = [];
+    this.activeOuterFrame = null;
+    this.bindEvent();
+  }
+  // 创建容器
+  createDrawContainer() {
+    this.draw = this.mindMap.draw.group();
+    this.draw.addClass("smm-outer-frame-container");
+    this.draw.back();
+    this.draw.forward();
+  }
+  // 绑定事件
+  bindEvent() {
+    this.renderOuterFrames = this.renderOuterFrames.bind(this);
+    this.mindMap.on("node_tree_render_end", this.renderOuterFrames);
+    this.mindMap.on("data_change", this.renderOuterFrames);
+    this.clearActiveOuterFrame = this.clearActiveOuterFrame.bind(this);
+    this.mindMap.on("draw_click", this.clearActiveOuterFrame);
+    this.mindMap.on("node_click", this.clearActiveOuterFrame);
+    this.addOuterFrame = this.addOuterFrame.bind(this);
+    this.mindMap.command.add("ADD_OUTER_FRAME", this.addOuterFrame);
+    this.removeActiveOuterFrame = this.removeActiveOuterFrame.bind(this);
+    this.mindMap.keyCommand.addShortcut(
+      "Del|Backspace",
+      this.removeActiveOuterFrame
+    );
+  }
+  // 解绑事件
+  unBindEvent() {
+    this.mindMap.off("node_tree_render_end", this.renderOuterFrames);
+    this.mindMap.off("data_change", this.renderOuterFrames);
+    this.mindMap.off("draw_click", this.clearActiveOuterFrame);
+    this.mindMap.off("node_click", this.clearActiveOuterFrame);
+    this.mindMap.command.remove("ADD_OUTER_FRAME", this.addOuterFrame);
+    this.mindMap.keyCommand.removeShortcut(
+      "Del|Backspace",
+      this.removeActiveOuterFrame
+    );
+  }
+  // 给节点添加外框数据
+  /*
+  config: {
+    text: '',
+    radius: 5,
+    strokeWidth: 2,
+    strokeColor: '#0984e3',
+    strokeDasharray: '5,5',
+    fill: 'rgba(9,132,227,0.05)'
+  }
+  */
+  addOuterFrame(appointNodes, config = {}) {
+    appointNodes = formatDataToArray(appointNodes);
+    const activeNodeList = this.mindMap.renderer.activeNodeList;
+    if (activeNodeList.length <= 0 && appointNodes.length <= 0) {
+      return;
+    }
+    let nodeList = appointNodes.length > 0 ? appointNodes : activeNodeList;
+    nodeList = nodeList.filter((node2) => {
+      return !node2.isRoot && !node2.isGeneralization;
+    });
+    const list2 = parseAddNodeList(nodeList);
+    list2.forEach(({ node: node2, range: range2 }) => {
+      const childNodeList = node2.children.slice(range2[0], range2[1] + 1);
+      const groupId = createUid();
+      childNodeList.forEach((child) => {
+        let outerFrame = child.getData("outerFrame");
+        if (outerFrame) {
+          outerFrame = {
+            ...outerFrame,
+            ...config,
+            groupId
+          };
+        } else {
+          outerFrame = {
+            ...config,
+            groupId
+          };
+        }
+        this.mindMap.execCommand("SET_NODE_DATA", child, {
+          outerFrame
+        });
+      });
+    });
+  }
+  // 获取当前激活的外框
+  getActiveOuterFrame() {
+    return this.activeOuterFrame ? {
+      ...this.activeOuterFrame
+    } : null;
+  }
+  // 删除当前激活的外框
+  removeActiveOuterFrame() {
+    if (!this.activeOuterFrame)
+      return;
+    const { node: node2, range: range2 } = this.activeOuterFrame;
+    this.getRangeNodeList(node2, range2).forEach((child) => {
+      this.mindMap.execCommand("SET_NODE_DATA", child, {
+        outerFrame: null
+      });
+    });
+    this.mindMap.emit("outer_frame_delete");
+  }
+  // 更新当前激活的外框
+  // 执行了该方法后请立即隐藏你的样式面板，因为会清除当前激活的外框
+  updateActiveOuterFrame(config = {}) {
+    if (!this.activeOuterFrame)
+      return;
+    const { node: node2, range: range2 } = this.activeOuterFrame;
+    this.getRangeNodeList(node2, range2).forEach((node3) => {
+      const outerFrame = node3.getData("outerFrame");
+      this.mindMap.execCommand("SET_NODE_DATA", node3, {
+        outerFrame: {
+          ...outerFrame,
+          ...config
+        }
+      });
+    });
+  }
+  // 获取某个节点指定范围的带外框的子节点列表
+  getRangeNodeList(node2, range2) {
+    return node2.children.slice(range2[0], range2[1] + 1).filter((child) => {
+      return child.getData("outerFrame");
+    });
+  }
+  // 渲染外框
+  renderOuterFrames() {
+    this.clearOuterFrameElList();
+    let tree = this.mindMap.renderer.root;
+    if (!tree)
+      return;
+    const t = this.mindMap.draw.transform();
+    const { outerFramePaddingX, outerFramePaddingY } = this.mindMap.opt;
+    walk(
+      tree,
+      null,
+      (cur) => {
+        if (!cur)
+          return;
+        const outerFrameList = getNodeOuterFrameList(cur);
+        if (outerFrameList && outerFrameList.length > 0) {
+          outerFrameList.forEach(({ nodeList, range: range2 }) => {
+            if (range2[0] === -1 || range2[1] === -1)
+              return;
+            const { left, top, width: width2, height: height2 } = getNodeListBoundingRect(nodeList);
+            if (!Number.isFinite(left) || !Number.isFinite(top) || !Number.isFinite(width2) || !Number.isFinite(height2))
+              return;
+            const el = this.createOuterFrameEl(
+              (left - outerFramePaddingX - this.mindMap.elRect.left - t.translateX) / t.scaleX,
+              (top - outerFramePaddingY - this.mindMap.elRect.top - t.translateY) / t.scaleY,
+              (width2 + outerFramePaddingX * 2) / t.scaleX,
+              (height2 + outerFramePaddingY * 2) / t.scaleY,
+              nodeList[0].getData("outerFrame")
+              // 使用第一个节点的外框样式
+            );
+            el.on("click", (e) => {
+              e.stopPropagation();
+              this.setActiveOuterFrame(el, cur, range2);
+            });
+          });
+        }
+      },
+      () => {
+      },
+      true,
+      0
+    );
+  }
+  // 激活外框
+  setActiveOuterFrame(el, node2, range2) {
+    this.mindMap.execCommand("CLEAR_ACTIVE_NODE");
+    this.clearActiveOuterFrame();
+    this.activeOuterFrame = {
+      el,
+      node: node2,
+      range: range2
+    };
+    el.stroke({
+      dasharray: "none"
+    });
+    this.mindMap.emit("outer_frame_active", el, node2, range2);
+  }
+  // 清除当前激活的外框
+  clearActiveOuterFrame() {
+    if (!this.activeOuterFrame)
+      return;
+    const { el } = this.activeOuterFrame;
+    el.stroke({
+      dasharray: el.cacheStyle.dasharray || defaultStyle.strokeDasharray
+    });
+    this.activeOuterFrame = null;
+  }
+  // 创建外框元素
+  createOuterFrameEl(x2, y2, width2, height2, styleConfig = {}) {
+    styleConfig = { ...defaultStyle, ...styleConfig };
+    const el = this.draw.rect().size(width2, height2).radius(styleConfig.radius).stroke({
+      width: styleConfig.strokeWidth,
+      color: styleConfig.strokeColor,
+      dasharray: styleConfig.strokeDasharray
+    }).fill({
+      color: styleConfig.fill
+    }).x(x2).y(y2);
+    el.cacheStyle = {
+      dasharray: styleConfig.strokeDasharray
+    };
+    this.outerFrameElList.push(el);
+    return el;
+  }
+  // 清除外框元素
+  clearOuterFrameElList() {
+    this.outerFrameElList.forEach((item) => {
+      item.remove();
+    });
+    this.outerFrameElList = [];
+    this.activeOuterFrame = null;
+  }
+  // 插件被移除前做的事情
+  beforePluginRemove() {
+    this.unBindEvent();
+  }
+  // 插件被卸载前做的事情
+  beforePluginDestroy() {
+    this.unBindEvent();
+  }
+};
+OuterFrame.instanceName = "outerFrame";
+var OuterFrame_default = OuterFrame;
 
 // ../simple-mind-map/node_modules/mdast-util-to-string/lib/index.js
 var emptyOptions = {};
@@ -81777,6 +84757,19 @@ function defaultOnError(left, right) {
 }
 
 // ../simple-mind-map/src/parse/markdownTo.js
+var getNodeText3 = (node2) => {
+  let textChild = (node2.children || []).find((item) => {
+    return item.type === "text";
+  });
+  textChild = textChild || node2.children[0];
+  if (textChild) {
+    if (textChild.value !== void 0) {
+      return textChild.value;
+    }
+    return getNodeText3(textChild);
+  }
+  return "";
+};
 var handleList = (node2) => {
   let list2 = [];
   let walk2 = (arr, newArr) => {
@@ -81785,7 +84778,7 @@ var handleList = (node2) => {
       let node3 = {};
       node3.data = {
         // 节点内容
-        text: cur.children[0].children[0].value
+        text: getNodeText3(cur)
       };
       node3.children = [];
       newArr.push(node3);
@@ -81819,7 +84812,7 @@ var transformMarkdownTo = (md) => {
       let node2 = {};
       node2.data = {
         // 节点内容
-        text: cur.children[0].value
+        text: getNodeText3(cur)
       };
       node2.children = [];
       if (cur.depth > currentDepth) {
@@ -81874,8 +84867,8 @@ simple_mind_map_default.iconList = icons_default.nodeIconList;
 simple_mind_map_default.constants = constant_exports;
 simple_mind_map_default.themes = themes_default;
 simple_mind_map_default.defaultTheme = default_exports;
-simple_mind_map_default.version = "0.9.11";
-simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportXMind_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default).usePlugin(Search_default).usePlugin(Painter_default).usePlugin(Scrollbar_default).usePlugin(Formula_default).usePlugin(RainbowLines_default);
+simple_mind_map_default.version = "0.10.5";
+simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportXMind_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default).usePlugin(Search_default).usePlugin(Painter_default).usePlugin(Scrollbar_default).usePlugin(Formula_default).usePlugin(RainbowLines_default).usePlugin(Demonstrate_default).usePlugin(OuterFrame_default);
 var full_default = simple_mind_map_default;
 export {
   full_default as default
