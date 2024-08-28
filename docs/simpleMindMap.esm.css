@@ -7,14 +7,15 @@
     sans-serif;
   font-size: 13px;
   height: 100%;
-  margin: 0px;
+  margin: 0;
   position: relative;
 }
 .ql-container.ql-disabled .ql-tooltip {
   visibility: hidden;
 }
-.ql-container.ql-disabled .ql-editor ul[data-checked] > li::before {
-  pointer-events: none;
+.ql-container:not(.ql-disabled) li[data-list=checked] > .ql-ui,
+.ql-container:not(.ql-disabled) li[data-list=unchecked] > .ql-ui {
+  cursor: pointer;
 }
 .ql-clipboard {
   left: -100000px;
@@ -29,6 +30,7 @@
 }
 .ql-editor {
   box-sizing: border-box;
+  counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
   line-height: 1.42;
   height: 100%;
   outline: none;
@@ -45,7 +47,6 @@
 }
 .ql-editor p,
 .ql-editor ol,
-.ql-editor ul,
 .ql-editor pre,
 .ql-editor blockquote,
 .ql-editor h1,
@@ -56,144 +57,213 @@
 .ql-editor h6 {
   margin: 0;
   padding: 0;
-  counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
 }
-.ql-editor ol,
-.ql-editor ul {
+@supports (counter-set:none) {
+  .ql-editor p,
+  .ql-editor h1,
+  .ql-editor h2,
+  .ql-editor h3,
+  .ql-editor h4,
+  .ql-editor h5,
+  .ql-editor h6 {
+    counter-set: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+@supports not (counter-set:none) {
+  .ql-editor p,
+  .ql-editor h1,
+  .ql-editor h2,
+  .ql-editor h3,
+  .ql-editor h4,
+  .ql-editor h5,
+  .ql-editor h6 {
+    counter-reset: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor table {
+  border-collapse: collapse;
+}
+.ql-editor td {
+  border: 1px solid #000;
+  padding: 2px 5px;
+}
+.ql-editor ol {
   padding-left: 1.5em;
 }
-.ql-editor ol > li,
-.ql-editor ul > li {
+.ql-editor li {
   list-style-type: none;
+  padding-left: 1.5em;
+  position: relative;
 }
-.ql-editor ul > li::before {
-  content: "\2022";
-}
-.ql-editor ul[data-checked=true],
-.ql-editor ul[data-checked=false] {
-  pointer-events: none;
-}
-.ql-editor ul[data-checked=true] > li *,
-.ql-editor ul[data-checked=false] > li * {
-  pointer-events: all;
-}
-.ql-editor ul[data-checked=true] > li::before,
-.ql-editor ul[data-checked=false] > li::before {
-  color: #777;
-  cursor: pointer;
-  pointer-events: all;
-}
-.ql-editor ul[data-checked=true] > li::before {
-  content: "\2611";
-}
-.ql-editor ul[data-checked=false] > li::before {
-  content: "\2610";
-}
-.ql-editor li::before {
+.ql-editor li > .ql-ui:before {
   display: inline-block;
+  margin-left: -1.5em;
+  margin-right: .3em;
+  text-align: right;
   white-space: nowrap;
   width: 1.2em;
 }
-.ql-editor li:not(.ql-direction-rtl)::before {
-  margin-left: -1.5em;
-  margin-right: 0.3em;
-  text-align: right;
+.ql-editor li[data-list=checked] > .ql-ui,
+.ql-editor li[data-list=unchecked] > .ql-ui {
+  color: #777;
 }
-.ql-editor li.ql-direction-rtl::before {
-  margin-left: 0.3em;
-  margin-right: -1.5em;
+.ql-editor li[data-list=bullet] > .ql-ui:before {
+  content: "\2022";
 }
-.ql-editor ol li:not(.ql-direction-rtl),
-.ql-editor ul li:not(.ql-direction-rtl) {
-  padding-left: 1.5em;
+.ql-editor li[data-list=checked] > .ql-ui:before {
+  content: "\2611";
 }
-.ql-editor ol li.ql-direction-rtl,
-.ql-editor ul li.ql-direction-rtl {
-  padding-right: 1.5em;
+.ql-editor li[data-list=unchecked] > .ql-ui:before {
+  content: "\2610";
 }
-.ql-editor ol li {
-  counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list] {
+    counter-set: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+@supports not (counter-set:none) {
+  .ql-editor li[data-list] {
+    counter-reset: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered] {
   counter-increment: list-0;
 }
-.ql-editor ol li:before {
+.ql-editor li[data-list=ordered] > .ql-ui:before {
   content: counter(list-0, decimal) ". ";
 }
-.ql-editor ol li.ql-indent-1 {
+.ql-editor li[data-list=ordered].ql-indent-1 {
   counter-increment: list-1;
 }
-.ql-editor ol li.ql-indent-1:before {
+.ql-editor li[data-list=ordered].ql-indent-1 > .ql-ui:before {
   content: counter(list-1, lower-alpha) ". ";
 }
-.ql-editor ol li.ql-indent-1 {
-  counter-reset: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-1 {
+    counter-set: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-2 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-1 {
+    counter-reset: list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-2 {
   counter-increment: list-2;
 }
-.ql-editor ol li.ql-indent-2:before {
+.ql-editor li[data-list=ordered].ql-indent-2 > .ql-ui:before {
   content: counter(list-2, lower-roman) ". ";
 }
-.ql-editor ol li.ql-indent-2 {
-  counter-reset: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-2 {
+    counter-set: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-3 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-2 {
+    counter-reset: list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-3 {
   counter-increment: list-3;
 }
-.ql-editor ol li.ql-indent-3:before {
+.ql-editor li[data-list=ordered].ql-indent-3 > .ql-ui:before {
   content: counter(list-3, decimal) ". ";
 }
-.ql-editor ol li.ql-indent-3 {
-  counter-reset: list-4 list-5 list-6 list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-3 {
+    counter-set: list-4 list-5 list-6 list-7 list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-4 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-3 {
+    counter-reset: list-4 list-5 list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-4 {
   counter-increment: list-4;
 }
-.ql-editor ol li.ql-indent-4:before {
+.ql-editor li[data-list=ordered].ql-indent-4 > .ql-ui:before {
   content: counter(list-4, lower-alpha) ". ";
 }
-.ql-editor ol li.ql-indent-4 {
-  counter-reset: list-5 list-6 list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-4 {
+    counter-set: list-5 list-6 list-7 list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-5 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-4 {
+    counter-reset: list-5 list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-5 {
   counter-increment: list-5;
 }
-.ql-editor ol li.ql-indent-5:before {
+.ql-editor li[data-list=ordered].ql-indent-5 > .ql-ui:before {
   content: counter(list-5, lower-roman) ". ";
 }
-.ql-editor ol li.ql-indent-5 {
-  counter-reset: list-6 list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-5 {
+    counter-set: list-6 list-7 list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-6 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-5 {
+    counter-reset: list-6 list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-6 {
   counter-increment: list-6;
 }
-.ql-editor ol li.ql-indent-6:before {
+.ql-editor li[data-list=ordered].ql-indent-6 > .ql-ui:before {
   content: counter(list-6, decimal) ". ";
 }
-.ql-editor ol li.ql-indent-6 {
-  counter-reset: list-7 list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-6 {
+    counter-set: list-7 list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-7 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-6 {
+    counter-reset: list-7 list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-7 {
   counter-increment: list-7;
 }
-.ql-editor ol li.ql-indent-7:before {
+.ql-editor li[data-list=ordered].ql-indent-7 > .ql-ui:before {
   content: counter(list-7, lower-alpha) ". ";
 }
-.ql-editor ol li.ql-indent-7 {
-  counter-reset: list-8 list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-7 {
+    counter-set: list-8 list-9;
+  }
 }
-.ql-editor ol li.ql-indent-8 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-7 {
+    counter-reset: list-8 list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-8 {
   counter-increment: list-8;
 }
-.ql-editor ol li.ql-indent-8:before {
+.ql-editor li[data-list=ordered].ql-indent-8 > .ql-ui:before {
   content: counter(list-8, lower-roman) ". ";
 }
-.ql-editor ol li.ql-indent-8 {
-  counter-reset: list-9;
+@supports (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-8 {
+    counter-set: list-9;
+  }
 }
-.ql-editor ol li.ql-indent-9 {
+@supports not (counter-set:none) {
+  .ql-editor li[data-list].ql-indent-8 {
+    counter-reset: list-9;
+  }
+}
+.ql-editor li[data-list=ordered].ql-indent-9 {
   counter-increment: list-9;
 }
-.ql-editor ol li.ql-indent-9:before {
+.ql-editor li[data-list=ordered].ql-indent-9 > .ql-ui:before {
   content: counter(list-9, decimal) ". ";
 }
 .ql-editor .ql-indent-1:not(.ql-direction-rtl) {
@@ -304,6 +374,24 @@
 .ql-editor li.ql-indent-9.ql-direction-rtl.ql-align-right {
   padding-right: 28.5em;
 }
+.ql-editor li.ql-direction-rtl {
+  padding-right: 1.5em;
+}
+.ql-editor li.ql-direction-rtl > .ql-ui:before {
+  margin-left: .3em;
+  margin-right: -1.5em;
+  text-align: left;
+}
+.ql-editor table {
+  table-layout: fixed;
+  width: 100%;
+}
+.ql-editor table td {
+  outline: none;
+}
+.ql-editor .ql-code-block-container {
+  font-family: monospace;
+}
 .ql-editor .ql-video {
   display: block;
   max-width: 100%;
@@ -369,7 +457,7 @@
     monospace;
 }
 .ql-editor .ql-size-small {
-  font-size: 0.75em;
+  font-size: .75em;
 }
 .ql-editor .ql-size-large {
   font-size: 1.5em;
@@ -389,6 +477,9 @@
 }
 .ql-editor .ql-align-right {
   text-align: right;
+}
+.ql-editor .ql-ui {
+  position: absolute;
 }
 .ql-editor.ql-blank::before {
   color: rgba(0, 0, 0, 0.6);
@@ -505,7 +596,7 @@
 .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter {
   stroke: #06c;
 }
-@media (pointer: coarse) {
+@media (pointer:coarse) {
   .ql-snow.ql-toolbar button:hover:not(.ql-active),
   .ql-snow .ql-toolbar button:hover:not(.ql-active) {
     color: #444;
@@ -584,7 +675,7 @@
   stroke-width: 1;
 }
 .ql-snow .ql-transparent {
-  opacity: 0.4;
+  opacity: .4;
 }
 .ql-snow .ql-direction svg:last-child {
   display: none;
@@ -608,10 +699,10 @@
   font-size: 1em;
 }
 .ql-snow .ql-editor h5 {
-  font-size: 0.83em;
+  font-size: .83em;
 }
 .ql-snow .ql-editor h6 {
-  font-size: 0.67em;
+  font-size: .67em;
 }
 .ql-snow .ql-editor a {
   text-decoration: underline;
@@ -623,12 +714,11 @@
   padding-left: 16px;
 }
 .ql-snow .ql-editor code,
-.ql-snow .ql-editor pre {
+.ql-snow .ql-editor .ql-code-block-container {
   background-color: #f0f0f0;
   border-radius: 3px;
 }
-.ql-snow .ql-editor pre {
-  white-space: pre-wrap;
+.ql-snow .ql-editor .ql-code-block-container {
   margin-bottom: 5px;
   margin-top: 5px;
   padding: 5px 10px;
@@ -637,7 +727,7 @@
   font-size: 85%;
   padding: 2px 4px;
 }
-.ql-snow .ql-editor pre.ql-syntax {
+.ql-snow .ql-editor .ql-code-block-container {
   background-color: #23241f;
   color: #f8f8f2;
   overflow: visible;
@@ -711,7 +801,7 @@
   right: 4px;
 }
 .ql-snow .ql-icon-picker .ql-picker-options {
-  padding: 4px 0px;
+  padding: 4px 0;
 }
 .ql-snow .ql-icon-picker .ql-picker-item {
   height: 24px;
@@ -727,7 +817,7 @@
   float: left;
   height: 16px;
   margin: 2px;
-  padding: 0px;
+  padding: 0;
   width: 16px;
 }
 .ql-snow .ql-picker:not(.ql-color-picker):not(.ql-icon-picker) svg {
@@ -789,10 +879,10 @@
   font-size: 1em;
 }
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before {
-  font-size: 0.83em;
+  font-size: .83em;
 }
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
-  font-size: 0.67em;
+  font-size: .67em;
 }
 .ql-snow .ql-picker.ql-font {
   width: 108px;
@@ -855,6 +945,13 @@
 .ql-snow .ql-color-picker.ql-color .ql-picker-item {
   background-color: #000;
 }
+.ql-code-block-container {
+  position: relative;
+}
+.ql-code-block-container .ql-ui {
+  right: 5px;
+  top: 5px;
+}
 .ql-toolbar.ql-snow {
   border: 1px solid #ccc;
   box-sizing: border-box;
@@ -886,12 +983,12 @@
   border-color: #000;
 }
 .ql-toolbar.ql-snow + .ql-container.ql-snow {
-  border-top: 0px;
+  border-top: 0;
 }
 .ql-snow .ql-tooltip {
   background-color: #fff;
   border: 1px solid #ccc;
-  box-shadow: 0px 0px 5px #ddd;
+  box-shadow: 0 0 5px #ddd;
   color: #444;
   padding: 5px 12px;
   white-space: nowrap;
@@ -906,7 +1003,7 @@
   border: 1px solid #ccc;
   font-size: 13px;
   height: 26px;
-  margin: 0px;
+  margin: 0;
   padding: 3px 5px;
   width: 170px;
 }
@@ -938,9 +1035,9 @@
   display: inline-block;
 }
 .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
-  border-right: 0px;
+  border-right: 0;
   content: "Save";
-  padding-right: 0px;
+  padding-right: 0;
 }
 .ql-snow .ql-tooltip[data-mode=link]::before {
   content: "Enter link:";
@@ -961,8 +1058,9 @@
 
 quill/dist/quill.snow.css:
   (*!
-   * Quill Editor v1.3.7
-   * https://quilljs.com/
+   * Quill Editor v2.0.2
+   * https://quilljs.com
+   * Copyright (c) 2017-2024, Slab
    * Copyright (c) 2014, Jason Chen
    * Copyright (c) 2013, salesforce.com
    *)
