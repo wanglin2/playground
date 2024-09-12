@@ -13008,7 +13008,9 @@ var nodeDataNoStylePropList = [
   "notation",
   "outerFrame",
   "number",
-  "range"
+  "range",
+  "customLeft",
+  "customTop"
 ];
 var ERROR_TYPES = {
   READ_CLIPBOARD_ERROR: "read_clipboard_error",
@@ -13133,20 +13135,27 @@ var View = class {
             break;
         }
       } else {
-        const step = isTouchPad ? 10 : mousewheelMoveStep;
+        let stepX = 0;
+        let stepY = 0;
+        if (isTouchPad) {
+          stepX = Math.abs(e.wheelDeltaX);
+          stepY = Math.abs(e.wheelDeltaY);
+        } else {
+          stepX = stepY = mousewheelMoveStep;
+        }
         let mx = 0;
         let my = 0;
         if (dirs.includes(CONSTANTS.DIR.DOWN)) {
-          my = -step;
+          my = -stepY;
         }
         if (dirs.includes(CONSTANTS.DIR.UP)) {
-          my = step;
+          my = stepY;
         }
         if (dirs.includes(CONSTANTS.DIR.LEFT)) {
-          mx = step;
+          mx = stepX;
         }
         if (dirs.includes(CONSTANTS.DIR.RIGHT)) {
-          mx = -step;
+          mx = -stepX;
         }
         this.translateXY(mx, my);
       }
@@ -20128,9 +20137,17 @@ var handleInputPasteText = (e, text4) => {
   selection.deleteFromDocument();
   text4 = text4 || e.clipboardData.getData("text");
   text4 = getTextFromHtml(text4);
-  text4 = text4.replaceAll(/\n/g, "");
-  const node2 = document.createTextNode(text4);
-  selection.getRangeAt(0).insertNode(node2);
+  const textArr = text4.split(/\n/g);
+  const fragment = document.createDocumentFragment();
+  textArr.forEach((item, index2) => {
+    const node2 = document.createTextNode(item);
+    fragment.appendChild(node2);
+    if (index2 < textArr.length - 1) {
+      const br = document.createElement("br");
+      fragment.appendChild(br);
+    }
+  });
+  selection.getRangeAt(0).insertNode(fragment);
   selection.collapseToEnd();
 };
 var transformTreeDataToObject = (data2) => {
@@ -20425,7 +20442,9 @@ var Style2 = class {
   merge(prop, root3) {
     let themeConfig = this.ctx.mindMap.themeConfig;
     let defaultConfig2 = themeConfig.node;
+    let useRoot = false;
     if (root3 || rootProp.includes(prop)) {
+      useRoot = true;
       defaultConfig2 = themeConfig;
     } else if (this.ctx.isGeneralization) {
       defaultConfig2 = themeConfig.generalization;
@@ -20434,7 +20453,13 @@ var Style2 = class {
     } else if (this.ctx.layerIndex === 1) {
       defaultConfig2 = themeConfig.second;
     }
-    return this.getSelfStyle(prop) !== void 0 ? this.getSelfStyle(prop) : defaultConfig2[prop];
+    const value = this.getSelfStyle(prop) !== void 0 ? this.getSelfStyle(prop) : defaultConfig2[prop];
+    if (!useRoot) {
+      this.addToEffectiveStyles({
+        [prop]: value
+      });
+    }
+    return value;
   }
   //  获取某个样式值
   getStyle(prop, root3) {
@@ -20444,6 +20469,13 @@ var Style2 = class {
   getSelfStyle(prop) {
     return this.ctx.getData(prop);
   }
+  // 更新当前节点生效的样式数据
+  addToEffectiveStyles(styles2) {
+    this.ctx.effectiveStyles = {
+      ...this.ctx.effectiveStyles,
+      ...styles2
+    };
+  }
   //  矩形
   rect(node2) {
     this.shape(node2);
@@ -20451,65 +20483,110 @@ var Style2 = class {
   }
   // 形状
   shape(node2) {
-    if (this.merge("gradientStyle")) {
+    const styles2 = {
+      gradientStyle: this.merge("gradientStyle"),
+      startColor: this.merge("startColor"),
+      endColor: this.merge("endColor"),
+      startDir: this.merge("startDir"),
+      endDir: this.merge("endDir"),
+      fillColor: this.merge("fillColor"),
+      borderColor: this.merge("borderColor"),
+      borderWidth: this.merge("borderWidth"),
+      borderDasharray: this.merge("borderDasharray")
+    };
+    if (styles2.gradientStyle) {
       if (!this._gradient) {
         this._gradient = this.ctx.nodeDraw.gradient("linear");
       }
       this._gradient.update((add) => {
-        add.stop(0, this.merge("startColor"));
-        add.stop(1, this.merge("endColor"));
+        add.stop(0, styles2.startColor);
+        add.stop(1, styles2.endColor);
       });
+      this._gradient.from(...styles2.startDir).to(...styles2.endDir);
       node2.fill(this._gradient);
     } else {
       node2.fill({
-        color: this.merge("fillColor")
+        color: styles2.fillColor
       });
     }
     node2.stroke({
-      color: this.merge("borderColor"),
-      width: this.merge("borderWidth"),
-      dasharray: this.merge("borderDasharray")
+      color: styles2.borderColor,
+      width: styles2.borderWidth,
+      dasharray: styles2.borderDasharray
     });
   }
   //  文字
   text(node2) {
+    const styles2 = {
+      color: this.merge("color"),
+      fontFamily: this.merge("fontFamily"),
+      fontSize: this.merge("fontSize"),
+      fontWeight: this.merge("fontWeight"),
+      fontStyle: this.merge("fontStyle"),
+      textDecoration: this.merge("textDecoration")
+    };
     node2.fill({
-      color: this.merge("color")
+      color: styles2.color
     }).css({
-      "font-family": this.merge("fontFamily"),
-      "font-size": this.merge("fontSize"),
-      "font-weight": this.merge("fontWeight"),
-      "font-style": this.merge("fontStyle"),
-      "text-decoration": this.merge("textDecoration")
+      "font-family": styles2.fontFamily,
+      "font-size": styles2.fontSize,
+      "font-weight": styles2.fontWeight,
+      "font-style": styles2.fontStyle,
+      "text-decoration": styles2.textDecoration
     });
   }
   // 生成内联样式
   createStyleText() {
+    const styles2 = {
+      color: this.merge("color"),
+      fontFamily: this.merge("fontFamily"),
+      fontSize: this.merge("fontSize"),
+      fontWeight: this.merge("fontWeight"),
+      fontStyle: this.merge("fontStyle"),
+      textDecoration: this.merge("textDecoration")
+    };
     return `
-      color: ${this.merge("color")};
-      font-family: ${this.merge("fontFamily")};
-      font-size: ${this.merge("fontSize") + "px"};
-      font-weight: ${this.merge("fontWeight")};
-      font-style: ${this.merge("fontStyle")};
-      text-decoration: ${this.merge("textDecoration")}
+      color: ${styles2.color};
+      font-family: ${styles2.fontFamily};
+      font-size: ${styles2.fontSize + "px"};
+      font-weight: ${styles2.fontWeight};
+      font-style: ${styles2.fontStyle};
+      text-decoration: ${styles2.textDecoration}
     `;
   }
   // 获取文本样式
   getTextFontStyle() {
-    return {
-      italic: this.merge("fontStyle") === "italic",
-      bold: this.merge("fontWeight"),
+    const styles2 = {
+      color: this.merge("color"),
+      fontFamily: this.merge("fontFamily"),
       fontSize: this.merge("fontSize"),
-      fontFamily: this.merge("fontFamily")
+      fontWeight: this.merge("fontWeight"),
+      fontStyle: this.merge("fontStyle"),
+      textDecoration: this.merge("textDecoration")
+    };
+    return {
+      italic: styles2.fontStyle === "italic",
+      bold: styles2.fontWeight,
+      fontSize: styles2.fontSize,
+      fontFamily: styles2.fontFamily
     };
   }
   //  html文字节点
   domText(node2, fontSizeScale = 1, isMultiLine) {
-    node2.style.fontFamily = this.merge("fontFamily");
-    node2.style.fontSize = this.merge("fontSize") * fontSizeScale + "px";
-    node2.style.fontWeight = this.merge("fontWeight") || "normal";
-    node2.style.lineHeight = !isMultiLine ? "normal" : this.merge("lineHeight");
-    node2.style.fontStyle = this.merge("fontStyle");
+    const styles2 = {
+      color: this.merge("color"),
+      fontFamily: this.merge("fontFamily"),
+      fontSize: this.merge("fontSize"),
+      fontWeight: this.merge("fontWeight"),
+      fontStyle: this.merge("fontStyle"),
+      textDecoration: this.merge("textDecoration"),
+      lineHeight: this.merge("lineHeight")
+    };
+    node2.style.fontFamily = styles2.fontFamily;
+    node2.style.fontSize = styles2.fontSize * fontSizeScale + "px";
+    node2.style.fontWeight = styles2.fontWeight || "normal";
+    node2.style.lineHeight = !isMultiLine ? "normal" : styles2.lineHeight;
+    node2.style.fontStyle = styles2.fontStyle;
   }
   //  标签文字
   tagText(node2, style) {
@@ -20600,7 +20677,7 @@ var Style2 = class {
   }
   // hover和激活节点
   hoverNode(node2) {
-    const { hoverRectColor } = this.ctx.mindMap.opt;
+    const hoverRectColor = this.merge("hoverRectColor") || this.ctx.mindMap.opt.hoverRectColor;
     node2.radius(5).fill("none").stroke({
       color: hoverRectColor
     });
@@ -21040,10 +21117,19 @@ function handleGeneralizationMouseenter() {
   const list2 = belongNode.formatGetGeneralization();
   const index2 = belongNode.getGeneralizationNodeIndex(this);
   const generalizationData = list2[index2];
+  const hoverRectColor = this.getStyle("hoverRectColor");
+  const color = hoverRectColor || this.mindMap.opt.hoverRectColor;
+  const style = color ? {
+    stroke: color
+  } : null;
   if (Array.isArray(generalizationData.range) && generalizationData.range.length > 0) {
-    this.mindMap.renderer.highlightNode(belongNode, generalizationData.range);
+    this.mindMap.renderer.highlightNode(
+      belongNode,
+      generalizationData.range,
+      style
+    );
   } else {
-    this.mindMap.renderer.highlightNode(belongNode);
+    this.mindMap.renderer.highlightNode(belongNode, null, style);
   }
 }
 function handleGeneralizationMouseleave() {
@@ -21142,7 +21228,12 @@ function updateExpandBtnNode() {
           color: expandBtnStyle.strokeColor
         });
         let count = this.sumNode(this.nodeData.children);
-        count = expandBtnNumHandler(count);
+        if (typeof expandBtnNumHandler === "function") {
+          const res = expandBtnNumHandler(count, this);
+          if (!isUndef(res)) {
+            count = res;
+          }
+        }
         node2.text(String(count));
       } else {
         this._fillExpandNode.stroke("none");
@@ -21671,8 +21762,9 @@ function createIconNode() {
     };
   });
 }
-function createRichTextNode() {
-  const { textAutoWrapWidth } = this.mindMap.opt;
+function createRichTextNode(specifyText) {
+  let text4 = typeof specifyText === "string" ? specifyText : this.getData("text");
+  const { textAutoWrapWidth, emptyTextMeasureHeightText } = this.mindMap.opt;
   let g = new G();
   let recoverText = false;
   if (this.getData("resetRichText")) {
@@ -21684,7 +21776,6 @@ function createRichTextNode() {
       recoverText = true;
     }
   }
-  let text4 = this.getData("text");
   if (recoverText && !isUndef(text4)) {
     let isRichText = checkIsRichText(text4);
     let style = this.style.createStyleText();
@@ -21702,7 +21793,7 @@ function createRichTextNode() {
       text: text4
     });
   }
-  let html2 = `<div>${this.getData("text")}</div>`;
+  let html2 = `<div>${text4}</div>`;
   if (!this.mindMap.commonCaches.measureRichtextNodeTextSizeEl) {
     this.mindMap.commonCaches.measureRichtextNodeTextSizeEl = document.createElement("div");
     this.mindMap.commonCaches.measureRichtextNodeTextSizeEl.style.position = "fixed";
@@ -21719,7 +21810,7 @@ function createRichTextNode() {
   el.style.maxWidth = textAutoWrapWidth + "px";
   let { width: width2, height: height2 } = el.getBoundingClientRect();
   if (height2 <= 0) {
-    div.innerHTML = "<p>abc123\u6211\u548C\u4F60</p>";
+    div.innerHTML = `<p>${emptyTextMeasureHeightText}</p>`;
     let elTmp = div.children[0];
     elTmp.classList.add("smm-richtext-node-wrap");
     height2 = elTmp.getBoundingClientRect().height;
@@ -21742,10 +21833,11 @@ function createRichTextNode() {
     height: height2
   };
 }
-function createTextNode() {
+function createTextNode(specifyText) {
   if (this.getData("richText")) {
-    return this.createRichTextNode();
+    return this.createRichTextNode(specifyText);
   }
+  const text4 = typeof specifyText === "string" ? specifyText : this.getData("text");
   if (this.getData("resetRichText")) {
     delete this.nodeData.data.resetRichText;
   }
@@ -21754,10 +21846,10 @@ function createTextNode() {
   let lineHeight = this.getStyle("lineHeight", false);
   let textStyle = this.style.getTextFontStyle();
   let textArr = [];
-  if (!isUndef(this.getData("text"))) {
-    textArr = String(this.getData("text")).split(/\n/gim);
+  if (!isUndef(text4)) {
+    textArr = String(text4).split(/\n/gim);
   }
-  let maxWidth = this.mindMap.opt.textAutoWrapWidth;
+  const { textAutoWrapWidth: maxWidth, emptyTextMeasureHeightText } = this.mindMap.opt;
   let isMultiLine = false;
   textArr.forEach((item, index2) => {
     let arr = item.split("");
@@ -21765,8 +21857,8 @@ function createTextNode() {
     let line = [];
     while (arr.length) {
       let str = arr.shift();
-      let text4 = [...line, str].join("");
-      if (measureText(text4, textStyle).width <= maxWidth) {
+      let text5 = [...line, str].join("");
+      if (measureText(text5, textStyle).width <= maxWidth) {
         line.push(str);
       } else {
         lines.push(line.join(""));
@@ -21789,6 +21881,12 @@ function createTextNode() {
     g.add(node2);
   });
   let { width: width2, height: height2 } = g.bbox();
+  if (height2 <= 0) {
+    const tmpNode = new Text2().text(emptyTextMeasureHeightText);
+    this.style.text(tmpNode);
+    const tmpBbox = tmpNode.bbox();
+    height2 = tmpBbox.height;
+  }
   width2 = Math.min(Math.ceil(width2), maxWidth);
   height2 = Math.ceil(height2);
   g.attr("data-width", width2);
@@ -22177,6 +22275,7 @@ var MindMapNode = class {
     this.nodeDraw = this.mindMap.nodeDraw;
     this.lineDraw = this.mindMap.lineDraw;
     this.style = new Style_default(this);
+    this.effectiveStyles = {};
     this.shapeInstance = new Shape2(this);
     this.shapePadding = {
       paddingX: 0,
@@ -23333,11 +23432,12 @@ var Base2 = class {
           newNumberStr
         );
       }
-      if (this.checkIsNeedResizeSources() || isLayerTypeChange || newNode.getData("resetRichText") || isNumberChange) {
+      const isNeedResizeSources = this.checkIsNeedResizeSources();
+      if (isNeedResizeSources || isLayerTypeChange || newNode.getData("resetRichText") || isNumberChange) {
         newNode.getSize();
         newNode.needLayout = true;
       }
-      this.checkGetGeneralizationChange(newNode);
+      this.checkGetGeneralizationChange(newNode, isNeedResizeSources);
     } else if ((this.lru.has(uid) || this.renderer.lastNodeCache[uid]) && !this.renderer.reRender) {
       newNode = this.lru.get(uid) || this.renderer.lastNodeCache[uid];
       const lastData = JSON.stringify(newNode.getData());
@@ -23369,7 +23469,7 @@ var Base2 = class {
         newNode.getSize();
         newNode.needLayout = true;
       }
-      this.checkGetGeneralizationChange(newNode);
+      this.checkGetGeneralizationChange(newNode, isResizeSource);
     } else {
       const newUid = uid || createUid();
       newNode = new MindMapNode_default({
@@ -23403,14 +23503,14 @@ var Base2 = class {
     return newNode;
   }
   // 检查概要节点是否需要更新
-  checkGetGeneralizationChange(node2) {
+  checkGetGeneralizationChange(node2, isResizeSource) {
     const generalizationList = node2.getData("generalization");
     if (generalizationList && node2._generalizationList && node2._generalizationList.length > 0) {
       node2._generalizationList.forEach((item, index2) => {
         const gNode = item.generalizationNode;
         const oldData = gNode.getData();
         const newData = generalizationList[index2];
-        if (newData && JSON.stringify(oldData) !== JSON.stringify(newData)) {
+        if (isResizeSource || newData && JSON.stringify(oldData) !== JSON.stringify(newData)) {
           gNode.nodeData.data = newData;
           gNode.getSize();
           gNode.needLayout = true;
@@ -23527,17 +23627,31 @@ var Base2 = class {
     return Math.max(...widthArr) + totalGeneralizationNodeWidth;
   }
   //  二次贝塞尔曲线
-  quadraticCurvePath(x1, y1, x2, y2) {
-    let cx3 = x1 + (x2 - x1) * 0.2;
-    let cy3 = y1 + (y2 - y1) * 0.8;
+  quadraticCurvePath(x1, y1, x2, y2, v = false) {
+    let cx3, cy3;
+    if (v) {
+      cx3 = x1 + (x2 - x1) * 0.8;
+      cy3 = y1 + (y2 - y1) * 0.2;
+    } else {
+      cx3 = x1 + (x2 - x1) * 0.2;
+      cy3 = y1 + (y2 - y1) * 0.8;
+    }
     return `M ${x1},${y1} Q ${cx3},${cy3} ${x2},${y2}`;
   }
   //  三次贝塞尔曲线
-  cubicBezierPath(x1, y1, x2, y2) {
-    let cx1 = x1 + (x2 - x1) / 2;
-    let cy1 = y1;
-    let cx22 = cx1;
-    let cy22 = y2;
+  cubicBezierPath(x1, y1, x2, y2, v = false) {
+    let cx1, cy1, cx22, cy22;
+    if (v) {
+      cx1 = x1;
+      cy1 = y1 + (y2 - y1) / 2;
+      cx22 = x2;
+      cy22 = cy1;
+    } else {
+      cx1 = x1 + (x2 - x1) / 2;
+      cy1 = y1;
+      cx22 = cx1;
+      cy22 = y2;
+    }
     return `M ${x1},${y1} C ${cx1},${cy1} ${cx22},${cy22} ${x2},${y2}`;
   }
   // 根据a,b两个点的位置，计算去除圆角大小后的新的b点
@@ -24679,7 +24793,14 @@ var OrganizationStructure = class extends Base_default {
       this.renderer.renderTree,
       null,
       (cur, parent, isRoot, layerIndex, index2, ancestors) => {
-        let newNode = this.createNode(cur, parent, isRoot, layerIndex, index2, ancestors);
+        let newNode = this.createNode(
+          cur,
+          parent,
+          isRoot,
+          layerIndex,
+          index2,
+          ancestors
+        );
         if (isRoot) {
           this.setNodeCenter(newNode);
         } else {
@@ -24767,11 +24888,46 @@ var OrganizationStructure = class extends Base_default {
   }
   //  绘制连线，连接该节点到其子节点
   renderLine(node2, lines, style, lineStyle) {
-    if (lineStyle === "direct") {
+    if (lineStyle === "curve") {
+      this.renderLineCurve(node2, lines, style);
+    } else if (lineStyle === "direct") {
       this.renderLineDirect(node2, lines, style);
     } else {
       this.renderLineStraight(node2, lines, style);
     }
+  }
+  //  曲线风格连线
+  renderLineCurve(node2, lines, style) {
+    if (node2.children.length <= 0) {
+      return [];
+    }
+    let { left, top, width: width2, height: height2, expandBtnSize } = node2;
+    const { alwaysShowExpandBtn, notShowExpandBtn } = this.mindMap.opt;
+    if (!alwaysShowExpandBtn || notShowExpandBtn) {
+      expandBtnSize = 0;
+    }
+    const {
+      nodeUseLineStyle,
+      rootLineStartPositionKeepSameInCurve,
+      rootLineKeepSameInCurve
+    } = this.mindMap.themeConfig;
+    node2.children.forEach((item, index2) => {
+      if (node2.layerIndex === 0) {
+        expandBtnSize = 0;
+      }
+      let x1 = left + width2 / 2;
+      let y1 = node2.layerIndex === 0 && !rootLineStartPositionKeepSameInCurve ? top + height2 / 2 : top + height2 + expandBtnSize;
+      let x2 = item.left + item.width / 2;
+      let y2 = item.top;
+      let path2 = "";
+      let nodeUseLineStylePath = nodeUseLineStyle ? ` L ${item.left},${y2} L ${item.left + item.width},${y2}` : "";
+      if (node2.isRoot && !rootLineKeepSameInCurve) {
+        path2 = this.quadraticCurvePath(x1, y1, x2, y2, true) + nodeUseLineStylePath;
+      } else {
+        path2 = this.cubicBezierPath(x1, y1, x2, y2, true) + nodeUseLineStylePath;
+      }
+      this.setLineStyle(style, lines[index2], path2, item);
+    });
   }
   //  直连风格
   renderLineDirect(node2, lines, style) {
@@ -26057,6 +26213,8 @@ var TextEdit = class {
     this.showTextEdit = false;
     this.cacheEditingText = "";
     this.hasBodyMousedown = false;
+    this.textNodePaddingX = 5;
+    this.textNodePaddingY = 3;
     this.bindEvent();
   }
   //  事件
@@ -26220,7 +26378,7 @@ var TextEdit = class {
     this.registerTmpShortcut();
     if (!this.textEditNode) {
       this.textEditNode = document.createElement("div");
-      this.textEditNode.style.cssText = `position:fixed;box-sizing: border-box;background-color:#fff;box-shadow: 0 0 20px rgba(0,0,0,.5);padding: 3px 5px;margin-left: -5px;margin-top: -3px;outline: none; word-break: break-all;`;
+      this.textEditNode.style.cssText = `position:fixed;box-sizing: border-box;background-color:#fff;box-shadow: 0 0 20px rgba(0,0,0,.5);padding: ${this.textNodePaddingY}px ${this.textNodePaddingX}px;margin-left: -5px;margin-top: -3px;outline: none; word-break: break-all;`;
       this.textEditNode.setAttribute("contenteditable", true);
       this.textEditNode.addEventListener("keyup", (e) => {
         e.stopPropagation();
@@ -26245,6 +26403,13 @@ var TextEdit = class {
           handleInputPasteText(e);
         }
       });
+      this.textEditNode.addEventListener("input", () => {
+        this.mindMap.emit("node_text_edit_change", {
+          node: this.currentNode,
+          text: this.getEditText(),
+          richText: false
+        });
+      });
       const targetNode = this.mindMap.opt.customInnerElsAppendTo || document.body;
       targetNode.appendChild(this.textEditNode);
     }
@@ -26258,8 +26423,8 @@ var TextEdit = class {
     node2.style.domText(this.textEditNode, scale2, isMultiLine);
     this.textEditNode.style.zIndex = nodeTextEditZIndex;
     this.textEditNode.innerHTML = textLines.join("<br>");
-    this.textEditNode.style.minWidth = rect.width + 10 + "px";
-    this.textEditNode.style.minHeight = rect.height + 6 + "px";
+    this.textEditNode.style.minWidth = rect.width + this.textNodePaddingX * 2 + "px";
+    this.textEditNode.style.minHeight = rect.height + this.textNodePaddingY * 2 + "px";
     this.textEditNode.style.left = rect.left + "px";
     this.textEditNode.style.top = rect.top + "px";
     this.textEditNode.style.display = "block";
@@ -26274,6 +26439,21 @@ var TextEdit = class {
       focusInput(this.textEditNode);
     }
     this.cacheEditingText = "";
+  }
+  // 更新文本编辑框的大小和位置
+  updateTextEditNode() {
+    if (this.mindMap.richText) {
+      this.mindMap.richText.updateTextEditNode();
+      return;
+    }
+    if (!this.showTextEdit || !this.currentNode) {
+      return;
+    }
+    const rect = this.currentNode._textData.node.node.getBoundingClientRect();
+    this.textEditNode.style.minWidth = rect.width + this.textNodePaddingX * 2 + "px";
+    this.textEditNode.style.minHeight = rect.height + this.textNodePaddingY * 2 + "px";
+    this.textEditNode.style.left = rect.left + "px";
+    this.textEditNode.style.top = rect.top + "px";
   }
   // 删除文本编辑元素
   removeTextEditEl() {
@@ -26306,12 +26486,7 @@ var TextEdit = class {
       }
       this.mindMap.render();
     });
-    this.mindMap.emit(
-      "hide_text_edit",
-      this.textEditNode,
-      this.renderer.activeNodeList,
-      this.currentNode
-    );
+    const currentNode = this.currentNode;
     this.currentNode = null;
     this.textEditNode.style.display = "none";
     this.textEditNode.innerHTML = "";
@@ -26320,6 +26495,12 @@ var TextEdit = class {
     this.textEditNode.style.fontWeight = "normal";
     this.textEditNode.style.transform = "translateY(0)";
     this.showTextEdit = false;
+    this.mindMap.emit(
+      "hide_text_edit",
+      this.textEditNode,
+      this.renderer.activeNodeList,
+      currentNode
+    );
   }
   // 获取当前正在编辑中的节点实例
   getCurrentEditNode() {
@@ -26420,8 +26601,12 @@ var default_default = {
     gradientStyle: false,
     startColor: "#549688",
     endColor: "#fff",
+    startDir: [0, 0],
+    endDir: [1, 0],
     // 连线标记的位置，start（头部）、end（尾部），该配置在showLineMarker配置为true时生效
-    lineMarkerDir: "end"
+    lineMarkerDir: "end",
+    // 节点鼠标hover和激活时显示的矩形边框的颜色，主题里不设置，默认会取hoverRectColor实例化选项的值
+    hoverRectColor: ""
   },
   // 二级节点样式
   second: {
@@ -26432,7 +26617,7 @@ var default_default = {
     fontFamily: "\u5FAE\u8F6F\u96C5\u9ED1, Microsoft YaHei",
     color: "#565656",
     fontSize: 16,
-    fontWeight: "noraml",
+    fontWeight: "normal",
     fontStyle: "normal",
     lineHeight: 1.5,
     borderColor: "#549688",
@@ -26443,7 +26628,10 @@ var default_default = {
     gradientStyle: false,
     startColor: "#549688",
     endColor: "#fff",
-    lineMarkerDir: "end"
+    startDir: [0, 0],
+    endDir: [1, 0],
+    lineMarkerDir: "end",
+    hoverRectColor: ""
   },
   // 三级及以下节点样式
   node: {
@@ -26454,7 +26642,7 @@ var default_default = {
     fontFamily: "\u5FAE\u8F6F\u96C5\u9ED1, Microsoft YaHei",
     color: "#6a6d6c",
     fontSize: 14,
-    fontWeight: "noraml",
+    fontWeight: "normal",
     fontStyle: "normal",
     lineHeight: 1.5,
     borderColor: "transparent",
@@ -26465,7 +26653,10 @@ var default_default = {
     gradientStyle: false,
     startColor: "#549688",
     endColor: "#fff",
-    lineMarkerDir: "end"
+    startDir: [0, 0],
+    endDir: [1, 0],
+    lineMarkerDir: "end",
+    hoverRectColor: ""
   },
   // 概要节点样式
   generalization: {
@@ -26476,7 +26667,7 @@ var default_default = {
     fontFamily: "\u5FAE\u8F6F\u96C5\u9ED1, Microsoft YaHei",
     color: "#565656",
     fontSize: 16,
-    fontWeight: "noraml",
+    fontWeight: "normal",
     fontStyle: "normal",
     lineHeight: 1.5,
     borderColor: "#549688",
@@ -26486,7 +26677,10 @@ var default_default = {
     textDecoration: "none",
     gradientStyle: false,
     startColor: "#549688",
-    endColor: "#fff"
+    endColor: "#fff",
+    startDir: [0, 0],
+    endDir: [1, 0],
+    hoverRectColor: ""
   }
 };
 var nodeSizeIndependenceList = [
@@ -26515,7 +26709,10 @@ var nodeSizeIndependenceList = [
   "gradientStyle",
   "lineRadius",
   "startColor",
-  "endColor"
+  "endColor",
+  "startDir",
+  "endDir",
+  "hoverRectColor"
 ];
 var checkIsNodeSizeIndependenceConfig = (config4) => {
   let keys2 = Object.keys(config4);
@@ -26579,6 +26776,7 @@ var Render = class {
     this.beingPasteImgSize = 0;
     this.currentBeingPasteType = "";
     this.highlightBoxNode = null;
+    this.highlightBoxNodeStyle = null;
     this.lastActiveNode = null;
     this.lastActiveNodeList = [];
     this.setLayout();
@@ -26612,6 +26810,18 @@ var Render = class {
       this.setRootNodeCenter();
     });
     this.performanceMode();
+    if (this.mindMap.opt.openRealtimeRenderOnNodeTextEdit) {
+      this.mindMap.on("node_text_edit_change", ({ node: node2, text: text4 }) => {
+        node2._textData = node2.createTextNode(text4);
+        const { width: width2, height: height2 } = node2.getNodeRect();
+        node2.width = width2;
+        node2.height = height2;
+        node2.layout();
+        this.mindMap.render(() => {
+          this.textEdit.updateTextEditNode();
+        });
+      });
+    }
   }
   // 性能模式，懒加载节点
   performanceMode() {
@@ -27834,41 +28044,43 @@ var Render = class {
     this.mindMap.render();
   }
   //  展开所有
-  expandAllNode() {
+  expandAllNode(uid = "") {
     if (!this.renderTree)
       return;
-    walk(
-      this.renderTree,
-      null,
-      (node2) => {
-        if (!node2.data.expand) {
-          node2.data.expand = true;
-        }
-      },
-      null,
-      true,
-      0,
-      0
-    );
+    const _walk = (node2, enableExpand) => {
+      if (!enableExpand && node2.data.uid === uid) {
+        enableExpand = true;
+      }
+      if (enableExpand && !node2.data.expand) {
+        node2.data.expand = true;
+      }
+      if (node2.children && node2.children.length > 0) {
+        node2.children.forEach((child) => {
+          _walk(child, enableExpand);
+        });
+      }
+    };
+    _walk(this.renderTree, !uid);
     this.mindMap.render();
   }
   //  收起所有
-  unexpandAllNode(isSetRootNodeCenter = true) {
+  unexpandAllNode(isSetRootNodeCenter = true, uid = "") {
     if (!this.renderTree)
       return;
-    walk(
-      this.renderTree,
-      null,
-      (node2, parent, isRoot) => {
-        if (!isRoot && node2.children && node2.children.length > 0) {
-          node2.data.expand = false;
-        }
-      },
-      null,
-      true,
-      0,
-      0
-    );
+    const _walk = (node2, isRoot, enableUnExpand) => {
+      if (!enableUnExpand && node2.data.uid === uid) {
+        enableUnExpand = true;
+      }
+      if (enableUnExpand && !isRoot && node2.children && node2.children.length > 0) {
+        node2.data.expand = false;
+      }
+      if (node2.children && node2.children.length > 0) {
+        node2.children.forEach((child) => {
+          _walk(child, false, enableUnExpand);
+        });
+      }
+    };
+    _walk(this.renderTree, true, !uid);
     this.mindMap.render(() => {
       if (isSetRootNodeCenter) {
         this.setRootNodeCenter();
@@ -28239,17 +28451,30 @@ var Render = class {
     return res;
   }
   // 高亮节点或子节点
-  highlightNode(node2, range2) {
+  highlightNode(node2, range2, style) {
     if (this.isRendering)
       return;
-    const { highlightNodeBoxStyle = {} } = this.mindMap.opt;
+    style = {
+      stroke: "rgb(94, 200, 248)",
+      fill: "transparent",
+      ...style || {}
+    };
     if (!this.highlightBoxNode) {
       this.highlightBoxNode = new Polygon().stroke({
-        color: highlightNodeBoxStyle.stroke || "transparent"
+        color: style.stroke || "transparent"
       }).fill({
-        color: highlightNodeBoxStyle.fill || "transparent"
+        color: style.fill || "transparent"
       });
+    } else if (this.highlightBoxNodeStyle) {
+      if (this.highlightBoxNodeStyle.stroke !== style.stroke || this.highlightBoxNodeStyle.fill !== style.fill) {
+        this.highlightBoxNode.stroke({
+          color: style.stroke || "transparent"
+        }).fill({
+          color: style.fill || "transparent"
+        });
+      }
     }
+    this.highlightBoxNodeStyle = { ...style };
     let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
     if (range2) {
       const children = node2.children.slice(range2[0], range2[1] + 1);
@@ -30141,9 +30366,7 @@ var defaultOpt = {
     close: ""
   },
   // 处理收起节点数量
-  expandBtnNumHandler: (num) => {
-    return num;
-  },
+  expandBtnNumHandler: null,
   // 是否显示带数量的收起按钮
   isShowExpandNum: true,
   // 是否只有当鼠标在画布内才响应快捷键事件
@@ -30252,11 +30475,6 @@ var defaultOpt = {
   addHistoryTime: 100,
   // 是否禁止拖动画布
   isDisableDrag: false,
-  // 鼠标移入概要高亮所属节点时的高亮框样式
-  highlightNodeBoxStyle: {
-    stroke: "rgb(94, 200, 248)",
-    fill: "transparent"
-  },
   // 创建新节点时的行为
   /*
     DEFAULT  ：默认会激活新创建的节点，并且进入编辑模式。如果同时创建了多个新节点，那么只会激活而不会进入编辑模式
@@ -30317,6 +30535,10 @@ var defaultOpt = {
     removeNodeWhenOutCanvas: true
     // 节点移除画布可视区域后从画布删除
   },
+  // 如果节点文本为空，那么为了避免空白节点高度塌陷，会用该字段指定的文本测量一个高度
+  emptyTextMeasureHeightText: "abc123\u6211\u548C\u4F60",
+  // 是否在进行节点文本编辑时实时更新节点大小和节点位置，开启后当节点数量比较多时可能会造成卡顿
+  openRealtimeRenderOnNodeTextEdit: false,
   // 【Select插件】
   // 多选节点时鼠标移动到边缘时的画布移动偏移量
   selectTranslateStep: 3,
@@ -30482,7 +30704,13 @@ var defaultOpt = {
   richTextEditFakeInPlace: false,
   // 【OuterFrame】插件
   outerFramePaddingX: 10,
-  outerFramePaddingY: 10
+  outerFramePaddingY: 10,
+  // 【Painter】插件
+  // 是否只格式刷节点手动设置的样式，不考虑节点通过主题的应用的样式
+  onlyPainterNodeCustomStyles: false,
+  // 【NodeImgAdjust】插件
+  // 拦截节点图片的删除，点击节点图片上的删除按钮删除图片前会调用该函数，如果函数返回true则取消删除
+  beforeDeleteNodeImg: null
 };
 
 // ../simple-mind-map/index.js
@@ -59719,6 +59947,8 @@ var RichText = class {
     this.cacheEditingText = "";
     this.lostStyle = false;
     this.isCompositing = false;
+    this.textNodePaddingX = 6;
+    this.textNodePaddingY = 4;
     this.initOpt();
     this.extendQuill();
     this.appendCss();
@@ -59730,13 +59960,16 @@ var RichText = class {
   // 绑定事件
   bindEvent() {
     this.onCompositionStart = this.onCompositionStart.bind(this);
+    this.onCompositionUpdate = this.onCompositionUpdate.bind(this);
     this.onCompositionEnd = this.onCompositionEnd.bind(this);
     window.addEventListener("compositionstart", this.onCompositionStart);
+    window.addEventListener("compositionupdate", this.onCompositionUpdate);
     window.addEventListener("compositionend", this.onCompositionEnd);
   }
   // 解绑事件
   unbindEvent() {
     window.removeEventListener("compositionstart", this.onCompositionStart);
+    window.removeEventListener("compositionupdate", this.onCompositionUpdate);
     window.removeEventListener("compositionend", this.onCompositionEnd);
   }
   // 插入样式
@@ -59836,8 +60069,8 @@ var RichText = class {
     let originHeight = g.attr("data-height");
     let scaleX = rect.width / originWidth;
     let scaleY = rect.height / originHeight;
-    let paddingX = 6;
-    let paddingY = 4;
+    let paddingX = this.textNodePaddingX;
+    let paddingY = this.textNodePaddingY;
     if (richTextEditFakeInPlace) {
       let paddingValue = node2.getPaddingVale();
       paddingX = paddingValue.paddingX;
@@ -59914,6 +60147,19 @@ var RichText = class {
     }
     this.cacheEditingText = "";
   }
+  // 更新文本编辑框的大小和位置
+  updateTextEditNode() {
+    if (!this.node)
+      return;
+    const rect = this.node._textData.node.node.getBoundingClientRect();
+    const g = this.node._textData.node;
+    const originWidth = g.attr("data-width");
+    const originHeight = g.attr("data-height");
+    this.textEditNode.style.minWidth = originWidth + this.textNodePaddingX * 2 + "px";
+    this.textEditNode.style.minHeight = originHeight + "px";
+    this.textEditNode.style.left = rect.left + "px";
+    this.textEditNode.style.top = rect.top + "px";
+  }
   // 删除文本编辑框元素
   removeTextEditEl() {
     if (!this.textEditNode)
@@ -59952,6 +60198,17 @@ var RichText = class {
     let html2 = this.quill.container.firstChild.innerHTML;
     return html2.replace(/<p><br><\/p>$/, "");
   }
+  // 给html字符串中的节点样式按样式名首字母排序
+  sortHtmlNodeStyles(html2) {
+    return html2.replace(/(<[^<>]+\s+style=")([^"]+)("\s*>)/g, (_, a, b, c) => {
+      let arr = b.match(/[^:]+:[^:]+;/g) || [];
+      arr = arr.map((item) => {
+        return item.trim();
+      });
+      arr.sort();
+      return a + arr.join("") + c;
+    });
+  }
   // 隐藏文本编辑控件，即完成编辑
   hideEditText(nodes) {
     if (!this.showTextEdit) {
@@ -59962,17 +60219,19 @@ var RichText = class {
       beforeHideRichTextEdit(this);
     }
     let html2 = this.getEditText();
+    html2 = this.sortHtmlNodeStyles(html2);
     let list2 = nodes && nodes.length > 0 ? nodes : this.mindMap.renderer.activeNodeList;
-    list2.forEach((node2) => {
-      this.mindMap.execCommand("SET_NODE_TEXT", node2, html2, true);
+    list2.forEach((node3) => {
+      this.mindMap.execCommand("SET_NODE_TEXT", node3, html2, true);
       this.mindMap.render();
     });
-    this.mindMap.emit("hide_text_edit", this.textEditNode, list2, this.node);
+    const node2 = this.node;
     this.textEditNode.style.display = "none";
     this.showTextEdit = false;
     this.mindMap.emit("rich_text_selection_change", false);
     this.node = null;
     this.isInserting = false;
+    this.mindMap.emit("hide_text_edit", this.textEditNode, list2, node2);
   }
   // 初始化Quill富文本编辑器
   initQuillEditor() {
@@ -60086,6 +60345,11 @@ var RichText = class {
         this.setTextStyleIfNotRichText(this.node);
         this.lostStyle = false;
       }
+      this.mindMap.emit("node_text_edit_change", {
+        node: this.node,
+        text: this.getEditText(),
+        richText: true
+      });
     });
     this.quill.clipboard.addMatcher(Node.ELEMENT_NODE, (node2, delta) => {
       let ops = [];
@@ -60127,6 +60391,16 @@ var RichText = class {
       return;
     }
     this.isCompositing = true;
+  }
+  // 中文输入中
+  onCompositionUpdate() {
+    if (!this.showTextEdit || !this.node)
+      return;
+    this.mindMap.emit("node_text_edit_change", {
+      node: this.node,
+      text: this.getEditText(),
+      richText: true
+    });
   }
   // 中文输入结束
   onCompositionEnd() {
@@ -60553,8 +60827,14 @@ var NodeImgAdjust = class {
         return;
       this.hideHandleEl();
     });
-    btnRemove.addEventListener("click", (e) => {
-      this.mindMap.execCommand("SET_NODE_IMAGE", this.node, { url: null });
+    btnRemove.addEventListener("click", async (e) => {
+      let stop = false;
+      if (typeof this.mindMap.opt.beforeDeleteNodeImg === "function") {
+        stop = await this.mindMap.opt.beforeDeleteNodeImg(this.node);
+      }
+      if (!stop) {
+        this.mindMap.execCommand("SET_NODE_IMAGE", this.node, { url: null });
+      }
     });
     const targetNode = this.mindMap.opt.customInnerElsAppendTo || document.body;
     targetNode.appendChild(this.handleEl);
@@ -61071,17 +61351,20 @@ var Painter = class {
   painterOneNode(node2) {
     if (!node2 || !this.isInPainter || !this.painterNode || !node2 || node2.uid === this.painterNode.uid)
       return;
-    const style = {};
+    let style = {};
+    if (!this.mindMap.opt.onlyPainterNodeCustomStyles) {
+      style = {
+        ...this.painterNode.effectiveStyles
+      };
+    }
     const painterNodeData = this.painterNode.getData();
     Object.keys(painterNodeData).forEach((key) => {
       if (checkIsNodeStyleDataKey(key)) {
         style[key] = painterNodeData[key];
       }
     });
+    this.mindMap.renderer._handleRemoveCustomStyles(node2.getData());
     node2.setStyles(style);
-    if (painterNodeData.activeStyle) {
-      node2.setStyles(painterNodeData.activeStyle, true);
-    }
   }
   // 插件被移除前做的事情
   beforePluginRemove() {
@@ -76901,7 +77184,7 @@ var Formula2 = class {
         let node2 = super.create(value);
         if (typeof value === "string") {
           katex.render(value, node2, self2.config);
-          node2.setAttribute("data-value", value);
+          node2.setAttribute("data-value", htmlEscape(value));
         }
         return node2;
       }
@@ -76947,7 +77230,7 @@ var Formula2 = class {
       for (const el of els)
         nodeText = nodeText.replace(
           el.outerHTML,
-          `$${el.getAttribute("data-value").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")}$`
+          `$${el.getAttribute("data-value")}$`
         );
     }
     return nodeText;
@@ -82700,7 +82983,7 @@ simple_mind_map_default.iconList = icons_default.nodeIconList;
 simple_mind_map_default.constants = constant_exports;
 simple_mind_map_default.themes = themes_default;
 simple_mind_map_default.defaultTheme = default_exports;
-simple_mind_map_default.version = "0.11.0";
+simple_mind_map_default.version = "0.11.1";
 simple_mind_map_default.usePlugin(MiniMap_default).usePlugin(Watermark_default).usePlugin(Drag_default).usePlugin(KeyboardNavigation_default).usePlugin(ExportXMind_default).usePlugin(ExportPDF_default).usePlugin(Export_default).usePlugin(Select_default).usePlugin(AssociativeLine_default).usePlugin(RichText_default).usePlugin(TouchEvent_default).usePlugin(NodeImgAdjust_default).usePlugin(Search_default).usePlugin(Painter_default).usePlugin(Scrollbar_default).usePlugin(Formula_default).usePlugin(RainbowLines_default).usePlugin(Demonstrate_default).usePlugin(OuterFrame_default);
 var full_default = simple_mind_map_default;
 export {
